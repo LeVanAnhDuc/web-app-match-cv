@@ -43,9 +43,9 @@
 | cvDocumentId | uuid (FK → Document) | kind=CV |
 | jdDocumentId | uuid (FK → Document) | kind=JD |
 | overallScore | int | % match tổng = `round(0.6*semantic + 0.4*keyword)` |
-| semanticScore | int | % — cosine của 2 **Gemini embedding** (tính in-app, no pgvector) |
+| semanticScore | int | % — cosine của 2 **OpenRouter embedding** (tính in-app, no pgvector) |
 | keywordScore | int | % — skill/keyword overlap (\|JD∩CV\|/\|JD\|) |
-| report | jsonb | { strengths[], gaps[], suggestions[] } (từ **Gemini**) |
+| report | jsonb | { strengths[], gaps[], suggestions[] } (từ **OpenRouter**) |
 | createdAt | timestamptz | |
 
 > **Implemented (Plan 2)**: `MatchResult` + `Document` (Plan 1) đã có trong Prisma schema (`server/prisma/schema.prisma`). Không cột embedding/vector.

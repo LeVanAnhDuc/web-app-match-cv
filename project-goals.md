@@ -56,7 +56,7 @@ Chi tiết schema xem `docs/erd.md`.
 ## 7. Non-Functional Requirements
 
 - **i18n**: EN + VI (BE `nestjs-i18n`, FE `i18next`).
-- **Privacy**: CV/JD chứa PII → data per-user, cô lập; API key AI để `.env`, không commit; cân nhắc data-exposure khi gửi text ra Gemini (Google).
+- **Privacy**: CV/JD chứa PII → data per-user, cô lập; API key AI để `.env`, không commit; cân nhắc data-exposure khi gửi text ra **OpenRouter** (và model provider phía sau nó).
 - **Performance**: MVP tính match synchronous có loading UI; background queue là roadmap.
 - **Security**: validate/parse input file an toàn (size limit, type check); rate-limit; helmet/cors.
 
@@ -68,7 +68,7 @@ Chi tiết schema xem `docs/erd.md`.
 | 2 | BE **NestJS + PostgreSQL + pgvector + Prisma** | Quan hệ dữ liệu job-board chặt + vector native cho semantic match |
 | 3 | FE **TanStack Start + Tailwind + Ant Design** | Full-stack React (SSR + server fns), antd component lib |
 | 4 | Matching **hybrid** keyword + vector + LLM | Chất lượng cao, có giải thích, kiểm soát cost |
-| 5 | AI = **Google Gemini** (report + embedding, 1 provider/key) | *(đổi 2026-07-24, Plan 2)* Một key cho cả LLM report lẫn embedding; đơn giản hơn Claude+Voyage. Không fallback mock. |
+| 5 | AI = **OpenRouter** (OpenAI-compatible, SDK `openai`) — chat `openai/gpt-4o-mini` (report) + `openai/text-embedding-3-small` (embed) | *(đổi 2026-07-24)* 1 key cả chat + embeddings; đã thử Gemini nhưng key hết quota generation. Không fallback mock. |
 | 5b | Semantic **không pgvector** ở MVP | Match 1 CV × 1 JD → cosine 2 vector **tính in-app**; pgvector chỉ cần khi rank nhiều CV (roadmap #5). |
 | 6 | Auth **defer**, stub user, schema SSO-ready | Không chặn MVP; SSO store-app chưa tồn tại (phải xây từ đầu) |
 
@@ -76,7 +76,7 @@ Chi tiết schema xem `docs/erd.md`.
 
 Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/frontend.md`. Tóm tắt:
 
-- **BE**: Node + TypeScript, NestJS, PostgreSQL (pgvector defer), Prisma, class-validator, Swagger, **`@google/genai` (Gemini — report + embedding)**, `pdf-parse` + `mammoth`, nestjs-i18n, Jest. Port `:5200`.
+- **BE**: Node + TypeScript, NestJS, PostgreSQL (pgvector defer), Prisma, class-validator, Swagger, **`openai` SDK → OpenRouter (report + embedding)**, `pdf-parse` + `mammoth`, nestjs-i18n, Jest. Port `:5200`.
 - **FE**: TanStack Start (React 19 / Vite), Ant Design + Tailwind, TanStack Query + Zustand, react-hook-form + zod, i18next, Playwright + Vitest. Port đề xuất `:5300`.
 
 ## 10. Roadmap (MVP order)
@@ -95,7 +95,7 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 
 - Cấu trúc `parsedContent` (jsonb) chuẩn hóa ra sao (schema section CV/JD)? → chốt ở `writing-plans`.
 - Công thức combine `overallScore` từ semantic + keyword (trọng số)? → chốt ở design feature.
-- Gemini model id (generation vd `gemini-2.0-flash`; embedding vd `text-embedding-004`) → cấu hình qua env, chốt khi impl.
+- OpenRouter model (chat default `openai/gpt-4o-mini`; embed `openai/text-embedding-3-small`) → cấu hình qua env `OPENROUTER_CHAT_MODEL`/`OPENROUTER_EMBED_MODEL`.
 - Deploy target (Docker Compose local? cloud nào?) → TBD.
 
 ## 13. Changelog

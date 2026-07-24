@@ -31,19 +31,19 @@ Không có injection, không auth/authz bypass, không cross-user data leak, kh�
 
 ---
 
-# Plan 2 — Matching engine (Gemini) · review 2026-07-24
+# Plan 2 — Matching engine (OpenRouter) · review 2026-07-24
 
 ## Verdict: ✅ PASS (sau 3 must-fix). Code: 0 Critical / 3 Important / 3 Minor.
 
-Không IDOR (per-user scope trên `/match`, `GET /match/:id`, `GET /documents/:id` — test cross-user + kind-swap). Prompt-injection blast radius thấp: scores tính độc lập với Gemini generation, output ràng JSON schema, render plain text (no XSS). Key chỉ đọc từ env, không log/không trả về.
+Không IDOR (per-user scope trên `/match`, `GET /match/:id`, `GET /documents/:id` — test cross-user + kind-swap). Prompt-injection blast radius thấp: scores tính độc lập với OpenRouter generation, output ràng JSON schema, render plain text (no XSS). Key chỉ đọc từ env, không log/không trả về.
 
 ## Must-fix (đã xử lý)
 
 | # | Finding | Fix |
 |---|---|---|
-| 1 | Không timeout quanh Gemini `embed`/`generateReport` → `/match` treo nếu Gemini stall | `withTimeout` 20s → 503 (gemini.service.ts) |
-| 2 | Không cap text gửi Gemini (uploaded doc tới 2M chars) → cost/latency | `capForMatch` 20k chars trong `MatchingService.run` |
-| 3 | Chưa disclose CV/JD (PII) gửi Google Gemini | Note ở design.md §3 + project-goals §7 + **UI disclaimer** step 4 (`result.disclaimer`) |
+| 1 | Không timeout quanh OpenRouter `embed`/`generateReport` → `/match` treo nếu OpenRouter stall | `withTimeout` 20s → 503 (ai.service.ts) |
+| 2 | Không cap text gửi OpenRouter (uploaded doc tới 2M chars) → cost/latency | `capForMatch` 20k chars trong `MatchingService.run` |
+| 3 | Chưa disclose CV/JD (PII) gửi OpenRouter | Note ở design.md §3 + project-goals §7 + **UI disclaimer** step 4 (`result.disclaimer`) |
 
 ## Important/Minor khác (đã xử lý / ghi nhận)
 

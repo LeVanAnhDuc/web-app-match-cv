@@ -743,24 +743,24 @@ git push -u origin main
 
 # PLAN 2 — Matching engine + step 3 (Review) & step 4 (Result)
 
-> Prereq: Plan 1 (Document upload/save/reuse + wizard step 1–2) đã merge. Branch: `feat/matching-engine` (4 repo). **AI = Gemini** (1 key), **KHÔNG pgvector** (cosine in-app), **KHÔNG fallback mock** (runtime cần key thật).
+> Prereq: Plan 1 (Document upload/save/reuse + wizard step 1–2) đã merge. Branch: `feat/matching-engine` (4 repo). **AI = OpenRouter** (1 key), **KHÔNG pgvector** (cosine in-app), **KHÔNG fallback mock** (runtime cần key thật).
 
 **Goal:** Từ CV + JD đã chọn (step 2 xong) → **step 3 Review** (xem/sửa rawText, back import lại) → **step 4 Result**: % match tổng + breakdown (semantic + keyword) + strengths/gaps/gợi ý cải thiện CV.
 
 ## Global Constraints (Plan 2)
 
-- **AI provider = Google Gemini** qua `@google/genai`, 1 key `GEMINI_API_KEY`. Model config qua env: `GEMINI_GEN_MODEL` (default `gemini-2.0-flash`), `GEMINI_EMBED_MODEL` (default `text-embedding-004`).
-- **GEMINI_API_KEY optional-at-boot, required-at-match**: server boot + step 1–2 KHÔNG cần key; endpoint `/match` throw lỗi rõ (503) nếu thiếu key. Không mock runtime.
+- **AI provider = OpenRouter** qua `openai SDK`, 1 key `OPENROUTER_API_KEY`. Model config qua env: `OPENROUTER_CHAT_MODEL` (default `openai/gpt-4o-mini`), `OPENROUTER_EMBED_MODEL` (default `openai/text-embedding-3-small`).
+- **OPENROUTER_API_KEY optional-at-boot, required-at-match**: server boot + step 1–2 KHÔNG cần key; endpoint `/match` throw lỗi rõ (503) nếu thiếu key. Không mock runtime.
 - **Semantic = cosine in-app** của 2 embedding (KHÔNG pgvector, KHÔNG lưu vector).
 - **overallScore** = `round(0.6*semantic + 0.4*keyword)` (%). Ghi công thức ở code + DR nếu đổi.
 - i18n en+vi cho mọi copy mới (thêm key vào `.claude/uiux/ux-copy.md` + client i18n).
-- **Tests**: unit cho cosine + keyword; e2e/BE mock `GeminiService` (DI override — KHÔNG phải runtime fallback); FE E2E dùng `page.route` stub `/match` (không gọi Gemini thật, không tốn cost). 1 smoke thật với key ở gate B nếu key có.
+- **Tests**: unit cho cosine + keyword; e2e/BE mock `OpenRouterService` (DI override — KHÔNG phải runtime fallback); FE E2E dùng `page.route` stub `/match` (không gọi OpenRouter thật, không tốn cost). 1 smoke thật với key ở gate B nếu key có.
 
 ## API Contract (Plan 2) — CHỐT
 
 - `POST /api/v1/match` `{ cvDocumentId: string, jdDocumentId: string }` → **201** `MatchResultDto`:
   `{ id, cvDocumentId, jdDocumentId, overallScore, semanticScore, keywordScore, report: { strengths: string[], gaps: string[], suggestions: string[] }, createdAt }`.
-  Lỗi: `400` doc không thuộc user / sai kind; `503` thiếu GEMINI_API_KEY hoặc Gemini fail.
+  Lỗi: `400` doc không thuộc user / sai kind; `503` thiếu OPENROUTER_API_KEY hoặc OpenRouter fail.
 - `GET /api/v1/match/:id` → **200** `MatchResultDto` (per-user).
 
 ---
@@ -772,14 +772,14 @@ git push -u origin main
 - `npx prisma migrate dev --name add_match_result`. Update `docs/erd.md` (MatchResult → thực).
 - Commit.
 
-### Task E2: `GeminiService` (embedding + report)
-- `yarn add @google/genai`. `src/modules/matching/gemini.service.ts`:
-  - `isConfigured(): boolean` (có `GEMINI_API_KEY`).
-  - `embed(text): Promise<number[]>` — Gemini embed model.
-  - `generateReport(cvText, jdText, scores): Promise<{strengths,gaps,suggestions}>` — prompt Gemini gen model, **response JSON schema** (structured), parse an toàn.
+### Task E2: `OpenRouterService` (embedding + report)
+- `yarn add openai`. `src/modules/matching/ai.service.ts`:
+  - `isConfigured(): boolean` (có `OPENROUTER_API_KEY`).
+  - `embed(text): Promise<number[]>` — OpenRouter embed model.
+  - `generateReport(cvText, jdText, scores): Promise<{strengths,gaps,suggestions}>` — prompt OpenRouter gen model, **response JSON schema** (structured), parse an toàn.
   - Throw `ServiceUnavailableException` (503) nếu `!isConfigured()` hoặc API fail (message i18n).
-- Env: thêm `GEMINI_API_KEY?` (optional) + models vào `env.validation.ts` (optional) + `.env.example`.
-- Unit test: mock `@google/genai` client → embed/report shape đúng; thiếu key → throw 503.
+- Env: thêm `OPENROUTER_API_KEY?` (optional) + models vào `env.validation.ts` (optional) + `.env.example`.
+- Unit test: mock `openai SDK` client → embed/report shape đúng; thiếu key → throw 503.
 - Commit.
 
 ### Task E3: `MatchingService` (hybrid, no pgvector)
@@ -794,7 +794,7 @@ git push -u origin main
 
 ### Task E4: `POST /match` + `GET /match/:id`
 - `matching.controller.ts` + DTO `CreateMatchDto {cvDocumentId, jdDocumentId}` (IsUUID). Service: load 2 Document theo id **+ userId** (per-user; 400 nếu không thuộc user / sai kind), gọi `MatchingService.run`, persist `MatchResult`, trả `MatchResultDto`. `GET /match/:id` per-user (404 nếu không phải của user).
-- e2e (mock GeminiService qua `overrideProvider`): happy → 201 scores+report; doc user khác → 400/404; thiếu docId → 400; `GET` trả đúng, per-user isolation.
+- e2e (mock OpenRouterService qua `overrideProvider`): happy → 201 scores+report; doc user khác → 400/404; thiếu docId → 400; `GET` trả đúng, per-user isolation.
 - Commit.
 
 ## PART F — client (step 3 Review + step 4 Result)
@@ -810,15 +810,15 @@ git push -u origin main
 - Test (component, mock hooks): render 2 review pane; Back về step 2; Run match gọi mutation → sang step 4.
 
 ### Task F3: Step 4 — Result
-- `src/features/wizard/StepResult.tsx`: `useMatchResult(matchId)`; render **overall % gauge**, 2 progress bar (semantic/keyword), list **strengths** (success), **gaps** (warning), **suggestions** (lightbulb). "Start over" → reset store về step 1. Loading + error UI (503 Gemini). i18n.
+- `src/features/wizard/StepResult.tsx`: `useMatchResult(matchId)`; render **overall % gauge**, 2 progress bar (semantic/keyword), list **strengths** (success), **gaps** (warning), **suggestions** (lightbulb). "Start over" → reset store về step 1. Loading + error UI (503 OpenRouter). i18n.
 - Test: render với mock MatchResultDto (scores + report) → hiển thị %, lists; error state.
 
 > **BE bổ sung** (gộp Task E4): `GET /api/v1/documents/:id` → `DocumentDto` (per-user) cho step 3 fetch rawText.
 
 ## E2E gate (Plan 2)
-- Mở rộng `e2e.md` + Playwright: step 3 (review render, edit, back-to-import, run→step4) + step 4 (result render từ **`page.route` stub** `/match` + `/match/:id` — deterministic, no Gemini cost). Reconcile matrix. Dual-gate; gate B smoke thật nếu key có.
+- Mở rộng `e2e.md` + Playwright: step 3 (review render, edit, back-to-import, run→step4) + step 4 (result render từ **`page.route` stub** `/match` + `/match/:id` — deterministic, no OpenRouter cost). Reconcile matrix. Dual-gate; gate B smoke thật nếu key có.
 
 ## Self-Review (Plan 2)
-- **Spec coverage:** step 3 review + edit + back-import (F2), step 4 report (F3), hybrid engine Gemini+keyword no-pgvector (E2/E3), persist + fetch (E1/E4). Phủ design.md §2 step 3–4 + §3 engine. ✅
+- **Spec coverage:** step 3 review + edit + back-import (F2), step 4 report (F3), hybrid engine OpenRouter+keyword no-pgvector (E2/E3), persist + fetch (E1/E4). Phủ design.md §2 step 3–4 + §3 engine. ✅
 - **Type consistency:** `MatchResultDto` (report {strengths,gaps,suggestions}) khớp BE↔FE; scores Int %. ✅
-- **No-mock-runtime:** GeminiService throw 503 khi thiếu key; test mock qua DI/route (không phải runtime fallback). ✅
+- **No-mock-runtime:** OpenRouterService throw 503 khi thiếu key; test mock qua DI/route (không phải runtime fallback). ✅
