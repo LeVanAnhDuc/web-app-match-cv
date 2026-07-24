@@ -29,8 +29,8 @@
 | title | text | tên hiển thị (cho radio-select reuse) |
 | sourceFormat | enum(pdf, docx, text) | |
 | rawText | text | text sau parse |
-| parsedContent | jsonb | structured (schema chốt ở writing-plans) |
-| embedding | vector | Voyage embedding (pgvector) |
+| parsedContent | jsonb (nullable) | structured — **null ở Plan 1** (chỉ dùng rawText) |
+| ~~embedding~~ | ~~vector~~ | **CHƯA implement** — pgvector defer; semantic tính embedding on-the-fly + cosine in-app (Plan 2), không lưu vector |
 | isSaved | boolean | true = lưu tái dùng; false = transient session |
 | createdAt | timestamptz | |
 
@@ -42,18 +42,20 @@
 | userId | uuid (FK → User) | per-user |
 | cvDocumentId | uuid (FK → Document) | kind=CV |
 | jdDocumentId | uuid (FK → Document) | kind=JD |
-| overallScore | numeric | % match tổng (công thức combine TBD) |
-| semanticScore | numeric | cosine similarity (Voyage) |
-| keywordScore | numeric | skill/keyword overlap |
-| report | jsonb | { strengths[], gaps[], suggestions[] } (từ Claude) |
+| overallScore | int | % match tổng = `round(0.6*semantic + 0.4*keyword)` |
+| semanticScore | int | % — cosine của 2 **Gemini embedding** (tính in-app, no pgvector) |
+| keywordScore | int | % — skill/keyword overlap (\|JD∩CV\|/\|JD\|) |
+| report | jsonb | { strengths[], gaps[], suggestions[] } (từ **Gemini**) |
 | createdAt | timestamptz | |
+
+> **Implemented (Plan 2)**: `MatchResult` + `Document` (Plan 1) đã có trong Prisma schema (`server/prisma/schema.prisma`). Không cột embedding/vector.
 
 ## Notes (semantics ngoài schema)
 
 - **Per-user isolation**: mọi query `Document`/`MatchResult` filter theo `userId`; user khác KHÔNG thấy data của nhau.
 - **isSaved**: reuse ở wizard step 1/2 chỉ liệt kê `Document` có `isSaved=true` của user hiện tại (radio-select).
-- **embedding**: sinh khi parse xong; dùng cho semantic score. Index pgvector (ivfflat/hnsw) — chốt khi scale.
-- **overallScore**: kết hợp semantic + keyword theo trọng số — công thức chốt ở design feature.
+- **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (roadmap #5).
+- **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
 
 ## How to update
 

@@ -14,11 +14,11 @@ Feature đầu của `web-app-match-cv`: một **wizard 4 bước** cho user n�
 | Mục | Chốt |
 |---|---|
 | Core product | Job board 2 chiều (candidate ↔ recruiter); MVP chỉ làm matching wizard |
-| Matching | Hybrid: keyword/skill + semantic (Voyage embedding, pgvector) + Claude report |
+| Matching | Hybrid: keyword/skill + semantic (**Gemini** embedding, cosine in-app, **no pgvector**) + **Gemini** report *(đổi Plan 2)* |
 | Auth | **DEFER** — stub current-user; per-user isolation vẫn bắt buộc (schema key `userId`) |
 | BE | NestJS + PostgreSQL + pgvector + Prisma |
 | FE | TanStack Start + Tailwind + Ant Design |
-| AI | Claude (`@anthropic-ai/sdk`) + Voyage (`voyageai`) |
+| AI | **Google Gemini** (`@google/genai`) — report + embedding, 1 key *(đổi Plan 2, thay Claude+Voyage)* |
 | Reuse UX | **radio-select** CV/JD đã lưu (per-user); action lưu thiết kế kỹ ở SuperDesign step 1.5 |
 
 ## 2. Wizard flow (4 bước)
@@ -34,15 +34,18 @@ Feature đầu của `web-app-match-cv`: một **wizard 4 bước** cho user n�
 
 ## 3. Matching engine (hybrid)
 
+> **Cập nhật Plan 2 (2026-07-24)**: AI = **Google Gemini** (thay Claude+Voyage), **KHÔNG pgvector** — match 1 CV × 1 JD nên cosine tính **in-app**. Không fallback mock.
+
 ```
-parse (pdf-parse / mammoth / paste) → rawText
+parse (pdf-parse / mammoth / paste) → rawText  (cap 20k chars khi gửi Gemini)
   ├─ keywordScore : trích skill/keyword JD & CV → overlap ratio
-  ├─ semanticScore: Voyage embed CV & JD → cosine similarity (pgvector)
-  └─ overallScore : combine (trọng số — chốt ở writing-plans)
-Claude (rawText CV + JD + scores) → report { strengths[], gaps[], suggestions[] }
+  ├─ semanticScore: Gemini embed CV & JD → cosine similarity (in-app, no pgvector)
+  └─ overallScore : round(0.6*semantic + 0.4*keyword)
+Gemini (rawText CV + JD + scores) → report { strengths[], gaps[], suggestions[] }
 ```
 
-- MVP **synchronous** (loading UI). Timeout + error handling cho Claude/Voyage.
+- **Data disclosure (privacy)**: nội dung CV/JD (chứa PII) được **gửi tới Google Gemini API** để embedding + sinh report. UI có disclaimer ở step 4 (`result.disclaimer`); ghi rõ ở đây + `project-goals.md` §7.
+- MVP **synchronous** (loading UI). Timeout 20s + error 503 handling cho Gemini call.
 - Report trình bày dễ hiểu: % tổng nổi bật, breakdown, danh sách gap + gợi ý chỉnh CV.
 
 ## 4. Data model
@@ -79,7 +82,7 @@ Auth thật, multi-CV batch ranking, apply/messaging, public listing/search, pay
 | 7 | Filter / search | **N/A** — reuse list MVP là radio list đơn giản, không search/filter/pagination. (Thêm khi list lớn — roadmap.) | — |
 | 8 | Data rendering | ✅ overallScore render `85%` (không phải `0.8532`); sourceFormat → label ("PDF"/"Word"/"Text") không phải enum; gaps/suggestions → bullet list dễ đọc không phải JSON thô; createdAt formatted. | A+B |
 | 9 | **i18n** | ✅ Render **EN + VI** cho: label 4 bước, validation errors, empty state, nhãn report (% match / điểm thiếu / gợi ý). Catch missing-message. | A+B |
-| 10 | Error / loading | ✅ Claude/Voyage API 5xx / timeout / network fail → error UI + retry. Loading skeleton khi parse file + khi tính match (synchronous vài giây). Corrupt file → thông báo lỗi rõ. | A+B |
+| 10 | Error / loading | ✅ Gemini API 5xx / timeout(20s) / thiếu key → 503 → error UI. Loading khi parse file + khi tính match (synchronous vài giây). Corrupt file → thông báo lỗi rõ. | A+B |
 | 11 | Mutation / state | ✅ **[ST]** transitions: `step1→2→3→4` hợp lệ · **back button** giữ data · **invalid transition**: nhảy thẳng step 4 khi thiếu CV/JD → chặn/redirect về step thiếu. Lưu CV → xuất hiện trong reuse list. Double-submit "Match" → lần 2 no-op (idempotent). **Per-user isolation**: doc user A KHÔNG hiện trong reuse list user B. `afterAll` xoá doc đã lưu trong test. | A only |
 | 12 | Accessibility | ✅ Wizard step keyboard nav; radio group reuse có role/label; nút Upload có label; focus chuyển đúng khi đổi bước; report có heading structure. Selector theo role/label. | A+B |
 

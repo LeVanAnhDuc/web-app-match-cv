@@ -28,3 +28,29 @@ Không có injection, không auth/authz bypass, không cross-user data leak, kh�
 - **Parser isolation**: timeout không cắt được sync CPU thuần — worker-thread isolation là hardening tương lai.
 - **`CurrentUserService` singleton**: khi SSO về (Plan 2 auth), phải chuyển request-scoped + re-verify mọi call site (không chỉ đổi constant thành JWT claim).
 - **AntdProvider dark FOUC** (Minor #5): first paint dùng light cho OS-dark user — cosmetic, để sau.
+
+---
+
+# Plan 2 — Matching engine (Gemini) · review 2026-07-24
+
+## Verdict: ✅ PASS (sau 3 must-fix). Code: 0 Critical / 3 Important / 3 Minor.
+
+Không IDOR (per-user scope trên `/match`, `GET /match/:id`, `GET /documents/:id` — test cross-user + kind-swap). Prompt-injection blast radius thấp: scores tính độc lập với Gemini generation, output ràng JSON schema, render plain text (no XSS). Key chỉ đọc từ env, không log/không trả về.
+
+## Must-fix (đã xử lý)
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | Không timeout quanh Gemini `embed`/`generateReport` → `/match` treo nếu Gemini stall | `withTimeout` 20s → 503 (gemini.service.ts) |
+| 2 | Không cap text gửi Gemini (uploaded doc tới 2M chars) → cost/latency | `capForMatch` 20k chars trong `MatchingService.run` |
+| 3 | Chưa disclose CV/JD (PII) gửi Google Gemini | Note ở design.md §3 + project-goals §7 + **UI disclaimer** step 4 (`result.disclaimer`) |
+
+## Important/Minor khác (đã xử lý / ghi nhận)
+
+- **StepReview null docId** → infinite spinner: thêm guard error-state + Back (đã fix).
+- **StepResult React keys** (duplicate content): đổi sang index key (đã fix).
+- Minor: orphaned transient doc khi partial fail (ghi nhận, MVP OK — chưa có nhiều transient); redundant clamp (harmless, giữ).
+
+## Follow-up (non-blocking)
+
+- Prompt-injection: chỉ ảnh hưởng report advisory (đã có UI disclaimer). Rate-limit riêng cho `/match` (endpoint đắt nhất) — cân nhắc sau. Batch matching + pgvector → roadmap.
