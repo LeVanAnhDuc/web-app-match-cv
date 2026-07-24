@@ -1,7 +1,7 @@
 {
   "errors": {
     "notConfigured": "Dịch vụ ghép nối chưa được cấu hình. Vui lòng liên hệ quản trị viên.",
-    "geminiFailed": "Dịch vụ ghép nối gặp sự cố. Vui lòng thử lại sau.",
+    "aiFailed": "Dịch vụ ghép nối gặp sự cố. Vui lòng thử lại sau.",
     "documentNotOwned": "Không tìm thấy tài liệu hoặc tài liệu không thuộc về bạn.",
     "invalidDocumentKind": "Loại tài liệu không khớp (yêu cầu đúng CV/JD tương ứng).",
     "matchNotFound": "Không tìm thấy kết quả ghép nối."

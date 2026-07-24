@@ -8,7 +8,7 @@ import { CurrentUserService } from '../../common/current-user/current-user.servi
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { MatchResultDto } from './dto/match-result.dto';
-import { GeminiService, MatchReport } from './gemini.service';
+import { AiService, MatchReport } from './ai.service';
 import { tMatch } from './i18n-messages';
 
 export interface MatchRunResult {
@@ -21,7 +21,7 @@ export interface MatchRunResult {
 const SEMANTIC_WEIGHT = 0.6;
 const KEYWORD_WEIGHT = 0.4;
 const MIN_TOKEN_LENGTH = 2;
-// Cap text actually sent to Gemini (embed + report), independent of the
+// Cap text actually sent to the AI provider (embed + report), independent of the
 // storage-time caps (paste 100k / uploaded-doc extract 2M). Bounds cost +
 // latency: a match report doesn't need the full body of a huge PDF.
 const MAX_MATCH_CHARS = 20_000;
@@ -108,14 +108,14 @@ function clampPercent(value: number): number {
 
 /**
  * Hybrid CV↔JD matching engine — keyword overlap (in-app) + semantic
- * similarity (cosine over Gemini embeddings, computed in-app — NO pgvector,
- * NO stored vectors) combined into a single overall score, plus an
+ * similarity (cosine over OpenRouter embeddings, computed in-app — NO
+ * pgvector, NO stored vectors) combined into a single overall score, plus an
  * AI-generated strengths/gaps/suggestions report.
  */
 @Injectable()
 export class MatchingService {
   constructor(
-    private readonly gemini: GeminiService,
+    private readonly ai: AiService,
     private readonly prisma: PrismaService,
     private readonly currentUser: CurrentUserService,
   ) {}
@@ -172,15 +172,15 @@ export class MatchingService {
     const cvText = capForMatch(rawCvText);
     const jdText = capForMatch(rawJdText);
     const [cvEmbedding, jdEmbedding] = await Promise.all([
-      this.gemini.embed(cvText),
-      this.gemini.embed(jdText),
+      this.ai.embed(cvText),
+      this.ai.embed(jdText),
     ]);
     const semanticScore = clampPercent(
       Math.round(this.cosine(cvEmbedding, jdEmbedding) * 100),
     );
     const keywordScoreValue = this.keywordScore(cvText, jdText);
     const overallScore = this.combineOverall(semanticScore, keywordScoreValue);
-    const report = await this.gemini.generateReport(cvText, jdText, {
+    const report = await this.ai.generateReport(cvText, jdText, {
       overallScore,
       semanticScore,
       keywordScore: keywordScoreValue,

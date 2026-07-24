@@ -6,10 +6,11 @@ class EnvVars {
   @IsString() CLIENT_ORIGIN: string = 'http://localhost:5300';
   @IsString() DATABASE_URL!: string;
 
-  // --- AI provider (Plan 2 matching engine) — optional at boot, required at match time ---
-  @IsOptional() @IsString() GEMINI_API_KEY?: string;
-  @IsOptional() @IsString() GEMINI_GEN_MODEL?: string;
-  @IsOptional() @IsString() GEMINI_EMBED_MODEL?: string;
+  // --- AI provider (Plan 2 matching engine) — OpenRouter, optional at boot, required at match time ---
+  @IsOptional() @IsString() OPENROUTER_API_KEY?: string;
+  @IsOptional() @IsString() OPENROUTER_BASE_URL?: string;
+  @IsOptional() @IsString() OPENROUTER_CHAT_MODEL?: string;
+  @IsOptional() @IsString() OPENROUTER_EMBED_MODEL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

@@ -1,7 +1,7 @@
 import { MatchingService } from './matching.service';
 
-// Pure-scoring unit tests only — persistence + Gemini orchestration methods
-// are covered by matching.e2e-spec.ts (with GeminiService overridden via DI).
+// Pure-scoring unit tests only — persistence + AI orchestration methods
+// are covered by matching.e2e-spec.ts (with AiService overridden via DI).
 function makeService(): MatchingService {
   // The pure methods under test (cosine/keywordScore/combineOverall) never
   // touch the injected collaborators, so undefined stand-ins are sufficient.

@@ -9,7 +9,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { GeminiService } from '../src/modules/matching/gemini.service';
+import { AiService } from '../src/modules/matching/ai.service';
 
 interface DocumentResponseBody {
   id: string;
@@ -38,12 +38,12 @@ function deterministicVector(text: string): number[] {
 
 /**
  * TEST DOUBLE injected via Nest `overrideProvider` (DI) — NOT a runtime
- * fallback/mock. The real `GeminiService` still throws 503 in production
- * when unconfigured or when the Gemini API call fails; this class only
- * replaces it inside this test module so no real Gemini key/network call is
- * needed to exercise `/match`.
+ * fallback/mock. The real `AiService` still throws 503 in production
+ * when unconfigured or when the OpenRouter API call fails; this class only
+ * replaces it inside this test module so no real OpenRouter key/network call
+ * is needed to exercise `/match`.
  */
-class FakeGeminiService {
+class FakeAiService {
   isConfigured(): boolean {
     return true;
   }
@@ -65,8 +65,8 @@ class FakeGeminiService {
   }
 }
 
-/** Test double mirroring the real GeminiService's unconfigured behavior. */
-class UnconfiguredGeminiService {
+/** Test double mirroring the real AiService's unconfigured behavior. */
+class UnconfiguredAiService {
   isConfigured(): boolean {
     return false;
   }
@@ -104,8 +104,8 @@ describe('Matching (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(GeminiService)
-      .useClass(FakeGeminiService)
+      .overrideProvider(AiService)
+      .useClass(FakeAiService)
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api/v1');
@@ -273,7 +273,7 @@ describe('Matching (e2e)', () => {
   });
 });
 
-describe('Matching (e2e) — Gemini not configured', () => {
+describe('Matching (e2e) — AI provider not configured', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   const createdDocumentIds: string[] = [];
@@ -284,8 +284,8 @@ describe('Matching (e2e) — Gemini not configured', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(GeminiService)
-      .useClass(UnconfiguredGeminiService)
+      .overrideProvider(AiService)
+      .useClass(UnconfiguredAiService)
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api/v1');
@@ -321,7 +321,7 @@ describe('Matching (e2e) — Gemini not configured', () => {
     await app.close();
   });
 
-  it('[EP] POST /match → 503 when GeminiService.isConfigured() is false', async () => {
+  it('[EP] POST /match → 503 when AiService.isConfigured() is false', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/match')
       .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId });
