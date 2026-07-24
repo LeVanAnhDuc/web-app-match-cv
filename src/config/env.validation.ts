@@ -4,6 +4,7 @@ import { IsInt, IsString, validateSync } from 'class-validator';
 class EnvVars {
   @IsInt() PORT: number = 5200;
   @IsString() CLIENT_ORIGIN: string = 'http://localhost:5300';
+  @IsString() DATABASE_URL!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

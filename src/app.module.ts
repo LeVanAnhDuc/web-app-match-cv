@@ -5,6 +5,9 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { I18nModule, QueryResolver, AcceptLanguageResolver } from 'nestjs-i18n';
 import { HealthModule } from './modules/health/health.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { CurrentUserModule } from './common/current-user/current-user.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { validateEnv } from './config/env.validation';
 
 @Module({
@@ -19,7 +22,10 @@ import { validateEnv } from './config/env.validation';
         AcceptLanguageResolver,
       ],
     }),
+    PrismaModule,
+    CurrentUserModule,
     HealthModule,
+    DocumentsModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
