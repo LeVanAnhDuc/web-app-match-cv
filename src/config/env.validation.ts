@@ -1,10 +1,15 @@
 import { plainToInstance } from 'class-transformer';
-import { IsInt, IsString, validateSync } from 'class-validator';
+import { IsInt, IsOptional, IsString, validateSync } from 'class-validator';
 
 class EnvVars {
   @IsInt() PORT: number = 5200;
   @IsString() CLIENT_ORIGIN: string = 'http://localhost:5300';
   @IsString() DATABASE_URL!: string;
+
+  // --- AI provider (Plan 2 matching engine) — optional at boot, required at match time ---
+  @IsOptional() @IsString() GEMINI_API_KEY?: string;
+  @IsOptional() @IsString() GEMINI_GEN_MODEL?: string;
+  @IsOptional() @IsString() GEMINI_EMBED_MODEL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

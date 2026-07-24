@@ -333,4 +333,69 @@ describe('Documents (e2e)', () => {
       expect(ids).not.toContain(otherUserDocId);
     });
   });
+
+  describe('GET /documents/:id', () => {
+    const OTHER_USER_ID = '00000000-0000-0000-0000-000000000096';
+    let ownDocId: string;
+    let otherUserDocId: string;
+
+    beforeAll(async () => {
+      const res = track(
+        await request(app.getHttpServer()).post('/api/v1/documents').send({
+          kind: 'JD',
+          sourceText: 'JD content for GET by id test',
+          save: false,
+        }),
+      );
+      ownDocId = (res.body as DocumentResponseBody).id;
+
+      await prisma.user.create({
+        data: { id: OTHER_USER_ID, role: 'candidate' },
+      });
+      const otherDoc = await prisma.document.create({
+        data: {
+          userId: OTHER_USER_ID,
+          kind: 'JD',
+          title: 'Other user JD',
+          sourceFormat: 'text',
+          rawText: 'other user content',
+          isSaved: true,
+        },
+      });
+      otherUserDocId = otherDoc.id;
+    });
+
+    afterAll(async () => {
+      await prisma.document
+        .delete({ where: { id: otherUserDocId } })
+        .catch(() => undefined);
+      await prisma.user
+        .delete({ where: { id: OTHER_USER_ID } })
+        .catch(() => undefined);
+    });
+
+    it('[EP] returns the DocumentDto (with rawText) for the current user', async () => {
+      const res = await request(app.getHttpServer()).get(
+        `/api/v1/documents/${ownDocId}`,
+      );
+      expect(res.status).toBe(200);
+      const body = res.body as DocumentResponseBody;
+      expect(body.id).toBe(ownDocId);
+      expect(body.rawText).toBe('JD content for GET by id test');
+    });
+
+    it("[EP] per-user isolation: another user's document → 404", async () => {
+      const res = await request(app.getHttpServer()).get(
+        `/api/v1/documents/${otherUserDocId}`,
+      );
+      expect(res.status).toBe(404);
+    });
+
+    it('[boundary] non-existent (but valid uuid) id → 404', async () => {
+      const res = await request(app.getHttpServer()).get(
+        '/api/v1/documents/00000000-0000-0000-0000-000000000001',
+      );
+      expect(res.status).toBe(404);
+    });
+  });
 });

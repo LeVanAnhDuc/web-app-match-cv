@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SourceFormat } from '@prisma/client';
 import { CurrentUserService } from '../../common/current-user/current-user.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -88,5 +92,18 @@ export class DocumentsService {
       orderBy: { createdAt: 'desc' },
     });
     return docs.map((doc) => DocumentSummaryDto.fromEntity(doc));
+  }
+
+  async findOne(id: string): Promise<DocumentDto> {
+    const userId = this.currentUser.getUserId();
+    const doc = await this.prisma.document.findFirst({
+      where: { id, userId },
+    });
+    if (!doc) {
+      throw new NotFoundException(
+        tDoc('documents.errors.notFound', 'Document not found.'),
+      );
+    }
+    return DocumentDto.fromEntity(doc);
   }
 }

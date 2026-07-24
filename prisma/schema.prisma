@@ -30,7 +30,8 @@ model User {
   externalSub String?
   createdAt   DateTime @default(now())
 
-  documents Document[]
+  documents    Document[]
+  matchResults MatchResult[]
 }
 
 model Document {
@@ -45,5 +46,25 @@ model Document {
   isSaved       Boolean      @default(false)
   createdAt     DateTime     @default(now())
 
+  matchResultsAsCv MatchResult[] @relation("MatchResultCvDocument")
+  matchResultsAsJd MatchResult[] @relation("MatchResultJdDocument")
+
   @@index([userId, kind])
+}
+
+model MatchResult {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  cvDocumentId  String
+  cvDocument    Document @relation("MatchResultCvDocument", fields: [cvDocumentId], references: [id])
+  jdDocumentId  String
+  jdDocument    Document @relation("MatchResultJdDocument", fields: [jdDocumentId], references: [id])
+  overallScore  Int
+  semanticScore Int
+  keywordScore  Int
+  report        Json
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
 }

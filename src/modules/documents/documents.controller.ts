@@ -4,7 +4,9 @@ import {
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
+  ParseUUIDPipe,
   Post,
   Query,
   UploadedFile,
@@ -74,5 +76,13 @@ export class DocumentsController {
     @Query() query: ListDocumentsQueryDto,
   ): Promise<DocumentSummaryDto[]> {
     return this.documentsService.list(query);
+  }
+
+  @Get(':id')
+  @ApiOkResponse({ type: DocumentDto })
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<DocumentDto> {
+    return this.documentsService.findOne(id);
   }
 }
