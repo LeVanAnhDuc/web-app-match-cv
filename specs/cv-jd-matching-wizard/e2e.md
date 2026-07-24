@@ -29,7 +29,7 @@ Không có `GEMINI_API_KEY` cấu hình cho môi trường này, và **không c�
 | 3 AuthZ (role) | N/A — candidate/recruiter đều dùng wizard | — | — |
 | 3/11 Per-user isolation | BE-only (client luôn là stub user) → cover ở `server/test/documents.e2e-spec.ts` (2-user) | (BE test) | A |
 | 4 Validation | [EP] wrong-type `.exe`/`.png` reject; [BVA] size >10MB reject; [DT] type>size precedence; valid `.pdf` accept | `file-validation.e2e.ts` | A |
-| 4/6 Validation (paste) | [BVA] empty paste → Next disabled; 1 char → enabled; save ON no title → blocked inline error | `validation.e2e.ts` | A |
+| 4/6 Validation (paste) | [BVA] empty paste → Next disabled; 1 char → enabled; **Save-for-reuse modal** requires a name (empty → inline error) + shows description + saves on confirm | `validation.e2e.ts` | A |
 | 5 Empty state | "No saved job descriptions yet" (step1) / "No saved CVs yet" (step2) | `reuse-and-data-rendering.e2e.ts` | A+B |
 | 6 Boundary / step guard | Back disabled step1; step3 active + stepper step1/2 "done", step4 "idle" | `happy-path.e2e.ts`, `review-and-result.e2e.ts` | A+B |
 | 7 Filter/search | N/A — reuse là radio list đơn giản, không search (MVP) | — | — |

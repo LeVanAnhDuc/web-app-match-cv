@@ -1,0 +1,247 @@
+<!DOCTYPE html><html lang="en" class=""><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <style>
+    html, body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    /* Custom scrollbar for better appearance */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2563eb',
+              dark: '#6366f1'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="h-screen w-full flex bg-slate-50 dark:bg-slate-900 transition-colors duration-200" data-sd-id="1">
+    
+    <!-- LEFT SIDEBAR RAIL (280px) -->
+    <aside class="w-[280px] h-full border-r border-slate-200 dark:border-slate-800 flex flex-col p-6 shrink-0" data-sd-id="2">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 mb-10" data-sd-id="3">
+        <div class="size-10 bg-primary dark:bg-primary-dark rounded-lg flex items-center justify-center text-white" data-sd-id="4">
+          <iconify-icon icon="lucide:briefcase" class="text-2xl"></iconify-icon>
+        </div>
+        <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white" data-sd-id="5">MatchCV</span>
+      </div>
+
+      <!-- Step Pill -->
+      <div class="mb-8" data-sd-id="6">
+        <span class="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400" data-sd-id="7">
+          Step 2 of 4
+        </span>
+      </div>
+
+      <!-- Stepper -->
+      <nav class="flex flex-col gap-0" data-sd-id="8">
+        <!-- Step 1 (Done) -->
+        <div class="flex gap-4" data-sd-id="9">
+          <div class="flex flex-col items-center" data-sd-id="10">
+            <div class="size-10 rounded-full bg-blue-100 dark:bg-indigo-900/30 text-primary dark:text-primary-dark flex items-center justify-center shrink-0 border border-primary/20" data-sd-id="11">
+              <iconify-icon icon="lucide:check" class="text-xl"></iconify-icon>
+            </div>
+            <div class="w-0.5 h-8 bg-slate-200 dark:bg-slate-700" data-sd-id="12"></div>
+          </div>
+          <div class="pt-2" data-sd-id="13">
+            <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400" data-sd-id="14">Job Description</h3>
+            <p class="text-xs text-slate-400" data-sd-id="15">Completed</p>
+          </div>
+        </div>
+
+        <!-- Step 2 (Active) -->
+        <div class="flex gap-4" data-sd-id="16">
+          <div class="flex flex-col items-center" data-sd-id="17">
+            <div class="size-10 rounded-full bg-primary dark:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-lg shadow-primary/20" data-sd-id="18">
+              <span class="text-sm font-bold" data-sd-id="19">02</span>
+            </div>
+            <div class="w-0.5 h-8 bg-slate-200 dark:bg-slate-700" data-sd-id="20"></div>
+          </div>
+          <div class="pt-2" data-sd-id="21">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white" data-sd-id="22">CV / Resume</h3>
+            <p class="text-xs text-primary dark:text-primary-dark font-medium" data-sd-id="23">In progress</p>
+          </div>
+        </div>
+
+        <!-- Step 3 (Pending) -->
+        <div class="flex gap-4" data-sd-id="24">
+          <div class="flex flex-col items-center" data-sd-id="25">
+            <div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center shrink-0" data-sd-id="26">
+              <span class="text-sm font-bold" data-sd-id="27">03</span>
+            </div>
+            <div class="w-0.5 h-8 bg-slate-200 dark:bg-slate-700" data-sd-id="28"></div>
+          </div>
+          <div class="pt-2" data-sd-id="29">
+            <h3 class="text-sm font-semibold text-slate-400" data-sd-id="30">Review</h3>
+            <p class="text-xs text-slate-400" data-sd-id="31">Upcoming</p>
+          </div>
+        </div>
+
+        <!-- Step 4 (Pending) -->
+        <div class="flex gap-4" data-sd-id="32">
+          <div class="flex flex-col items-center" data-sd-id="33">
+            <div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center shrink-0" data-sd-id="34">
+              <span class="text-sm font-bold" data-sd-id="35">04</span>
+            </div>
+          </div>
+          <div class="pt-2" data-sd-id="36">
+            <h3 class="text-sm font-semibold text-slate-400" data-sd-id="37">Result</h3>
+            <p class="text-xs text-slate-400" data-sd-id="38">Upcoming</p>
+          </div>
+        </div>
+      </nav>
+
+      <div class="mt-auto" data-sd-id="39">
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2 text-sm" data-sd-id="40">
+          <iconify-icon icon="lucide:sun" class="dark:hidden"></iconify-icon>
+          <iconify-icon icon="lucide:moon" class="hidden dark:block"></iconify-icon>
+          Appearance
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT -->
+    <main class="flex-1 h-full p-6 flex flex-col min-w-0" data-sd-id="41">
+      <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm flex flex-col overflow-hidden" data-sd-id="42">
+        
+        <!-- HEADER -->
+        <header class="p-6 border-b border-slate-100 dark:border-slate-700 shrink-0" data-sd-id="43">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white" data-sd-id="44">Candidate CV / Resume</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1" data-sd-id="45">Upload a document or select a previously saved profile to begin the matching analysis.</p>
+        </header>
+
+        <!-- SCROLLABLE BODY -->
+        <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" data-sd-id="46">
+          <div class="max-w-3xl mx-auto space-y-8" data-sd-id="47">
+            
+            <!-- Input Tabs -->
+            <div class="space-y-4" data-sd-id="48">
+              <div class="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-md w-fit" data-sd-id="49">
+                <button class="px-4 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700" data-sd-id="50">Upload file</button>
+                <button class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" data-sd-id="51">Paste text</button>
+              </div>
+
+              <!-- Dropzone -->
+              <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 hover:border-primary dark:hover:border-primary-dark transition-colors cursor-pointer" data-sd-id="52">
+                <div class="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400" data-sd-id="53">
+                  <iconify-icon icon="lucide:upload-cloud" class="text-2xl"></iconify-icon>
+                </div>
+                <p class="text-sm font-medium text-slate-900 dark:text-white" data-sd-id="54">Drop your file here or browse</p>
+                <p class="text-xs text-slate-400 mt-1" data-sd-id="55">PDF, DOCX max 10MB</p>
+              </div>
+            </div>
+
+            <!-- Reuse Saved CVs -->
+            <section class="space-y-4" data-sd-id="56">
+              <div class="flex items-center justify-between" data-sd-id="57">
+                <h2 class="text-base font-semibold text-slate-900 dark:text-white" data-sd-id="58">Or reuse a saved CV</h2>
+                <button class="text-xs font-medium text-primary dark:text-primary-dark hover:underline" data-sd-id="59">View all</button>
+              </div>
+
+              <div class="flex flex-col gap-3" data-sd-id="60">
+                <!-- Row 1 (Selected) -->
+                <div class="flex items-center gap-4 px-4 py-3 rounded-xl border border-primary dark:border-primary-dark bg-primary/5 dark:bg-primary/10 cursor-pointer" data-sd-id="61">
+                  <div class="shrink-0 size-5 rounded-full border-4 border-primary dark:border-primary-dark flex items-center justify-center bg-white" data-sd-id="62">
+                    <div class="size-1.5 rounded-full bg-primary" data-sd-id="63"></div>
+                  </div>
+                  <div class="min-w-0 flex-1" data-sd-id="64">
+                    <h3 class="text-sm font-semibold truncate text-slate-900 dark:text-white" data-sd-id="65">Senior Software Engineer_v4.pdf</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate" data-sd-id="66">Last modified Oct 12, 2023</p>
+                  </div>
+                  <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300" data-sd-id="67">PDF</span>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer group" data-sd-id="68">
+                  <div class="shrink-0 size-5 rounded-full border border-slate-300 dark:border-slate-600" data-sd-id="69"></div>
+                  <div class="min-w-0 flex-1" data-sd-id="70">
+                    <h3 class="text-sm font-medium truncate text-slate-900 dark:text-white" data-sd-id="71">Product Manager Resume - 2024</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate" data-sd-id="72">Last modified Jan 05, 2024</p>
+                  </div>
+                  <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400" data-sd-id="73">TEXT</span>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer group" data-sd-id="74">
+                  <div class="shrink-0 size-5 rounded-full border border-slate-300 dark:border-slate-600" data-sd-id="75"></div>
+                  <div class="min-w-0 flex-1" data-sd-id="76">
+                    <h3 class="text-sm font-medium truncate text-slate-900 dark:text-white" data-sd-id="77">Fullstack Developer Core.docx</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate" data-sd-id="78">Last modified Nov 22, 2023</p>
+                  </div>
+                  <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400" data-sd-id="79">DOCX</span>
+                </div>
+
+                <!-- Row 4 -->
+                <div class="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer group" data-sd-id="80">
+                  <div class="shrink-0 size-5 rounded-full border border-slate-300 dark:border-slate-600" data-sd-id="81"></div>
+                  <div class="min-w-0 flex-1" data-sd-id="82">
+                    <h3 class="text-sm font-medium truncate text-slate-900 dark:text-white" data-sd-id="83">UX Researcher Profile - Deep Analysis</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate" data-sd-id="84">Last modified Aug 14, 2023</p>
+                  </div>
+                  <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400" data-sd-id="85">PDF</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Save Toggle -->
+            <div class="pt-6 border-t border-slate-100 dark:border-slate-700" data-sd-id="86">
+              <div class="flex items-center justify-between mb-4" data-sd-id="87">
+                <div class="flex items-center gap-3" data-sd-id="88">
+                  <div class="relative inline-flex h-5 w-9 items-center rounded-full bg-primary dark:bg-primary-dark cursor-pointer" data-sd-id="89">
+                    <span class="translate-x-4 inline-block h-4 w-4 transform rounded-full bg-white transition shadow-sm" data-sd-id="90"></span>
+                  </div>
+                  <label class="text-sm font-medium text-slate-700 dark:text-slate-200" data-sd-id="91">Save this CV for later reuse</label>
+                </div>
+              </div>
+              <div class="space-y-1.5" data-sd-id="92">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wider" data-sd-id="93">CV Title</label>
+                <input type="text" value="Senior Software Engineer_v4" class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 dark:text-white" data-sd-id="94">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="p-6 border-t border-slate-100 dark:border-slate-700 shrink-0 flex justify-between items-center" data-sd-id="95">
+          <button id="footer-back-link" class="px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md transition-colors" data-sd-id="96">
+            Back
+          </button>
+          <button id="footer-next-btn" class="px-8 py-2 text-sm font-semibold text-white bg-primary dark:bg-primary-dark hover:opacity-90 rounded-md shadow-md transition-all flex items-center gap-2" data-sd-id="97">
+            Next step
+            <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+          </button>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+</body></html>
