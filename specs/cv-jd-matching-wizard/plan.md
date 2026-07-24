@@ -633,3 +633,108 @@ git push -u origin main
 - **Spec coverage:** Plan 0 phủ prerequisite "scaffold server/+client/" của `design.md` §1. Feature logic (upload/parse/match) thuộc Plan 1–2 (ghi rõ). ✅
 - **Placeholder scan:** Các bước có lệnh + code cụ thể. Điểm cần executor xác minh theo output CLI (server entry TanStack Start ở Task 6 step 5, add-on wiring Task 7 step 1) được ghi rõ là "xác minh theo output CLI" — không phải TODO ẩn, mà là điểm tích hợp phụ thuộc scaffold thực tế. ✅
 - **Type consistency:** `HomeComponent` export nhất quán (Task 5 → Task 6). `PrismaService` nhất quán (Task 2). Global prefix `api/v1` + port 5200/5300 nhất quán. ✅
+
+---
+
+# PLAN 1 — Wizard step 1–2 (upload/parse + save/reuse)
+
+> Prereq đã xong: Block A (Prisma + `User`/`Document` + migrate vào `matchcv`); design duyệt (`docs/ui-designs/cv-jd-matching-wizard/*`, token `.claude/uiux/*`). Branch: `feat/cv-jd-matching-wizard` (server/client/docs). Auth defer → **stub current-user**. E2E dời tới gate riêng (cần dev server).
+
+**Goal:** User nạp JD (step 1) + CV (step 2) qua upload PDF/DOCX hoặc paste text, parse ra text, lưu per-user + chọn lại (radio) tài liệu đã lưu; UI bám mock đã duyệt.
+
+## Global Constraints (Plan 1)
+
+- Auth defer → **stub current-user**: 1 user seed sẵn (role `candidate`), userId cố định; `CurrentUserService` trả userId đó (sau này thay bằng SSO). Mọi query `Document` filter theo userId.
+- File: chấp nhận **PDF + DOCX**; **max 10MB**; type check ở server (không tin client).
+- i18n: mọi string qua key ở `.claude/uiux/ux-copy.md` (EN+VI).
+- UI bám token `.claude/uiux/frontend-reference.md` + mock; primary blue-600/indigo-600, radius 12.
+- **pgvector/embedding KHÔNG làm** (Plan 2). `parsedContent` để `null` ở Plan 1 (chỉ lưu `rawText`).
+
+## API Contract (BE DTO ↔ FE type) — CHỐT
+
+- `POST /api/v1/documents` (multipart **hoặc** JSON):
+  - multipart/form-data: `file` (binary), `kind` (`CV|JD`), `save` (`"true"|"false"`), `title?` (bắt buộc nếu save=true).
+  - application/json (paste): `{ kind: "CV"|"JD", sourceText: string, save: boolean, title?: string }`.
+  - **201** → `DocumentDto`: `{ id, kind, title, sourceFormat: "pdf"|"docx"|"text", rawText, isSaved, createdAt }`.
+  - Lỗi: `400` type/size/empty/validation (i18n message).
+- `GET /api/v1/documents?kind=CV|JD&saved=true` → **200** `DocumentSummaryDto[]`: `{ id, kind, title, sourceFormat, createdAt }` (KHÔNG kèm rawText; chỉ của current user).
+
+---
+
+## PART C — server (BE)
+
+### Task C1: Stub current-user + seed
+
+**Files:** `server/prisma/seed.ts` (+ `package.json` prisma.seed), `server/src/common/current-user/current-user.service.ts` (+ module), `server/test/current-user.e2e-spec.ts`.
+
+- [ ] Seed idempotent 1 user: `upsert` theo id cố định `'00000000-0000-0000-0000-000000000001'`, role `candidate`. Script `prisma db seed`.
+- [ ] `CurrentUserService.getUserId()` trả id stub đó (đọc từ const; TODO: thay bằng SSO). Global module.
+- [ ] Test: seed chạy → `user.count() >= 1`; `getUserId()` trả đúng id.
+- [ ] Commit trên `feat/cv-jd-matching-wizard`.
+
+### Task C2: Documents module — create (upload/paste + parse + save)
+
+**Files:** `server/src/modules/documents/{documents.module,documents.controller,documents.service}.ts`, `dto/create-document.dto.ts`, `dto/document.dto.ts`, parse util `documents/parsing.ts`, `server/test/documents.e2e-spec.ts`.
+
+- [ ] Deps: `yarn add pdf-parse mammoth` (+ types nếu có).
+- [ ] `parsing.ts`: `parseFile(buffer, mime|ext) → { rawText, sourceFormat }` — pdf → `pdf-parse`, docx → `mammoth.extractRawText`; reject khác.
+- [ ] DTO `CreateDocumentDto` (class-validator): `kind` (`@IsEnum`), `save` (`@IsBoolean`, transform), `title?` (`@IsString`, required nếu save), `sourceText?` (khi paste). File qua `@UseInterceptors(FileInterceptor('file'))` + `ParseFilePipe` (maxSize 10MB, fileType pdf/docx).
+- [ ] Service: nếu có file → parse; nếu `sourceText` → sourceFormat `text`, rawText = sourceText (trim, non-empty). Tạo `Document` với `userId = currentUser`, `isSaved = save`. Trả `DocumentDto`.
+- [ ] `POST /documents` controller (Swagger `@ApiConsumes`). 
+- [ ] Tests (e2e, DB live): [EP] paste JD text → 201; upload sai type (.txt/.png) → 400; oversize → 400; paste rỗng → 400; save=true thiếu title → 400. [DT] wrong-type + oversize → 400 (assert message type trước).
+- [ ] Commit.
+
+### Task C3: Documents list (reuse)
+
+**Files:** update `documents.controller`/`service`, `dto/document-summary.dto.ts`, extend `documents.e2e-spec.ts`.
+
+- [ ] `GET /documents?kind&saved=true` → `DocumentSummaryDto[]` của current user, filter `kind` + `isSaved`, order `createdAt desc`.
+- [ ] Tests: seed 2 saved JD của stub user → trả 2 (không rawText); saved=false không lọt; **per-user**: doc user khác không xuất hiện (tạo user thứ 2 tạm trong test).
+- [ ] Commit.
+
+## PART D — client (FE)
+
+> Bám mock `docs/ui-designs/cv-jd-matching-wizard/wizard-step1-jd.html` + `wizard-step2-cv.html`; token `.claude/uiux/frontend-reference.md`; copy `.claude/uiux/ux-copy.md`. antd `ConfigProvider` primary theo theme.
+
+### Task D1: API layer + types + query hooks
+
+**Files:** `client/src/lib/api.ts` (fetch wrapper dùng `VITE_API_BASE_URL`), `client/src/features/documents/types.ts` (DocumentDto/Summary theo contract), `client/src/features/documents/queries.ts` (TanStack Query: `useSavedDocuments(kind)`, `useCreateDocument()`), test `queries.test.ts` (mock fetch).
+
+- [ ] Types khớp API Contract. `createDocument` gửi multipart hoặc JSON tuỳ input. `useSavedDocuments` GET saved list.
+- [ ] Test: mock fetch → hook trả data đúng shape.
+
+### Task D2: Wizard shell + stepper + state
+
+**Files:** `client/src/features/wizard/store.ts` (Zustand: `step, jdDocId, cvDocId, setStep,...`), `client/src/features/wizard/Stepper.tsx`, route `client/src/routes/wizard.tsx` (hoặc index), test `Stepper.test.tsx`.
+
+- [ ] Stepper 4 bước (JD/CV/Review/Result) theo mock (dot + line, active=primary). Step 3–4 hiển thị nhưng disabled ("Plan 2").
+- [ ] Store giữ step + doc ids. Route render step hiện tại.
+- [ ] Test: stepper render 4 bước, đánh dấu active theo `step`.
+
+### Task D3: DocumentInputStep (dùng chung step 1 & 2)
+
+**Files:** `client/src/features/wizard/DocumentInputStep.tsx` (props: `kind`, `onNext`), sub: `UploadPasteTabs`, `SavedDocRadioList`, `SaveToggle`; test `DocumentInputStep.test.tsx`.
+
+- [ ] Tabs Upload (antd `Upload.Dragger`, accept `.pdf,.docx`) / Paste (`Input.TextArea`). Hint copy theo ux-copy.
+- [ ] `SavedDocRadioList`: `useSavedDocuments(kind)` → antd `Radio.Group`; **empty-state** (icon `search-x` + copy) khi rỗng.
+- [ ] `SaveToggle`: antd `Switch` + title `Input` (hiện khi có input mới).
+- [ ] Next: nếu chọn saved → set docId = id đã chọn; nếu input mới → `useCreateDocument` → set docId. Validate (có input hoặc chọn saved; title nếu save). i18n toàn bộ.
+- [ ] Test: render tabs; switch tab; empty-state khi query rỗng (mock); chọn radio enable Next; paste rỗng → Next disabled/validation.
+
+### Task D4: Step 1 (JD) + Step 2 (CV) wiring
+
+**Files:** `client/src/features/wizard/StepJD.tsx`, `StepCV.tsx` (dùng `DocumentInputStep` với `kind`), wire vào route/stepper; test `wizard-flow.test.tsx` (component-level).
+
+- [ ] Step1 `kind=JD` → Next set `jdDocId` → step 2. Step2 `kind=CV`, Back về step1, Next set `cvDocId` → step 3 (placeholder).
+- [ ] Bám layout mock (card, spacing, buttons). Light+dark qua ConfigProvider.
+- [ ] Test: flow step1→2 (mock API), Back giữ state.
+
+## E2E gate (Plan 1) — DỪNG, cần dev server
+
+> Sau khi C+D code xong + unit/component test xanh: expand E2E Scenario Matrix (design.md §7) → `e2e.md`, cài Playwright ở `client/`, chạy dual-gate (§4.3). **Cần server :5200 + client :5300 chạy** → agent DỪNG hỏi user (self-run hay user-run) trước khi E2E.
+
+## Self-Review (Plan 1)
+
+- **Spec coverage:** upload/parse (C2), save (C2), reuse list (C3), per-user (C3 test), wizard step1-2 UI (D2-D4) — phủ design.md §2 step 1-2 + §5 API. Step 3-4 = Plan 2. ✅
+- **Type consistency:** `DocumentDto`/`DocumentSummaryDto` field khớp giữa BE (C2/C3) và FE (D1). `kind` enum `CV|JD`, `sourceFormat` `pdf|docx|text` nhất quán. ✅
+- **Placeholder scan:** parse lib + antd component cụ thể; E2E ghi rõ là gate riêng cần server (không phải TODO ẩn). ✅
