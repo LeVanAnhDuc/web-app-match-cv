@@ -45,6 +45,8 @@ Xem `.env.example`:
 - `yarn lint` — ESLint
 - `yarn test:e2e` — e2e tests (Jest + supertest)
 
+> **Pre-commit hook** (husky + lint-staged, cài tự động khi `yarn` qua script `prepare`): mỗi `git commit` tự chạy `eslint --fix` + `prettier --write` trên **staged files**. Lỗi ESLint không auto-fix được sẽ chặn commit.
+
 ## i18n
 
 `en` + `vi` qua `nestjs-i18n`, resolver theo query `?lang=` hoặc header `Accept-Language`, fallback `en`. Message files ở `src/i18n/<locale>/common.json`.
