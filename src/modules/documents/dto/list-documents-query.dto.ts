@@ -1,11 +1,11 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
-import { DocumentKind } from '@prisma/client';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsEnum, IsOptional } from "class-validator";
+import { DocumentKind } from "@prisma/client";
 
 function toBoolean({ value }: { value: unknown }): unknown {
   if (value === undefined) return undefined;
-  return value === true || value === 'true';
+  return value === true || value === "true";
 }
 
 export class ListDocumentsQueryDto {

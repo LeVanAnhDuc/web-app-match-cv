@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Document, DocumentKind, SourceFormat } from '@prisma/client';
+import { ApiProperty } from "@nestjs/swagger";
+import { Document, DocumentKind, SourceFormat } from "@prisma/client";
 
 export class DocumentDto {
   @ApiProperty() id: string;

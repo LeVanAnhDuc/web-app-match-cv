@@ -1,16 +1,16 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import {
   IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
-  MaxLength,
-} from 'class-validator';
-import { DocumentKind } from '@prisma/client';
+  MaxLength
+} from "class-validator";
+import { DocumentKind } from "@prisma/client";
 
 function toBoolean({ value }: { value: unknown }): boolean {
-  return value === true || value === 'true';
+  return value === true || value === "true";
 }
 
 export class CreateDocumentDto {
@@ -20,14 +20,14 @@ export class CreateDocumentDto {
 
   @ApiProperty({
     type: Boolean,
-    description: 'Whether to persist this document for later reuse.',
+    description: "Whether to persist this document for later reuse."
   })
   @Transform(toBoolean)
   @IsBoolean()
   save: boolean;
 
   @ApiPropertyOptional({
-    description: 'Required when save=true.',
+    description: "Required when save=true."
   })
   @IsOptional()
   @IsString()
@@ -35,7 +35,7 @@ export class CreateDocumentDto {
   title?: string;
 
   @ApiPropertyOptional({
-    description: 'Pasted text content — used when no file is uploaded.',
+    description: "Pasted text content — used when no file is uploaded."
   })
   @IsOptional()
   @IsString()

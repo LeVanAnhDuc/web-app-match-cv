@@ -1,7 +1,7 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
-import { tMatch } from './i18n-messages';
+import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import OpenAI from "openai";
+import { tMatch } from "./i18n-messages";
 
 export interface MatchScores {
   overallScore: number;
@@ -15,26 +15,26 @@ export interface MatchReport {
   suggestions: string[];
 }
 
-const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1';
-const DEFAULT_CHAT_MODEL = 'openai/gpt-4o-mini';
-const DEFAULT_EMBED_MODEL = 'openai/text-embedding-3-small';
+const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_CHAT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_EMBED_MODEL = "openai/text-embedding-3-small";
 const AI_TIMEOUT_MS = 20_000; // availability guard: /match must fail 503, not hang, if the AI provider stalls
 
 function notConfiguredError(): ServiceUnavailableException {
   return new ServiceUnavailableException(
     tMatch(
-      'matching.errors.notConfigured',
-      'Matching service is not configured. Please contact the administrator.',
-    ),
+      "matching.errors.notConfigured",
+      "Matching service is not configured. Please contact the administrator."
+    )
   );
 }
 
 function aiFailedError(): ServiceUnavailableException {
   return new ServiceUnavailableException(
     tMatch(
-      'matching.errors.aiFailed',
-      'Matching service failed. Please try again later.',
-    ),
+      "matching.errors.aiFailed",
+      "Matching service failed. Please try again later."
+    )
   );
 }
 
@@ -44,7 +44,7 @@ function toStringArray(value: unknown): string[] {
 
 async function withTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: NodeJS.Timeout;
-  const timeout = new Promise<never>((_, reject) => {
+  const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(aiFailedError()), AI_TIMEOUT_MS);
   });
   try {
@@ -74,13 +74,13 @@ export class AiService {
   private readonly chatModel: string;
 
   constructor(config: ConfigService) {
-    const apiKey = config.get<string>('OPENROUTER_API_KEY');
+    const apiKey = config.get<string>("OPENROUTER_API_KEY");
     const baseURL =
-      config.get<string>('OPENROUTER_BASE_URL') ?? DEFAULT_BASE_URL;
+      config.get<string>("OPENROUTER_BASE_URL") ?? DEFAULT_BASE_URL;
     this.embedModel =
-      config.get<string>('OPENROUTER_EMBED_MODEL') ?? DEFAULT_EMBED_MODEL;
+      config.get<string>("OPENROUTER_EMBED_MODEL") ?? DEFAULT_EMBED_MODEL;
     this.chatModel =
-      config.get<string>('OPENROUTER_CHAT_MODEL') ?? DEFAULT_CHAT_MODEL;
+      config.get<string>("OPENROUTER_CHAT_MODEL") ?? DEFAULT_CHAT_MODEL;
     this.client = apiKey ? new OpenAI({ apiKey, baseURL }) : undefined;
   }
 
@@ -100,8 +100,8 @@ export class AiService {
       const response = await withTimeout(
         client.embeddings.create({
           model: this.embedModel,
-          input: text,
-        }),
+          input: text
+        })
       );
       embedding = response.data[0]?.embedding;
     } catch {
@@ -114,19 +114,19 @@ export class AiService {
   async generateReport(
     cvText: string,
     jdText: string,
-    scores: MatchScores,
+    scores: MatchScores
   ): Promise<MatchReport> {
     const client = this.requireClient();
     const prompt = [
-      'You are a recruiting assistant comparing a candidate CV against a job description (JD).',
+      "You are a recruiting assistant comparing a candidate CV against a job description (JD).",
       `Overall match score: ${scores.overallScore}%. Semantic similarity: ${scores.semanticScore}%. Keyword overlap: ${scores.keywordScore}%.`,
-      'Based on the CV and JD below, list concrete strengths (what matches well), gaps (what is missing or weak), and suggestions (concrete ways to improve the CV for this JD).',
+      "Based on the CV and JD below, list concrete strengths (what matches well), gaps (what is missing or weak), and suggestions (concrete ways to improve the CV for this JD).",
       'Respond ONLY with a JSON object of shape { "strengths": string[], "gaps": string[], "suggestions": string[] }.',
-      '--- JD ---',
+      "--- JD ---",
       jdText,
-      '--- CV ---',
-      cvText,
-    ].join('\n\n');
+      "--- CV ---",
+      cvText
+    ].join("\n\n");
 
     let content: string | null | undefined;
     try {
@@ -135,14 +135,13 @@ export class AiService {
           model: this.chatModel,
           messages: [
             {
-              role: 'system',
-              content:
-                'You are a recruiting assistant. Respond ONLY with JSON.',
+              role: "system",
+              content: "You are a recruiting assistant. Respond ONLY with JSON."
             },
-            { role: 'user', content: prompt },
+            { role: "user", content: prompt }
           ],
-          response_format: { type: 'json_object' },
-        }),
+          response_format: { type: "json_object" }
+        })
       );
       content = response.choices[0]?.message?.content;
     } catch {
@@ -156,7 +155,7 @@ export class AiService {
       return {
         strengths: toStringArray(record.strengths),
         gaps: toStringArray(record.gaps),
-        suggestions: toStringArray(record.suggestions),
+        suggestions: toStringArray(record.suggestions)
       };
     } catch {
       throw aiFailedError();

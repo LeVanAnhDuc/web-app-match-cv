@@ -1,17 +1,17 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { SourceFormat } from '@prisma/client';
-import { CurrentUserService } from '../../common/current-user/current-user.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateDocumentDto } from './dto/create-document.dto';
-import { DocumentDto } from './dto/document.dto';
-import { DocumentSummaryDto } from './dto/document-summary.dto';
-import { ListDocumentsQueryDto } from './dto/list-documents-query.dto';
-import { tDoc } from './i18n-messages';
-import { parseFile } from './parsing';
+  NotFoundException
+} from "@nestjs/common";
+import { SourceFormat } from "@prisma/client";
+import { CurrentUserService } from "../../common/current-user/current-user.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateDocumentDto } from "./dto/create-document.dto";
+import { DocumentDto } from "./dto/document.dto";
+import { DocumentSummaryDto } from "./dto/document-summary.dto";
+import { ListDocumentsQueryDto } from "./dto/list-documents-query.dto";
+import { tDoc } from "./i18n-messages";
+import { parseFile } from "./parsing";
 
 const TITLE_FALLBACK_LENGTH = 80;
 
@@ -20,7 +20,7 @@ function deriveTitle(rawText: string): string {
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
   const candidate = (firstLine ?? rawText).trim();
-  if (!candidate) return 'Untitled';
+  if (!candidate) return "Untitled";
   return candidate.length > TITLE_FALLBACK_LENGTH
     ? `${candidate.slice(0, TITLE_FALLBACK_LENGTH)}…`
     : candidate;
@@ -30,21 +30,21 @@ function deriveTitle(rawText: string): string {
 export class DocumentsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly currentUser: CurrentUserService,
+    private readonly currentUser: CurrentUserService
   ) {}
 
   async create(
     dto: CreateDocumentDto,
-    file?: Express.Multer.File,
+    file?: Express.Multer.File
   ): Promise<DocumentDto> {
     const trimmedTitle = dto.title?.trim();
 
     if (dto.save && !trimmedTitle) {
       throw new BadRequestException(
         tDoc(
-          'documents.errors.titleRequiredWhenSaving',
-          'Title is required when saving a document.',
-        ),
+          "documents.errors.titleRequiredWhenSaving",
+          "Title is required when saving a document."
+        )
       );
     }
 
@@ -59,7 +59,7 @@ export class DocumentsService {
       const pasted = dto.sourceText?.trim();
       if (!pasted) {
         throw new BadRequestException(
-          tDoc('documents.errors.emptyText', 'Provide a file or pasted text.'),
+          tDoc("documents.errors.emptyText", "Provide a file or pasted text.")
         );
       }
       rawText = pasted;
@@ -74,8 +74,8 @@ export class DocumentsService {
         title: trimmedTitle || deriveTitle(rawText),
         sourceFormat,
         rawText,
-        isSaved: dto.save,
-      },
+        isSaved: dto.save
+      }
     });
 
     return DocumentDto.fromEntity(created);
@@ -87,9 +87,9 @@ export class DocumentsService {
       where: {
         userId,
         ...(query.kind ? { kind: query.kind } : {}),
-        ...(query.saved !== undefined ? { isSaved: query.saved } : {}),
+        ...(query.saved !== undefined ? { isSaved: query.saved } : {})
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" }
     });
     return docs.map((doc) => DocumentSummaryDto.fromEntity(doc));
   }
@@ -97,11 +97,11 @@ export class DocumentsService {
   async findOne(id: string): Promise<DocumentDto> {
     const userId = this.currentUser.getUserId();
     const doc = await this.prisma.document.findFirst({
-      where: { id, userId },
+      where: { id, userId }
     });
     if (!doc) {
       throw new NotFoundException(
-        tDoc('documents.errors.notFound', 'Document not found.'),
+        tDoc("documents.errors.notFound", "Document not found.")
       );
     }
     return DocumentDto.fromEntity(doc);

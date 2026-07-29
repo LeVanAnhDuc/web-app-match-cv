@@ -1,9 +1,9 @@
-import { plainToInstance } from 'class-transformer';
-import { IsInt, IsOptional, IsString, validateSync } from 'class-validator';
+import { plainToInstance } from "class-transformer";
+import { IsInt, IsOptional, IsString, validateSync } from "class-validator";
 
 class EnvVars {
   @IsInt() PORT: number = 5200;
-  @IsString() CLIENT_ORIGIN: string = 'http://localhost:5300';
+  @IsString() CLIENT_ORIGIN: string = "http://localhost:5300";
   @IsString() DATABASE_URL!: string;
 
   // --- AI provider (Plan 2 matching engine) — OpenRouter, optional at boot, required at match time ---
@@ -17,7 +17,7 @@ export function validateEnv(config: Record<string, unknown>) {
   const validated = plainToInstance(
     EnvVars,
     { ...config, PORT: Number(config.PORT ?? 5200) },
-    { enableImplicitConversion: true },
+    { enableImplicitConversion: true }
   );
   const errors = validateSync(validated, { skipMissingProperties: false });
   if (errors.length)

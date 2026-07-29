@@ -1,15 +1,15 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { DocumentKind, Prisma } from '@prisma/client';
-import { CurrentUserService } from '../../common/current-user/current-user.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateMatchDto } from './dto/create-match.dto';
-import { MatchResultDto } from './dto/match-result.dto';
-import { AiService, MatchReport } from './ai.service';
-import { tMatch } from './i18n-messages';
+  NotFoundException
+} from "@nestjs/common";
+import { DocumentKind, Prisma } from "@prisma/client";
+import { CurrentUserService } from "../../common/current-user/current-user.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateMatchDto } from "./dto/create-match.dto";
+import { MatchResultDto } from "./dto/match-result.dto";
+import { AiService, MatchReport } from "./ai.service";
+import { tMatch } from "./i18n-messages";
 
 export interface MatchRunResult {
   overallScore: number;
@@ -30,76 +30,76 @@ const capForMatch = (text: string): string => text.slice(0, MAX_MATCH_CHARS);
 // Small, deliberately conservative English stopword list — the goal is to
 // strip near-universal filler words, not to build a full NLP pipeline.
 const STOPWORDS = new Set([
-  'a',
-  'an',
-  'the',
-  'and',
-  'or',
-  'but',
-  'if',
-  'then',
-  'else',
-  'of',
-  'to',
-  'in',
-  'on',
-  'at',
-  'by',
-  'for',
-  'with',
-  'about',
-  'as',
-  'is',
-  'are',
-  'was',
-  'were',
-  'be',
-  'been',
-  'being',
-  'have',
-  'has',
-  'had',
-  'do',
-  'does',
-  'did',
-  'will',
-  'would',
-  'shall',
-  'should',
-  'can',
-  'could',
-  'may',
-  'might',
-  'must',
-  'this',
-  'that',
-  'these',
-  'those',
-  'we',
-  'you',
-  'they',
-  'it',
-  'i',
-  'he',
-  'she',
-  'their',
-  'our',
-  'your',
-  'its',
-  'from',
-  'into',
-  'over',
-  'under',
-  'not',
-  'no',
-  'so',
-  'than',
-  'too',
-  'very',
-  'up',
-  'down',
-  'out',
-  'off',
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "if",
+  "then",
+  "else",
+  "of",
+  "to",
+  "in",
+  "on",
+  "at",
+  "by",
+  "for",
+  "with",
+  "about",
+  "as",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "shall",
+  "should",
+  "can",
+  "could",
+  "may",
+  "might",
+  "must",
+  "this",
+  "that",
+  "these",
+  "those",
+  "we",
+  "you",
+  "they",
+  "it",
+  "i",
+  "he",
+  "she",
+  "their",
+  "our",
+  "your",
+  "its",
+  "from",
+  "into",
+  "over",
+  "under",
+  "not",
+  "no",
+  "so",
+  "than",
+  "too",
+  "very",
+  "up",
+  "down",
+  "out",
+  "off"
 ]);
 
 function clampPercent(value: number): number {
@@ -117,7 +117,7 @@ export class MatchingService {
   constructor(
     private readonly ai: AiService,
     private readonly prisma: PrismaService,
-    private readonly currentUser: CurrentUserService,
+    private readonly currentUser: CurrentUserService
   ) {}
 
   private tokenize(text: string): Set<string> {
@@ -126,7 +126,7 @@ export class MatchingService {
       .split(/[^a-z0-9+#.]+/i)
       .map((token) => token.trim())
       .filter(
-        (token) => token.length >= MIN_TOKEN_LENGTH && !STOPWORDS.has(token),
+        (token) => token.length >= MIN_TOKEN_LENGTH && !STOPWORDS.has(token)
       );
     return new Set(tokens);
   }
@@ -162,8 +162,8 @@ export class MatchingService {
   combineOverall(semanticScore: number, keywordScoreValue: number): number {
     return clampPercent(
       Math.round(
-        SEMANTIC_WEIGHT * semanticScore + KEYWORD_WEIGHT * keywordScoreValue,
-      ),
+        SEMANTIC_WEIGHT * semanticScore + KEYWORD_WEIGHT * keywordScoreValue
+      )
     );
   }
 
@@ -173,23 +173,23 @@ export class MatchingService {
     const jdText = capForMatch(rawJdText);
     const [cvEmbedding, jdEmbedding] = await Promise.all([
       this.ai.embed(cvText),
-      this.ai.embed(jdText),
+      this.ai.embed(jdText)
     ]);
     const semanticScore = clampPercent(
-      Math.round(this.cosine(cvEmbedding, jdEmbedding) * 100),
+      Math.round(this.cosine(cvEmbedding, jdEmbedding) * 100)
     );
     const keywordScoreValue = this.keywordScore(cvText, jdText);
     const overallScore = this.combineOverall(semanticScore, keywordScoreValue);
     const report = await this.ai.generateReport(cvText, jdText, {
       overallScore,
       semanticScore,
-      keywordScore: keywordScoreValue,
+      keywordScore: keywordScoreValue
     });
     return {
       overallScore,
       semanticScore,
       keywordScore: keywordScoreValue,
-      report,
+      report
     };
   }
 
@@ -198,27 +198,27 @@ export class MatchingService {
 
     const [cvDoc, jdDoc] = await Promise.all([
       this.prisma.document.findFirst({
-        where: { id: dto.cvDocumentId, userId },
+        where: { id: dto.cvDocumentId, userId }
       }),
       this.prisma.document.findFirst({
-        where: { id: dto.jdDocumentId, userId },
-      }),
+        where: { id: dto.jdDocumentId, userId }
+      })
     ]);
 
     if (!cvDoc || !jdDoc) {
       throw new BadRequestException(
         tMatch(
-          'matching.errors.documentNotOwned',
-          'Document not found or does not belong to you.',
-        ),
+          "matching.errors.documentNotOwned",
+          "Document not found or does not belong to you."
+        )
       );
     }
     if (cvDoc.kind !== DocumentKind.CV || jdDoc.kind !== DocumentKind.JD) {
       throw new BadRequestException(
         tMatch(
-          'matching.errors.invalidDocumentKind',
-          'Document kind does not match (expected CV/JD as specified).',
-        ),
+          "matching.errors.invalidDocumentKind",
+          "Document kind does not match (expected CV/JD as specified)."
+        )
       );
     }
 
@@ -232,8 +232,8 @@ export class MatchingService {
         overallScore: result.overallScore,
         semanticScore: result.semanticScore,
         keywordScore: result.keywordScore,
-        report: result.report as unknown as Prisma.InputJsonValue,
-      },
+        report: result.report as unknown as Prisma.InputJsonValue
+      }
     });
 
     return MatchResultDto.fromEntity(created);
@@ -242,11 +242,11 @@ export class MatchingService {
   async getById(id: string): Promise<MatchResultDto> {
     const userId = this.currentUser.getUserId();
     const found = await this.prisma.matchResult.findFirst({
-      where: { id, userId },
+      where: { id, userId }
     });
     if (!found) {
       throw new NotFoundException(
-        tMatch('matching.errors.matchNotFound', 'Match result not found.'),
+        tMatch("matching.errors.matchNotFound", "Match result not found.")
       );
     }
     return MatchResultDto.fromEntity(found);

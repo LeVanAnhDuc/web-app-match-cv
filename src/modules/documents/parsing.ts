@@ -1,12 +1,12 @@
-import { BadRequestException } from '@nestjs/common';
-import { SourceFormat } from '@prisma/client';
-import { PDFParse } from 'pdf-parse';
-import * as mammoth from 'mammoth';
-import { tDoc } from './i18n-messages';
+import { BadRequestException } from "@nestjs/common";
+import { SourceFormat } from "@prisma/client";
+import { PDFParse } from "pdf-parse";
+import * as mammoth from "mammoth";
+import { tDoc } from "./i18n-messages";
 
-export const PDF_MIME = 'application/pdf';
+export const PDF_MIME = "application/pdf";
 export const DOCX_MIME =
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 export interface ParsedFile {
   rawText: string;
@@ -24,15 +24,15 @@ const MAX_EXTRACTED_CHARS = 2_000_000; // ~2MB of text
 function parseFailedError(): BadRequestException {
   return new BadRequestException(
     tDoc(
-      'documents.errors.parseFailed',
-      'Could not read the uploaded file. Make sure it is a valid PDF or DOCX.',
-    ),
+      "documents.errors.parseFailed",
+      "Could not read the uploaded file. Make sure it is a valid PDF or DOCX."
+    )
   );
 }
 
 async function withParseTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: NodeJS.Timeout;
-  const timeout = new Promise<never>((_, reject) => {
+  const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(parseFailedError()), PARSE_TIMEOUT_MS);
   });
   try {
@@ -50,7 +50,7 @@ function capExtracted(rawText: string): string {
 async function parsePdf(buffer: Buffer): Promise<ParsedFile> {
   const parser = new PDFParse({ data: buffer });
   try {
-    const result = await parser.getText({ pageJoiner: '' });
+    const result = await parser.getText({ pageJoiner: "" });
     const rawText = capExtracted(result.text.trim());
     if (!rawText) throw parseFailedError();
     return { rawText, sourceFormat: SourceFormat.pdf };
@@ -81,14 +81,14 @@ async function parseDocx(buffer: Buffer): Promise<ParsedFile> {
  */
 export async function parseFile(
   buffer: Buffer,
-  mimetype: string,
+  mimetype: string
 ): Promise<ParsedFile> {
   if (mimetype === PDF_MIME) return withParseTimeout(parsePdf(buffer));
   if (mimetype === DOCX_MIME) return withParseTimeout(parseDocx(buffer));
   throw new BadRequestException(
     tDoc(
-      'documents.errors.unsupportedFileType',
-      'Unsupported file type. Only PDF and DOCX are allowed.',
-    ),
+      "documents.errors.unsupportedFileType",
+      "Unsupported file type. Only PDF and DOCX are allowed."
+    )
   );
 }

@@ -1,6 +1,6 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role } from "@prisma/client";
 
-export const STUB_USER_ID = '00000000-0000-0000-0000-000000000001';
+export const STUB_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 const prisma = new PrismaClient();
 
@@ -10,8 +10,8 @@ async function main() {
     update: {},
     create: {
       id: STUB_USER_ID,
-      role: Role.candidate,
-    },
+      role: Role.candidate
+    }
   });
 }
 

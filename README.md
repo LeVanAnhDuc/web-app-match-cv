@@ -42,8 +42,13 @@ Xem `.env.example`:
 
 - `yarn start:dev` — dev server (watch mode)
 - `yarn build` — build production (`dist/`)
-- `yarn lint` — ESLint
+- `yarn type-check` — `tsc --noEmit`
+- `yarn lint` — ESLint (check-only, không sửa file)
+- `yarn lint:fix` — ESLint + auto-fix
+- `yarn format` / `yarn format:check` — Prettier write / check
 - `yarn test:e2e` — e2e tests (Jest + supertest)
+
+> **Chạy `npx prisma generate` trước khi lint** (nhất là ở worktree mới). ESLint dùng typed rules (`recommendedTypeChecked`); thiếu Prisma Client thì các model delegate suy ra `any` → vừa sinh cả trăm lỗi `no-unsafe-*` giả, vừa khiến `no-unnecessary-type-assertion` **tự xoá** type assertion hợp lệ khi `--fix`.
 
 > **Pre-commit hook** (husky + lint-staged, cài tự động khi `yarn` qua script `prepare`): mỗi `git commit` tự chạy `eslint --fix` + `prettier --write` trên **staged files**. Lỗi ESLint không auto-fix được sẽ chặn commit.
 

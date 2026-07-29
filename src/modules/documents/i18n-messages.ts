@@ -1,4 +1,4 @@
-import { I18nContext } from 'nestjs-i18n';
+import { I18nContext } from "nestjs-i18n";
 
 /**
  * Translate a `documents.*` i18n key for the current request language,

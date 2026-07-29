@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { MatchResult } from '@prisma/client';
+import { ApiProperty } from "@nestjs/swagger";
+import { MatchResult } from "@prisma/client";
 
 export class MatchReportDto {
   @ApiProperty({ type: [String] }) strengths: string[];
