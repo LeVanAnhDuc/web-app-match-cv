@@ -7,9 +7,23 @@
 - **Gate A — committed Playwright suite**: `client/e2e/cv-jd-matching-wizard/*.e2e.ts`, chạy `cd client && npx playwright test` (serial `workers:1`, no auto webServer — cần server :5200 + client :5300 chạy). **Kết quả (Plan 1): 21 passed / 0 failed. Kết quả (Plan 2, sau khi thêm `review-and-result.e2e.ts` + sửa `happy-path.e2e.ts`): 25 passed / 0 failed** (full suite, single run).
 - **Gate B — MCP walk** (Playwright MCP, browser thật): walk step 1 (JD reuse radio) → step 2 (CV empty-state), verify render + BE integration (reuse list fetch từ backend) + **0 console errors** (sau khi thêm `@ant-design/v5-patch-for-react-19`). **PASS** (Plan 1 scope). Step 3–4 gate-B walk (route-stubbed, giống Gate A) chưa chạy trong task này — xem "Deferred / notes".
 
+### Cập nhật `wizard-responsive` (2026-08-06)
+
+Suite giờ chạy **3 project viewport** (`playwright.config.ts`): `desktop` 1280×720 · `tablet` 820×1180 · `mobile` 390×844 — tất cả chromium (device descriptor `iPhone 13`/`iPad` bị loại vì ép `defaultBrowserType: "webkit"`). `workers:1` nên wall-clock ≈ ×3.
+
+- **Gate A: 96 passed / 0 failed (3.8m)** = 9 spec (8 cũ + `responsive.e2e.ts`) × 3 project. **Không spec cũ nào phải sửa assertion** để xanh ở 390px — nhờ label stepper dùng `sr-only md:not-sr-only` (còn trong a11y tree) thay vì `hidden`.
+  - 2 lần fail trước đó và cách xử lý: (1) `globalSetup` chết vì FK `MatchResult` → sửa `db-cleanup.ts` (xoá con trước); (2) `responsive.e2e.ts` step-3 flaky ở project `desktop` dưới tải full-suite → thêm các bước chờ trung gian (heading step 2, heading step 3, chờ prefill value) giống `review-and-result.e2e.ts`. Cả hai là test-infra, app không có bug behavior ⇒ không cần `e2e-bugs.md`.
+- **Gate B — MCP walk: PASS**, chạy trên worktree (client :5302 ↔ server :5201 với `CLIENT_ORIGIN` riêng, không đụng process :5300/:5200 của môi trường chính). Bằng chứng đo bằng `getBoundingClientRect`/`getComputedStyle`:
+  - mobile 390×844 light: nav 390×125 + `border-b`, 4 dot cùng hàng, label 1px (`sr-only`), badge `Step 1 of 4` xuất hiện **đúng 1 lần**, không scroll ngang, footer `sticky`, Next 40px trong viewport, **0 console error**.
+  - mobile 390 **dark**: footer `sticky` + nền **đục** `slate-800` + `padding-bottom: 16px` (safe-area) → không lộ nội dung trôi bên dưới.
+  - tablet 820×1180: nav full-width, label **hiện dưới dot** (85px), dot 36px, không scroll ngang.
+  - desktop 1280×720 light+dark: nav **288px** + `border-r`, label bên phải dot, dot 40px, shell `720px` `overflow:hidden`, footer `static` + dark `/0.8` — **không đổi so với trước**.
+  - step 1→2 ở mobile: heading step 2 trong viewport, `scrollY = 0` (scroll reset đúng), Next trong viewport.
+  - **Không chạy được bằng MCP**: walk step 3 (stack 2 pane) — Playwright MCP mất kết nối giữa phiên. Scenario này **đã được gate A phủ** ở cả 3 project (`responsive.e2e.ts › step 3 stacks both panes below lg and keeps Run match reachable`), nên không phải gap im lặng.
+
 ## Test data isolation
 
-Backend dùng **1 stub current-user** (shared). Tests đụng empty-state/reuse dọn DB `beforeEach` (`e2e/db-cleanup.ts` → `DELETE FROM "Document"`), global-setup/teardown dọn đầu/cuối run. DB dev — an toàn truncate. `review-and-result.e2e.ts` cũng `beforeEach` clean DB (step 1–2 trong đó tạo document thật).
+Backend dùng **1 stub current-user** (shared). Tests đụng empty-state/reuse dọn DB `beforeEach` (`e2e/db-cleanup.ts` → `DELETE FROM "MatchResult"` rồi `DELETE FROM "Document"` — xoá con trước vì `MatchResult` tham chiếu `Document` với `onDelete: Restrict`; thiếu bước này thì `globalSetup` chết và cả run không chạy được test nào, xem `wizard-responsive/design.md`), global-setup/teardown dọn đầu/cuối run. DB dev — an toàn truncate. `review-and-result.e2e.ts` cũng `beforeEach` clean DB (step 1–2 trong đó tạo document thật).
 
 ## Route-stub cho matching engine (Plan 2)
 
@@ -37,6 +51,7 @@ Không có `OPENROUTER_API_KEY` cấu hình cho môi trường này, và **khôn
 | 9 i18n | EN default + VI (stepper, step title, empty state, buttons); round-trip; no missing-key leak; **step4 result labels EN + VI** ("Overall match"/"Mức khớp tổng", "Start over"/"Làm lại", ...) qua `window.__i18n` | `i18n.e2e.ts`, `review-and-result.e2e.ts` | A+B |
 | 10 Error/loading | Parse/validation error inline; (API 5xx / 503 OpenRouter-unavailable → covered ở BE test + `StepResult.test.tsx` component test, không re-test ở E2E vì cần fail thật/mock DI phía server) | `validation.e2e.ts` (inline error) | A |
 | 11 Mutation/state | [ST] step1→2→Back giữ state; repeated cycles ổn định; saved JD reuse radio-select; **step3→Back→step2**; **step4 "Start over" reset về step1** (clear jdDocId/cvDocId/matchId) | `mutation-and-state.e2e.ts`, `reuse-and-data-rendering.e2e.ts`, `review-and-result.e2e.ts` | A |
+| 6/13/14 Responsive layout (`wizard-responsive`) | Không scroll ngang ở step 1–4 · nav ngang <lg / rail 288px ≥lg · biên 1023/1024/767/320 · CTA sticky trong viewport · step 3 stack 2 pane · scroll reset khi sang step | `responsive.e2e.ts` | A+B |
 | 12 a11y | radiogroup có role/label; Next/Back button roles; stepper testids; step3 review textareas có `aria-label` (Job Description / CV / Resume) | `accessibility.e2e.ts`, `review-and-result.e2e.ts` | A+B |
 
 ## Deferred / notes

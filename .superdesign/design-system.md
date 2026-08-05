@@ -30,7 +30,7 @@
 2. **Palette**: neutral **slate**; accent **blue-600** (light) / **indigo-500** (dark); success green-600/500; warning amber-600/500; error red. KHÔNG purple/teal/pink random, KHÔNG hex ngoài palette.
 3. **Radius**: button/input/badge `rounded-md` (8px); card/panel/list-item `rounded-xl` (12px); icon tile `rounded-lg`. **CẤM `rounded-2xl` tràn lan.**
 4. **Shadow nhẹ**: card `shadow-sm` (hoặc chỉ `border border-slate-200 dark:border-slate-700`). **CẤM `shadow-xl`/`shadow-2xl`** cho card thường.
-5. **Density**: card `p-6` (KHÔNG `p-8/p-10`); rhythm dọc `gap-6`; nhóm control `gap-4`; icon+label `gap-2/3`.
+5. **Density**: card `p-4 md:p-6` (KHÔNG `p-8/p-10`); rhythm dọc `gap-6`; nhóm control `gap-4`; icon+label `gap-2/3`.
 6. **List-row KHÔNG `flex-wrap`**: `flex items-center gap-4 px-4 py-3 rounded-xl border`; giữa `min-w-0 flex-1` (title `text-sm font-semibold truncate` + meta `text-xs text-slate-500 truncate`); 2 đầu `shrink-0`. (Sai pattern này = nguyên nhân item wrap xấu.)
 7. **Icon**: chỉ **Lucide** (`lucide:*`), theo `.claude/uiux/icon-map.md`.
 8. **LUÔN light + dark**.
@@ -52,6 +52,24 @@ primary `#2563eb`/dark `#6366f1` · bg `slate-50`/`slate-900` · card `white`/`s
 - **Reuse list-row (radio-card)**: theo HARD RULE #6 — `flex items-center gap-4 px-4 py-3 rounded-xl border`, radio dot `shrink-0`, giữa `min-w-0 flex-1` (title truncate + meta), trailing badge format `shrink-0 text-xs px-2 py-0.5 rounded bg-slate-100`. Active/hover `border-primary bg-primary/5`. Empty-state: icon `search-x` tròn `size-12 bg-slate-100` + title `text-sm font-medium` + hint `text-xs`.
 - **Save toggle**: switch + label `text-sm` + title input `rounded-md`.
 - **Result (step 4)**: gauge % + progress bar semantic/keyword; list strengths (success) / gaps (warning) / suggestions (lightbulb) dạng row `gap-3`.
+
+## 4b. Responsive (mobile-first) — BẮT BUỘC khi mock màn tablet/mobile
+
+Sync từ `.claude/uiux/frontend-reference.md` §5b.
+
+| Tầng    | Range         | Layout                                                                    |
+| ------- | ------------- | ------------------------------------------------------------------------- |
+| mobile  | base, <768px  | 1 cột · nav ngang trên đỉnh · stepper **dot-only** (ẩn chữ) · footer sticky |
+| tablet  | `md` 768–1023 | như mobile + label stepper hiện dưới dot + spacing rộng hơn                |
+| desktop | `lg` ≥1024    | sidebar dọc `w-72` + khóa `h-dvh`, body tự scroll                          |
+
+- Base class = mobile, cộng `md:`/`lg:` lên. **CẤM** desktop-first (`p-6 md:p-6`).
+- Chiều cao: `min-h-dvh` (mobile/tablet) · `lg:h-dvh lg:overflow-hidden` (desktop). **CẤM `h-screen`/`100vh`.**
+- Padding: page `p-4 md:p-6 lg:p-8`; card `p-4 md:p-6`; **CẤM** `m-10`/`px-10`/`p-16` ở mobile.
+- Footer CTA: `sticky bottom-0 z-10` + nền **đục** + `pb-[max(1rem,env(safe-area-inset-bottom))]`, `lg:static`.
+- Stepper reflow **một markup, hai trục**: base ngang (`flex items-center justify-between`, dot+label `flex-col`, line `h-[2px] flex-1`) → `lg:` dọc (`lg:flex-col`, dot+label `lg:flex-row`, line `lg:h-8 lg:w-[2px]`). Dot `size-9 lg:size-10`. Label `sr-only md:not-sr-only`.
+- **KHÔNG** render 2 biến thể của cùng một phần tử rồi `hidden`/`lg:hidden` — cho một element reflow.
+- Mock mobile ở **390×844**, tablet **820×1180**; không được có scroll ngang.
 
 ## 5. UX copy
 
