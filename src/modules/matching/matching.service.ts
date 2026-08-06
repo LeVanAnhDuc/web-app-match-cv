@@ -8,6 +8,7 @@ import { CurrentUserService } from "../../common/current-user/current-user.servi
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateMatchDto } from "./dto/create-match.dto";
 import { MatchResultDto } from "./dto/match-result.dto";
+import { MatchSummaryDto } from "./dto/match-summary.dto";
 import { AiService, MatchReport } from "./ai.service";
 import { tMatch } from "./i18n-messages";
 
@@ -250,5 +251,18 @@ export class MatchingService {
       );
     }
     return MatchResultDto.fromEntity(found);
+  }
+
+  async list(): Promise<MatchSummaryDto[]> {
+    const userId = this.currentUser.getUserId();
+    const rows = await this.prisma.matchResult.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        cvDocument: { select: { title: true } },
+        jdDocument: { select: { title: true } }
+      }
+    });
+    return rows.map((r) => MatchSummaryDto.fromEntity(r));
   }
 }

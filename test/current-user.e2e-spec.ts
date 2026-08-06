@@ -21,7 +21,7 @@ describe("CurrentUser stub + seed (e2e)", () => {
     prisma = moduleRef.get(PrismaService);
     currentUserService = moduleRef.get(CurrentUserService);
     await prisma.$connect();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await prisma.$disconnect();

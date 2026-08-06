@@ -43,6 +43,8 @@ model Document {
   sourceFormat  SourceFormat
   rawText       String
   parsedContent Json?
+  fileData      Bytes?
+  fileMime      String?
   isSaved       Boolean      @default(false)
   createdAt     DateTime     @default(now())
 

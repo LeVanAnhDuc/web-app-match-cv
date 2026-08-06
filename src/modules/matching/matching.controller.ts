@@ -9,6 +9,7 @@ import {
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { CreateMatchDto } from "./dto/create-match.dto";
 import { MatchResultDto } from "./dto/match-result.dto";
+import { MatchSummaryDto } from "./dto/match-summary.dto";
 import { MatchingService } from "./matching.service";
 
 @ApiTags("match")
@@ -20,6 +21,12 @@ export class MatchingController {
   @ApiCreatedResponse({ type: MatchResultDto })
   async create(@Body() dto: CreateMatchDto): Promise<MatchResultDto> {
     return this.matchingService.createMatch(dto);
+  }
+
+  @Get()
+  @ApiOkResponse({ type: [MatchSummaryDto] })
+  async list(): Promise<MatchSummaryDto[]> {
+    return this.matchingService.list();
   }
 
   @Get(":id")

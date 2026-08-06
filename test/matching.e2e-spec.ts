@@ -10,6 +10,7 @@ import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { AiService } from "../src/modules/matching/ai.service";
+import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
 
 interface DocumentResponseBody {
   id: string;
@@ -23,6 +24,14 @@ interface MatchResultBody {
   semanticScore: number;
   keywordScore: number;
   report: { strengths: string[]; gaps: string[]; suggestions: string[] };
+  createdAt: string;
+}
+
+interface MatchSummaryBody {
+  id: string;
+  cvTitle: string;
+  jdTitle: string;
+  overallScore: number;
   createdAt: string;
 }
 
@@ -269,6 +278,143 @@ describe("Matching (e2e)", () => {
         `/api/v1/match/${randomUUID()}`
       );
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe("GET /match (list)", () => {
+    it("[happy] lists own matches newest-first with cvTitle/jdTitle, excludes other users and detail fields", async () => {
+      const cv1Res = await request(app.getHttpServer())
+        .post("/api/v1/documents")
+        .send({
+          kind: "CV",
+          sourceText: "CV Alpha content",
+          save: true,
+          title: "CV Alpha"
+        });
+      const jd1Res = await request(app.getHttpServer())
+        .post("/api/v1/documents")
+        .send({
+          kind: "JD",
+          sourceText: "JD Alpha content",
+          save: true,
+          title: "JD Alpha"
+        });
+      const cv2Res = await request(app.getHttpServer())
+        .post("/api/v1/documents")
+        .send({
+          kind: "CV",
+          sourceText: "CV Beta content",
+          save: true,
+          title: "CV Beta"
+        });
+      const jd2Res = await request(app.getHttpServer())
+        .post("/api/v1/documents")
+        .send({
+          kind: "JD",
+          sourceText: "JD Beta content",
+          save: true,
+          title: "JD Beta"
+        });
+      const cv1 = (cv1Res.body as DocumentResponseBody).id;
+      const jd1 = (jd1Res.body as DocumentResponseBody).id;
+      const cv2 = (cv2Res.body as DocumentResponseBody).id;
+      const jd2 = (jd2Res.body as DocumentResponseBody).id;
+      createdDocumentIds.push(cv1, jd1, cv2, jd2);
+
+      const older = await prisma.matchResult.create({
+        data: {
+          userId: STUB_USER_ID,
+          cvDocumentId: cv1,
+          jdDocumentId: jd1,
+          overallScore: 40,
+          semanticScore: 40,
+          keywordScore: 40,
+          report: { strengths: [], gaps: [], suggestions: [] },
+          createdAt: new Date(Date.now() - 60_000)
+        }
+      });
+      const newer = await prisma.matchResult.create({
+        data: {
+          userId: STUB_USER_ID,
+          cvDocumentId: cv2,
+          jdDocumentId: jd2,
+          overallScore: 80,
+          semanticScore: 80,
+          keywordScore: 80,
+          report: { strengths: [], gaps: [], suggestions: [] }
+        }
+      });
+      createdMatchIds.push(older.id, newer.id);
+
+      const OTHER_USER_ID = "00000000-0000-0000-0000-000000000096";
+      await prisma.user.create({
+        data: { id: OTHER_USER_ID, role: "candidate" }
+      });
+      const otherMatch = await prisma.matchResult.create({
+        data: {
+          userId: OTHER_USER_ID,
+          cvDocumentId: cv1,
+          jdDocumentId: jd1,
+          overallScore: 10,
+          semanticScore: 10,
+          keywordScore: 10,
+          report: { strengths: [], gaps: [], suggestions: [] }
+        }
+      });
+
+      // try/finally: this other-user fixture references cv1/jd1 via FK — if an
+      // assertion below throws, it MUST still be deleted here, otherwise the
+      // outer afterAll's document cleanup fails with a FK RESTRICT violation.
+      try {
+        const res = await request(app.getHttpServer()).get("/api/v1/match");
+        expect(res.status).toBe(200);
+        const body = res.body as MatchSummaryBody[];
+
+        // NOTE: earlier tests in this same file ("POST /match" happy-path,
+        // "GET /match/:id" beforeAll) already create real MatchResult rows
+        // for the same stub user that are still alive here (only cleaned up
+        // in the outer afterAll) — plus this is a shared dev DB that may
+        // carry other pre-existing rows. So we assert on OUR two fixtures'
+        // presence/shape/relative order and overall response invariants,
+        // rather than an exact total length.
+        const ids = body.map((item) => item.id);
+        expect(ids).not.toContain(otherMatch.id);
+        expect(ids).toContain(newer.id);
+        expect(ids).toContain(older.id);
+
+        // newest-first: our newer fixture must sort before our older one,
+        // and the whole response must be sorted by createdAt desc.
+        expect(ids.indexOf(newer.id)).toBeLessThan(ids.indexOf(older.id));
+        const createdAtTimestamps = body.map((item) =>
+          new Date(item.createdAt).getTime()
+        );
+        const sortedDesc = [...createdAtTimestamps].sort((a, b) => b - a);
+        expect(createdAtTimestamps).toEqual(sortedDesc);
+
+        const newerItem = body.find((item) => item.id === newer.id);
+        const olderItem = body.find((item) => item.id === older.id);
+        expect(newerItem?.cvTitle).toBe("CV Beta");
+        expect(newerItem?.jdTitle).toBe("JD Beta");
+        expect(newerItem?.overallScore).toBe(80);
+        expect(newerItem?.createdAt).toEqual(expect.any(String));
+        expect(olderItem?.cvTitle).toBe("CV Alpha");
+        expect(olderItem?.jdTitle).toBe("JD Alpha");
+
+        for (const item of body) {
+          expect(
+            (item as unknown as Record<string, unknown>).report
+          ).toBeUndefined();
+          expect(
+            (item as unknown as Record<string, unknown>).semanticScore
+          ).toBeUndefined();
+          expect(
+            (item as unknown as Record<string, unknown>).keywordScore
+          ).toBeUndefined();
+        }
+      } finally {
+        await prisma.matchResult.delete({ where: { id: otherMatch.id } });
+        await prisma.user.delete({ where: { id: OTHER_USER_ID } });
+      }
     });
   });
 });

@@ -5,6 +5,8 @@
     "emptyText": "Provide a file or pasted text.",
     "titleRequiredWhenSaving": "Title is required when saving a document.",
     "parseFailed": "Could not read the uploaded file. Make sure it is a valid PDF or DOCX.",
-    "notFound": "Document not found."
+    "notFound": "Document not found.",
+    "noOriginalFile": "No original file for this document.",
+    "inUseByMatch": "Cannot delete: used in a match history."
   }
 }

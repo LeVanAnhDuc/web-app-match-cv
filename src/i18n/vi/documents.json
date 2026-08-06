@@ -5,6 +5,8 @@
     "emptyText": "Vui lòng cung cấp file hoặc dán nội dung.",
     "titleRequiredWhenSaving": "Cần nhập tiêu đề khi lưu tài liệu.",
     "parseFailed": "Không thể đọc file đã tải lên. Hãy đảm bảo đây là file PDF hoặc DOCX hợp lệ.",
-    "notFound": "Không tìm thấy tài liệu."
+    "notFound": "Không tìm thấy tài liệu.",
+    "noOriginalFile": "Tài liệu này không có file gốc.",
+    "inUseByMatch": "Không thể xóa: tài liệu đang được dùng trong lịch sử match."
   }
 }
