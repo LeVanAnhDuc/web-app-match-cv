@@ -40,6 +40,8 @@
 | sourceFormat | enum(pdf, docx, text) | |
 | rawText | text | text sau parse |
 | parsedContent | jsonb (nullable) | structured — **null ở Plan 1** (chỉ dùng rawText) |
+| fileData | bytea (nullable) | **binary file gốc** (PDF/DOCX) để preview/download; `null` với doc paste-text. Chỉ phục vụ qua `GET /documents/:id/file` (per-user), KHÔNG expose trong JSON DTO |
+| fileMime | text (nullable) | mimetype file gốc (`application/pdf` \| docx mime); `null` với paste-text |
 | ~~embedding~~ | ~~vector~~ | **CHƯA implement** — pgvector defer; semantic tính embedding on-the-fly + cosine in-app (Plan 2), không lưu vector |
 | isSaved | boolean | true = lưu tái dùng; false = transient session |
 | createdAt | timestamptz | |
