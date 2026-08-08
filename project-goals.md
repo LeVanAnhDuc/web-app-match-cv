@@ -203,7 +203,7 @@ Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/fro
 | 6 | **CV rewrite assistant** (§6.3) | 7a | 📝 chưa có spec/plan. Phụ thuộc mềm #4 (chạy bằng credential user) |
 | 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite |
 | 8 | **Cover letter generator** (§6.4) | 7b | 📝 chưa có spec/plan. Dùng chung hạ tầng sinh nội dung với #6 |
-| 9 | **Multi-provider compare** (§6.2 phần 2) | 6b | 📝 chưa có spec/plan. Thêm `MatchRun` + `MatchResult.status`/`errorCode` (xem `specs/ai-credentials/design.md` §10) |
+| 9 | **Multi-provider compare** (§6.2 phần 2) | 6b | ✅ **DONE** *(2026-08-08)* — `MatchRun` + `runId`/`status`/`errorCode`, multi-select ở step 3, N card progressive reveal + partial success ở step 4. **Goal 6 hoàn tất.** Gate A E2E 96/96; gate B chưa chạy — xem `specs/multi-provider-compare/e2e.md` |
 | 10 | **Auth / SSO** với `web-app-store-server-client` (IdP) | 5 | ⬜ chưa bắt đầu — IdP phải xây từ đầu. Kèm: thêm cột `isMock` + profile mirror (ADR #7/#8, hiện **chưa có trong schema**) và **mở khoá precondition của ADR #9** |
 | 11 | **Batch ranking** nhiều CV cho 1 JD | — | ⬜ chưa bắt đầu — đây là lúc mới cần pgvector (ADR #5b) + background queue |
 
@@ -224,7 +224,6 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 - Công thức combine `overallScore` từ semantic + keyword (trọng số)? → chốt ở design feature.
 - OpenRouter model (chat default `openai/gpt-4o-mini`; embed `openai/text-embedding-3-small`) → cấu hình qua env `OPENROUTER_CHAT_MODEL`/`OPENROUTER_EMBED_MODEL`.
 - Deploy target (Docker Compose local? cloud nào?) → TBD. **Lưu ý**: ADR #9 chặn deploy public cho tới khi Auth xong.
-- *(Goal 6)* Có cap số provider mỗi lần chạy không (2–3), hay để user chọn tự do? → chốt ở design feature.
 - *(Goal 7)* Lưu output ở đâu: bảng `GeneratedContent` riêng, hay CV rewrite → `Document` mới + cover letter → không lưu? → chốt ở design feature (`erd.md` chưa có model nào cho Goal 7).
 - *(Goal 7)* Diff CV hiển thị ở mức nào — dòng, câu, hay section? Phụ thuộc `parsedContent` (jsonb) có được chuẩn hoá chưa. → chốt ở design feature.
 - *(Goal 7)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design feature.
@@ -245,3 +244,4 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
   - **Thêm Goal 8, 9, 10** qua `superpowers:brainstorming` — spec tầng goal ở `specs/goals-8-9-10/design.md` (giữ **lý do**; file này giữ **quyết định**). Goal 8 tài liệu tiếng Việt (§6.5) · Goal 9 so sánh phiên bản CV (§6.6) · Goal 10 chủ quyền dữ liệu (§6.7). Kèm ADR #14 (không tách từ ghép) · #15 (lineage `parentId`) · #16 (nhật ký tiết lộ là bảng riêng, fail-closed). Non-Goals thêm 3 mục. Roadmap sắp lại 11 dòng: Goal 8 chen lên #3 vì là lỗi đang chạy; roadmap #3 cũ tách đôi thành #4/#9; batch ranking #7 → #11.
   - **§6 step 3 Review chốt read-only** — bỏ "sửa text/structured". User không vá nội dung parse bằng tay; parse sai thì nạp lại tài liệu ở step 1/2. (Khớp đúng code hiện tại: `views/Wizard/mains/StepReview` chỉ render `DocumentPreview`.)
 - **2026-08-08** *(feature `ai-credentials`)*: tách Goal 6 làm 2 feature; hiện thực phần 1 (AiCredential + AES-256-GCM + test connection chat/embed + `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`). Đóng 2 open question của Goal 6 (§12). Cập nhật Roadmap #3 + ADR #10.
+- **2026-08-08** *(feature `multi-provider-compare`)*: hoàn tất **Goal 6**. Thêm `MatchRun` + 3 cột `runId`/`status`/`errorCode`; **đổi hợp đồng `POST /match`**: provider lỗi trả 201 kèm `status=failed` + `errorCode` thay vì 503 (503 chỉ còn cho lỗi cấu hình). Chốt open question cap provider: **không cap**, nhưng CTA nêu số lượng và thông báo quyền riêng tư liệt kê đủ tên provider.

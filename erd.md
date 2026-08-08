@@ -12,8 +12,8 @@
 |---|---|---|---|
 | `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
 | `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) |
-| `MatchResult` | ✅ | 🟡 **một phần** | Có scores + `report` + FK cv/jd, **và** `credentialId`/`provider`/`chatModel`/`embedModel` (feature `ai-credentials`). **Thiếu**: `runId`, `status`, `errorCode` (📝 — chờ Roadmap #9) |
-| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ có nghĩa khi một lần chạy sinh nhiều kết quả → Roadmap **#9** (multi-provider compare) |
+| `MatchResult` | ✅ | ✅ **đủ** | Scores + `report` + FK cv/jd, `credentialId`/`provider`/`chatModel`/`embedModel` (Roadmap #4), và `runId`/`status`/`errorCode` (Roadmap #9) |
+| `MatchRun` | ✅ | ✅ **đủ** | Roadmap **#9** đã merge — migration `add_match_run` |
 | `AiCredential` | ✅ | ✅ **đủ** | Roadmap **#4** đã merge — migration `add_ai_credential`, kèm enum `AiProvider` + `AiTestStatus` |
 | ~~`Job`~~ | ❌ | ❌ | **Không làm** — ADR #12 |
 | `DataDisclosure` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #5 (Goal 10) |
@@ -24,7 +24,7 @@
 
 - **Identity**: `User` (mock user khi chưa auth — xem `project-goals.md` §3)
 - **Documents**: `Document` (CV | JD, per-user, reusable)
-- **Matching**: `MatchRun` 📝 + `MatchResult`
+- **Matching**: `MatchRun` + `MatchResult`
 - **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)
 - **Privacy** 📝 *(Goal 10)*: `DataDisclosure` (nhật ký tài liệu đã gửi tới provider nào)
 - **Generated content** 📝 *(Goal 7 — chưa thiết kế)*: nơi chứa output CV rewrite / cover letter — **chưa chốt model**, xem cuối file
@@ -66,7 +66,7 @@
 | parentId | uuid (FK → Document, nullable) 📝 | **lineage (Goal 9)** — bản này là phiên bản mới của tài liệu nào. `null` = bản gốc. `ON DELETE SET NULL`: xoá bản gốc KHÔNG được xoá bản cải tiến, chỉ mất liên kết (ADR #15) |
 | createdAt | timestamptz | |
 
-### MatchRun 📝 *(spec — Goal 6)*
+### MatchRun *(implemented — feature `multi-provider-compare`)*
 
 Một lần bấm "Run match" — nhóm N `MatchResult` của cùng cặp CV↔JD (mỗi provider 1 kết quả) để đối chiếu.
 
@@ -86,15 +86,15 @@ Một lần bấm "Run match" — nhóm N `MatchResult` của cùng cặp CV↔J
 |---|---|---|
 | id | uuid (PK) | |
 | userId | uuid (FK → User) | per-user |
-| runId | uuid (FK → MatchRun, nullable) 📝 | nhóm đối chiếu. Nullable để không phá dữ liệu cũ (match tạo trước Goal 6) |
+| runId | uuid (FK → MatchRun, nullable) | nhóm đối chiếu. Nullable để không phá dữ liệu cũ (match tạo trước Goal 6) |
 | cvDocumentId | uuid (FK → Document) | kind=CV |
 | jdDocumentId | uuid (FK → Document) | kind=JD |
 | credentialId | uuid (FK → AiCredential, nullable) | `null` = chạy bằng key hệ thống (fallback). `ON DELETE SET NULL` — xoá credential KHÔNG được xoá kết quả cũ |
 | provider | enum(openrouter, openai, gemini) | provider đã chạy — cần để phân biệt kết quả nào của ai |
 | chatModel | text | model thực tế đã dùng (snapshot, không suy ra từ credential vì credential có thể bị đổi sau) |
 | embedModel | text | idem |
-| status | enum(succeeded, failed) 📝 | **không có `pending`** — row chỉ được tạo khi provider đó đã xong (thành công hoặc lỗi). Trạng thái "đang chờ" chỉ tồn tại ở FE (request đang bay). Refresh giữa lúc chạy → run có ít result hơn số provider đã chọn, và đó là hành vi đúng |
-| errorCode | text (nullable) 📝 | `invalid_key` \| `no_quota` \| `model_unavailable` \| `timeout` \| `unreachable`. **KHÔNG chứa message thô của provider** (rủi ro rò rỉ) |
+| status | enum(succeeded, failed) | **không có `pending`** — row chỉ được tạo khi provider đó đã xong (thành công hoặc lỗi). Trạng thái "đang chờ" chỉ tồn tại ở FE (request đang bay). Refresh giữa lúc chạy → run có ít result hơn số provider đã chọn, và đó là hành vi đúng |
+| errorCode | text (nullable) | `invalid_key` \| `no_quota` \| `model_unavailable` \| `timeout` \| `unreachable`. **KHÔNG chứa message thô của provider** (rủi ro rò rỉ) |
 | overallScore | int | % match tổng = `round(0.6*semantic + 0.4*keyword)` |
 | semanticScore | int | % — cosine của 2 embedding (tính in-app, no pgvector) |
 | keywordScore | int | % — skill/keyword overlap (\|JD∩CV\|/\|JD\|) |
