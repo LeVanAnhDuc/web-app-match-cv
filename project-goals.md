@@ -4,6 +4,7 @@
 > Cập nhật 2026-08-06: thêm **Goal 6** (BYO AI credentials + multi-provider compare) + ghi nhận feature `home-dashboard-library` vào scope/roadmap.
 > Cập nhật 2026-08-09: Roadmap **#6 CV rewrite assistant (Goal 7a) DONE** — chốt 2 open question của Goal 7 (§12) và chốt phương án lưu trữ ở `erd.md`.
 > Cập nhật 2026-08-08: **thu hẹp định vị** — bỏ "Recruiter đăng Job" + "Apply flow" khỏi roadmap (chuyển hẳn sang Non-Goals); thêm **Goal 7** (CV rewrite assistant + Cover letter generator); **đồng bộ trạng thái theo code hiện tại** (Roadmap #2 đã DONE + merge `main`).
+> Cập nhật 2026-08-09: **Goal 7b (cover letter) DONE** — §6.4 viết lại theo bản đã implement, §12 đóng open question về lưu trữ, Roadmap #8 → ✅.
 > Source of truth về Identity/Vision/Goals/Non-Goals. Feature mới phải đối chiếu §4 Goals + §5 Non-Goals **trước khi** `superpowers:brainstorming`.
 
 ## 1. Identity & Vision
@@ -119,13 +120,17 @@ Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất. Spec
 - **Diff ở mức toàn văn có neo, KHÔNG theo section** *(chốt 2026-08-09)* — `Document.parsedContent` vẫn `null`, xem `unfinished-features.md` #2 và design §2.
 - **Vòng lặp giá trị**: CV mới đem match lại đúng JD đó → user thấy điểm tăng bao nhiêu. Phần đo lường này là **Goal 9** (§6.6), không nằm trong feature này — nhưng `parentId` mà nó cần **đã có sẵn**.
 
-### 6.4 Cover letter generator *(sau MVP — Goal 7b)*
+### 6.4 Cover letter generator *(Goal 7b)* — ✅ **ĐÃ IMPLEMENT** *(`cover-letter-generator`, 2026-08-09)*
 
-- **Điểm vào**: cùng chỗ với 6.3 (step 4 Result + match history).
-- **Input**: cặp CV↔JD + `report.strengths` (để letter nói đúng điểm mạnh đã khớp, không nói chung chung).
-- **Tuỳ chọn**: độ dài (ngắn / chuẩn), tone (formal / thân thiện), **ngôn ngữ EN | VI** (khớp NFR i18n §7).
-- **Output**: text edit được tại chỗ + copy / export. Lưu lại là **tuỳ chọn**, không bắt buộc.
-- **Dùng chung hạ tầng Goal 6**: chạy bằng credential user đã cắm; không có credential → fallback key hệ thống.
+Spec đầy đủ: `specs/cover-letter-generator/design.md`.
+
+- ✅ **Điểm vào**: nút trên **header của card kết quả `succeeded`**, cạnh nút "Improve CV" của 7a — hai hành động anh em của cùng một report. Vì card này cũng là card render khi mở lại một match từ Home, **điểm vào từ match history có sẵn** (trước khi 7a merge thì chưa, do regression *"No run to show"*).
+- ✅ **Input**: cặp CV↔JD + `report.strengths` làm chất liệu, và `report.gaps` làm **danh sách cấm** (xem dưới).
+- ✅ **Tuỳ chọn**: độ dài (`short`/`standard`), tone (`formal`/`friendly`), **ngôn ngữ lá thư `en`/`vi`** — độc lập với ngôn ngữ UI.
+- ✅ **Output**: plain text sửa được tại chỗ + copy + tải `.txt`. Export `.docx`/`.pdf` **ngoài phạm vi** (đích đến là ô soạn email / form tuyển dụng).
+- ✅ **Dùng chung hạ tầng Goal 6**: chạy bằng credential user chọn, không có → key hệ thống. Provider lỗi → **lưu row `status=failed`**, không ném 503 (cùng hợp đồng `POST /match`).
+- ✅ **Grounding (ADR #13) hiện thực có kiểm chứng**: `gaps` đi vào prompt dưới nhãn **`MUST NOT CLAIM`**, và model phải trả `omittedRequirements` — danh sách yêu cầu nó **không** dám nhận vì CV không chống lưng được. UI hiển thị đúng danh sách đó dưới lá thư, nên ràng buộc trở thành thứ **user nhìn thấy** thay vì một câu dặn dò. Unit test assert prompt thực gửi đi có đủ 3 tầng ràng buộc → gỡ ra là test đỏ.
+- ✅ **Lưu trữ**: model **`CoverLetter` riêng**, mỗi lần sinh là một row, **tự lưu** (xem §12 — open question đã đóng).
 
 ### 6.5 Vietnamese document support *(Goal 8)*
 
@@ -204,7 +209,7 @@ Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/fro
 | 5 | **Data sovereignty** (§6.7) | 10 | 📝 spec tầng goal xong, chưa có spec feature. Xếp ngay sau #4 vì cả hai cùng sửa `AiService` |
 | 6 | **CV rewrite assistant** (§6.3) | 7a | ✅ **DONE** *(2026-08-09)* — `Document.parentId` (ADR #15) + `POST /cv-rewrite` / `POST /cv-rewrite/accept` + trang `/cv-rewrite/$matchResultId` (diff có neo, duyệt từng thay đổi, lưu thành CV mới). ADR #13 được **thi hành bằng code** (grounding), không chỉ bằng prompt. Security review PASS (2 HIGH về availability đã fix); gate A E2E 115/115. **Gate B (MCP walk) chưa chạy** — xem `specs/cv-rewrite-assistant/e2e.md` |
 | 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite. **Tiền đề `Document.parentId` đã có sẵn** (làm ở #6) |
-| 8 | **Cover letter generator** (§6.4) | 7b | 📝 chưa có spec/plan. Dùng chung hạ tầng sinh nội dung với #6 |
+| 8 | **Cover letter generator** (§6.4) | 7b | ✅ **DONE** *(2026-08-09)* — model `CoverLetter` + `POST/GET/PATCH/DELETE /cover-letters` + modal ở step 4 (sinh / sửa tại chỗ / copy / tải `.txt` / so nhiều bản). Grounding ADR #13 qua danh sách cấm `MUST NOT CLAIM` + `omittedRequirements` hiển thị cho user. **Goal 7 hoàn tất.** Gate A E2E 143/143 (toàn bộ desktop, sau khi merge #6); **gate B chưa chạy** — xem `specs/cover-letter-generator/e2e.md` |
 | 9 | **Multi-provider compare** (§6.2 phần 2) | 6b | ✅ **DONE** *(2026-08-08)* — `MatchRun` + `runId`/`status`/`errorCode`, multi-select ở step 3, N card progressive reveal + partial success ở step 4. **Goal 6 hoàn tất.** Gate A E2E 96/96; gate B chưa chạy — xem `specs/multi-provider-compare/e2e.md` |
 | 10 | **Auth / SSO** với `web-app-store-server-client` (IdP) | 5 | ⬜ chưa bắt đầu — IdP phải xây từ đầu. Kèm: thêm cột `isMock` + profile mirror (ADR #7/#8, hiện **chưa có trong schema**) và **mở khoá precondition của ADR #9** |
 | 11 | **Batch ranking** nhiều CV cho 1 JD | — | ⬜ chưa bắt đầu — đây là lúc mới cần pgvector (ADR #5b) + background queue |
@@ -219,6 +224,8 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 
 ## 12. Open Questions
 
+> *(2026-08-09, feature `cover-letter-generator`)* Đã đóng câu *"Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy?"* → **CÓ LƯU**, bảng riêng `CoverLetter`, tự lưu mỗi lần sinh. Lý do: feature có 3 núm vặn (tone × length × language) và núm vặn chỉ có nghĩa nếu **so được** kết quả — generate-and-copy buộc user phá bản cũ để xem bản mới; mỗi lần sinh tốn một call chat mang cả CV lẫn JD nên mất bản nháp là mất tiền thật; và không có bảng thì **không ghi nổi lần lỗi**, tức phải quay về ném 503 — đúng thứ `multi-provider-compare` vừa bỏ. Lập luận đầy đủ: `specs/cover-letter-generator/design.md` §3.
+>
 > *(2026-08-08, feature `ai-credentials`)* Đã đóng 2 câu của Goal 6: **Gemini có** endpoint OpenAI-compatible phủ cả `/embeddings` (verify tại https://ai.google.dev/gemini-api/docs/openai) nên cả 3 provider dùng chung SDK `openai`; và **model là ô nhập tự do**, để trống = mặc định của provider, test connection là cơ chế xác minh.
 
 
@@ -226,9 +233,9 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 - Công thức combine `overallScore` từ semantic + keyword (trọng số)? → chốt ở design feature.
 - OpenRouter model (chat default `openai/gpt-4o-mini`; embed `openai/text-embedding-3-small`) → cấu hình qua env `OPENROUTER_CHAT_MODEL`/`OPENROUTER_EMBED_MODEL`.
 - Deploy target (Docker Compose local? cloud nào?) → TBD. **Lưu ý**: ADR #9 chặn deploy public cho tới khi Auth xong.
-- ~~*(Goal 7)* Lưu output ở đâu~~ → **ĐÃ CHỐT 2026-08-09** (feature `cv-rewrite-assistant`): **không thêm model**. Bản đề xuất **không lưu** (ADR #13: chỉ thành dữ liệu thật khi user duyệt; lưu đề xuất = lưu thêm một bản sao PII cho thứ có thể không bao giờ được nhận). Bản đã duyệt → `Document` mới + `parentId`. Không thêm `sourceMatchResultId` vì Goal 9 so 2 phiên bản trên **JD do user chọn**, không cần con trỏ ngược. Xem `erd.md` mục "Generated content".
+- ~~*(Goal 7a)* Lưu output CV rewrite ở đâu~~ → **ĐÃ CHỐT 2026-08-09** (feature `cv-rewrite-assistant`): **không thêm model**. Bản đề xuất **không lưu** (ADR #13: chỉ thành dữ liệu thật khi user duyệt; lưu đề xuất = lưu thêm một bản sao PII cho thứ có thể không bao giờ được nhận). Bản đã duyệt → `Document` mới + `parentId`. Không thêm `sourceMatchResultId` vì Goal 9 so 2 phiên bản trên **JD do user chọn**, không cần con trỏ ngược. Xem `erd.md` mục "Generated content".
 - ~~*(Goal 7)* Diff CV hiển thị ở mức nào~~ → **ĐÃ CHỐT 2026-08-09**: **toàn văn, dạng thay đổi có neo** (mỗi thay đổi trích nguyên văn một đoạn duy nhất của CV), **không** theo section. Lý do: cái feature cần là *neo*, không phải *section*; và neo chính là thứ biến ADR #13 từ lời dặn trong prompt thành ràng buộc kiểm tra được bằng máy. `parsedContent` **giữ nguyên `null`** — xem `specs/cv-rewrite-assistant/design.md` §2.
-- *(Goal 7b)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design của Roadmap #8.
+- ~~*(Goal 7b)* Cover letter có cần lưu lịch sử để so nhiều bản không~~ → **ĐÃ CHỐT 2026-08-09** (feature `cover-letter-generator`): **CÓ LƯU**, bảng riêng `CoverLetter`, tự lưu mỗi lần sinh. **Ngược hướng 7a, có chủ ý** — xem ghi chú đầu mục này và `erd.md` mục "Generated content".
 - *(Goal 8)* Stopword tiếng Việt lấy từ danh sách công khai nào, hay tự soạn theo ngữ cảnh CV/JD? → chốt ở design feature.
 - *(Goal 9)* Số phiên bản (`v2`, `v3`) suy ra bằng cách đi ngược chuỗi `parentId`, hay lưu hẳn cột `version`? → chốt ở design feature (`specs/goals-8-9-10/design.md` §5).
 - *(Goal 10)* `DataDisclosure` có thêm `credentialId` không (audit *"gửi bằng key cá nhân nào"*)? Khả thi vì lúc làm Goal 10 thì `ai-credentials` đã merge. → chốt ở design feature.
@@ -246,5 +253,6 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
   - **Thêm Goal 8, 9, 10** qua `superpowers:brainstorming` — spec tầng goal ở `specs/goals-8-9-10/design.md` (giữ **lý do**; file này giữ **quyết định**). Goal 8 tài liệu tiếng Việt (§6.5) · Goal 9 so sánh phiên bản CV (§6.6) · Goal 10 chủ quyền dữ liệu (§6.7). Kèm ADR #14 (không tách từ ghép) · #15 (lineage `parentId`) · #16 (nhật ký tiết lộ là bảng riêng, fail-closed). Non-Goals thêm 3 mục. Roadmap sắp lại 11 dòng: Goal 8 chen lên #3 vì là lỗi đang chạy; roadmap #3 cũ tách đôi thành #4/#9; batch ranking #7 → #11.
   - **§6 step 3 Review chốt read-only** — bỏ "sửa text/structured". User không vá nội dung parse bằng tay; parse sai thì nạp lại tài liệu ở step 1/2. (Khớp đúng code hiện tại: `views/Wizard/mains/StepReview` chỉ render `DocumentPreview`.)
 - **2026-08-08** *(feature `ai-credentials`)*: tách Goal 6 làm 2 feature; hiện thực phần 1 (AiCredential + AES-256-GCM + test connection chat/embed + `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`). Đóng 2 open question của Goal 6 (§12). Cập nhật Roadmap #3 + ADR #10.
+- **2026-08-09** *(feature `cover-letter-generator`)*: hoàn tất **Goal 7b** (§6.4) — **Goal 7 đóng trọn**. Thêm model `CoverLetter` + 4 enum (migration `add_cover_letter`) — **cố ý độc lập `Document`** và độc lập lineage `parentId`, vì cover letter là **lá**: không engine nào chấm nó, không thư viện nào liệt kê nó. Thêm `AiService.generateCoverLetter()` (thêm method, không refactor — 7a chạy song song trên cùng file). Đóng open question §12 về lưu trữ: **có lưu**, ngược hướng 7a và đó là kết luận đúng — tiêu chí phân biệt là *output có chảy tiếp vào hệ thống hay không*. Ghi rõ ở §6.4 rằng "lưu lại là tuỳ chọn" nghĩa là **user xoá được**, không phải "hệ thống không lưu". Điểm vào từ match history **hoãn** cùng trang `/history`.
 - **2026-08-09** *(feature `cv-rewrite-assistant`)*: hoàn tất **Goal 7a** (Roadmap #6). Thêm `Document.parentId` (self-FK, `ON DELETE SET NULL` — ADR #15, tiền đề của Goal 9); module BE `cv-rewrite` với `POST /cv-rewrite` (throttle 10/phút) + `POST /cv-rewrite/accept` (throttle 20/phút); trang FE `/cv-rewrite/$matchResultId`. **ADR #13 được thi hành bằng code**: mỗi thay đổi phải neo vào một đoạn nguyên văn duy nhất của CV, kiểm ở cả lúc sinh lẫn lúc lưu (`grounding.ts`) — bịa ở mức ngữ nghĩa vẫn không chặn được và được nói thẳng trong design §3. Chốt 2 open question của Goal 7 (§12) + phương án lưu trữ ở `erd.md`. Kèm sửa **bug đang chạy trên `main`**: mở lại một match từ Home hiện *"No run to show"* (regression của `multi-provider-compare` — `StepResult` chỉ đọc `runId`, bỏ quên `matchId`).
 - **2026-08-08** *(feature `multi-provider-compare`)*: hoàn tất **Goal 6**. Thêm `MatchRun` + 3 cột `runId`/`status`/`errorCode`; **đổi hợp đồng `POST /match`**: provider lỗi trả 201 kèm `status=failed` + `errorCode` thay vì 503 (503 chỉ còn cho lỗi cấu hình). Chốt open question cap provider: **không cap**, nhưng CTA nêu số lượng và thông báo quyền riêng tư liệt kê đủ tên provider.

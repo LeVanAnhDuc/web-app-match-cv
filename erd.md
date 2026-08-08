@@ -6,6 +6,7 @@
 > Cập nhật 2026-08-08 (feature `ai-credentials` — **đã merge**): `AiCredential` **đã implement**, `MatchResult` nhận 4 cột snapshot (`credentialId`/`provider`/`chatModel`/`embedModel`). `MatchRun` + `runId`/`status`/`errorCode` **vẫn 📝** — chúng chỉ có nghĩa khi một lần chạy sinh nhiều kết quả, tức Roadmap #9 (multi-provider compare).
 > Cập nhật 2026-08-09 (feature `cv-rewrite-assistant` — Roadmap #6): `Document.parentId` **đã implement** (migration `add_document_parent`, self-FK `ON DELETE SET NULL`, ADR #15). Mục "Generated content 📝" **đã chốt phương án (a)** — không thêm model, xem cuối file.
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
+> Cập nhật 2026-08-09 (feature `cover-letter-generator`, Roadmap #8 / Goal 7b): thêm model **`CoverLetter`** + 4 enum (`CoverLetterTone`/`Length`/`Language`/`Status`), migration `add_cover_letter`. Đóng open question "cover letter có lưu không" — **có lưu, bảng riêng**. Mục "Generated content" gộp lại: **hai nửa Goal 7 chốt ngược hướng nhau, có chủ ý** — 7a không thêm model (đề xuất không lưu), 7b có bảng riêng (mọi lần sinh đều lưu); tiêu chí phân biệt là **output có chảy tiếp vào hệ thống hay không**.
 
 ## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08 — sau feature `ai-credentials`)
 
@@ -18,6 +19,7 @@
 | `AiCredential` | ✅ | ✅ **đủ** | Roadmap **#4** đã merge — migration `add_ai_credential`, kèm enum `AiProvider` + `AiTestStatus` |
 | ~~`Job`~~ | ❌ | ❌ | **Không làm** — ADR #12 |
 | `DataDisclosure` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #5 (Goal 10) |
+| `CoverLetter` | ✅ | ✅ **đủ** | Roadmap **#8** (Goal 7b) — migration `add_cover_letter`, kèm 4 enum `CoverLetter*` |
 
 > **Goal 8 (tiếng Việt) KHÔNG đổi ERD** — thuần logic trong `matching.service.ts`. Nhưng có **script chạy một lần** tính lại `keywordScore` + `overallScore` cho `MatchResult` đã lưu (không tốn call AI: `rawText` còn, `semanticScore` đã lưu).
 
@@ -28,7 +30,7 @@
 - **Matching**: `MatchRun` + `MatchResult`
 - **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)
 - **Privacy** 📝 *(Goal 10)*: `DataDisclosure` (nhật ký tài liệu đã gửi tới provider nào)
-- **Generated content** *(Goal 7)*: **không có model riêng** — CV rewrite đã duyệt lưu thành `Document` mới có `parentId`; bản đề xuất không được lưu. Chốt 2026-08-09, xem cuối file
+- **Generated content** *(Goal 7)*: hai nửa lưu **khác nhau, có chủ ý** — CV rewrite (7a) **không có model riêng** (bản đã duyệt → `Document` mới có `parentId`; bản đề xuất không lưu); cover letter (7b) có bảng riêng **`CoverLetter`**, mỗi lần sinh một row. Xem cuối file.
 
 ## Schema
 
@@ -120,7 +122,7 @@ Token AI do **user** cung cấp. Mọi provider trong enum đều có **cả** c
 | keyLast4 | text | 4 ký tự cuối để hiển thị `••••1234` — **không đủ để dùng lại key** |
 | chatModel | text (nullable) | override; `null` = default của provider |
 | embedModel | text (nullable) | override; `null` = default của provider |
-| lastTestStatus | enum(ok, invalid_key, no_quota, model_unavailable, unreachable) (nullable) | kết quả **test connection** lần cuối |
+| lastTestStatus | enum(ok, invalid_key, no_quota, model_unavailable, timeout, unreachable) (nullable) | kết quả **test connection** lần cuối. `timeout` thêm 2026-08-09 (migration `add_timeout_test_status`): trước đó "quá chậm" bị gộp vào `unreachable`, khiến mã `timeout` được ghi khắp tài liệu nhưng **không bao giờ xảy ra** |
 | lastTestedAt | timestamptz (nullable) | |
 | lastUsedAt | timestamptz (nullable) | audit: credential này chạy match lần cuối khi nào |
 | createdAt | timestamptz | |
@@ -146,18 +148,54 @@ Nhật ký **mỗi lần dữ liệu của user rời khỏi hệ thống**. Ghi
 > - **Fail-closed**: ghi row không thành công → **không gọi AI**. Nhật ký có lỗ là nhật ký không tin được.
 > - **KHÔNG suy nhật ký từ `MatchResult`** (ADR #16): lần match lỗi không tạo row `MatchResult`, nhưng đó lại chính là lần dữ liệu đã rời hệ thống rồi mới lỗi.
 
-### Generated content — **chốt phương án (a)**, không thêm model *(2026-08-09, feature `cv-rewrite-assistant`)*
+### CoverLetter *(implemented — feature `cover-letter-generator`, Goal 7b)*
 
-Roadmap #6 (CV rewrite) đã chọn **(a) không thêm model**; #8 (cover letter) chưa làm và tự quyết khi tới.
+Một lá thư ứng tuyển sinh từ **một `MatchResult`**. Mỗi lần sinh là một row — kể cả lần lỗi.
 
-- **CV rewrite**: đề xuất **KHÔNG được lưu**. Sau khi user duyệt từng thay đổi → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`, `parentId` = CV gốc, `fileData`/`fileMime` = `null`).
+| Field | Type | Note |
+|---|---|---|
+| id | uuid (PK) | |
+| userId | uuid (FK → User) | **per-user isolation**, `ON DELETE CASCADE` |
+| matchResultId | uuid (FK → MatchResult) | `ON DELETE CASCADE` — lá thư sinh từ một report; report mất thì thư mất ngữ cảnh. Neo vào `MatchResult` chứ không vào cặp `(cv, jd)`: mỗi lần chấm cho `strengths`/`gaps` khác nhau, nên thư khác nhau |
+| tone | enum(formal, friendly) | |
+| length | enum(short, standard) | |
+| language | enum(en, vi) | **ngôn ngữ của lá thư**, độc lập với ngôn ngữ UI |
+| content | text | **plain text** (đích đến là ô soạn email — markdown ở đó hiện ra dạng `**dấu sao**`; cũng loại bỏ bề mặt XSS). Rỗng khi `status=failed` |
+| omittedRequirements | text[] | Yêu cầu của JD mà CV **không** chống lưng được — do model tự khai. Đây là nửa **nhìn thấy được** của ADR #13: thay vì bịa, nó nói ra cái nó không nhận |
+| status | enum(succeeded, failed) | Không có `pending` — row chỉ tạo khi đã xong (thành công hoặc lỗi) |
+| errorCode | text (nullable) | `invalid_key` \| `no_quota` \| `model_unavailable` \| `timeout` \| `unreachable`. **KHÔNG** chứa message thô của provider |
+| edited | boolean | `true` khi user đã sửa tay — phân biệt bản AI với bản đã biên tập |
+| credentialId | uuid (FK → AiCredential, nullable) | `null` = key hệ thống. `ON DELETE SET NULL` |
+| provider | enum(openrouter, openai, gemini) | snapshot |
+| chatModel | text | snapshot. **Không** có `embedModel` — sinh thư chỉ dùng chat |
+| createdAt / updatedAt | timestamptz | |
+
+> **Vì sao `errorCode` là `text`, không phải enum**: người ghi vào cột này chỉ có **một** — `AiProviderError.reason`, kiểu `AiTestStatus` — nên TypeScript đã chặn giá trị lạ tại điểm ghi duy nhất. Không có enum nào đúng để gắn: `AiTestStatus` chứa `ok`, thứ **không bao giờ** hợp lệ cho một mã lỗi; còn đúc enum thứ hai chỉ để bỏ `ok` sẽ tạo hai enum lệch nhau một member và một nguồn drift mới. Cột cũng mang tính **ghi chú lịch sử**, nên kiểu chữ khoan dung hơn khi tập mã đổi. Áp dụng cho cả `MatchResult.errorCode`. Xem `specs/cover-letter-generator/security-report.md`.
+
+> **Bất biến bắt buộc**:
+> - **Độc lập `Document` và độc lập lineage `parentId`** (Goal 9). Cover letter là **lá**: không engine nào chấm nó, không thư viện nào liệt kê nó, không delta nào đo nó. Nhét vào `Document` sẽ bắt mọi query `kind IN (CV, JD)` và mọi màn library học thêm một loại thứ ba mà chẳng đổi lấy gì.
+> - **Thất bại được LƯU, không ném 503** — cùng hợp đồng `POST /match` sau `multi-provider-compare` (ADR/D3). 503 chỉ còn cho lỗi *cấu hình*.
+> - **Tự lưu mỗi lần sinh, không có nút "Save"**. §6.4 nói "lưu lại là tuỳ chọn" — đó là câu về **user** (họ xoá được bất cứ lúc nào), không phải về hệ thống. Nút Save đặt quyết định vào đúng lúc user chưa có gì để so, và bản lỗi thì chẳng ai bấm Save.
+> - Điều này **không** vi phạm ADR #13: ADR #13 nói về CV rewrite — thứ **chảy tiếp** vào hệ thống (thành `Document`, đem match lại, đo delta ở Goal 9) nên phải qua cửa duyệt. Cái ADR #13 thật sự cấm — **bịa nội dung** — được giữ nguyên và siết chặt hơn qua `omittedRequirements` + prompt (xem `specs/cover-letter-generator/design.md` §4).
+
+### Generated content — hai nửa Goal 7 lưu **khác nhau, có chủ ý**
+
+Câu hỏi cũ *"thêm một bảng `GeneratedContent` chung hay không"* đã được **cả hai** feature trả lời, và câu trả lời **không giống nhau**. Đó là kết luận đúng, không phải sự thiếu nhất quán: hai thứ khác nhau ở chỗ **có chảy tiếp vào hệ thống hay không**.
+
+**CV rewrite (Goal 7a, Roadmap #6) — phương án (a), KHÔNG thêm model** *(2026-08-09, feature `cv-rewrite-assistant`)*
+
+- Đề xuất **KHÔNG được lưu**. Sau khi user duyệt từng thay đổi → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`, `parentId` = CV gốc, `fileData`/`fileMime` = `null`).
 - **Vì sao không lưu bản đề xuất**: ADR #13 nói output "chỉ thành dữ liệu thật khi user duyệt". Lưu mọi đề xuất chưa duyệt là **lưu thêm một bản sao CV (PII)** cho thứ user có thể không bao giờ nhận — đi ngược Goal 10.
 - **Vì sao không cần `GeneratedContent`**: cái nó mua là truy vết *"bản này sinh ra từ match nào"*. Consumer duy nhất được biết là Goal 9, mà §6.6 so **2 phiên bản CV trên một JD do user chọn** — nó cần `parentId` + JD, không cần con trỏ ngược về `MatchResult`. Xem `specs/cv-rewrite-assistant/design.md` §4.1.
 - **Đánh đổi đã chấp nhận**: reload giữa chừng làm mất đề xuất, phải sinh lại (tốn 1 chat call). Khác `multi-provider-compare` — ở đó **kết quả** là sản phẩm cuối nên phải bền; ở đây sản phẩm cuối là `Document` sau khi duyệt, và nó được lưu hẳn hoi.
 
-~~**(b) Thêm `GeneratedContent`**~~ — đã loại, giữ lại đây để không cân nhắc lại từ đầu: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`.
+**Cover letter (Goal 7b, Roadmap #8) — bảng riêng `CoverLetter`, tự lưu mỗi lần sinh** *(2026-08-09, feature `cover-letter-generator`)*
 
-Ràng buộc chung (ADR #13): **không ghi đè CV gốc**; output là đề xuất, chỉ thành dữ liệu thật khi user duyệt.
+Xem bảng `CoverLetter` ở trên. Ngược hướng 7a **vì đúng cái tiêu chí mà 7a dùng để loại việc lưu**: bản CV rewrite **chảy tiếp** (thành `Document`, đem match lại, đo delta ở Goal 9) nên phải qua cửa duyệt và không được lưu trước khi duyệt; lá thư là **lá** — không engine nào chấm nó, không thư viện nào liệt kê nó, nên lưu nó **không** tạo ra một bản sao PII chưa duyệt nào chảy vào đâu cả. Ngược lại, không lưu thì mất khả năng **so nhiều bản** (đúng lý do tồn tại của 3 núm tone/length/language) và **không ghi nổi lần lỗi** của provider. Lập luận đầy đủ: `specs/cover-letter-generator/design.md` §3.
+
+~~**(b) Một bảng `GeneratedContent` chung cho cả hai**~~ — **đã loại**, giữ lại để không cân nhắc lại từ đầu: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`. Sau khi hai nửa chốt ngược hướng nhau, bảng gộp này sẽ có **nửa số cột luôn null** ở mỗi `kind`.
+
+Ràng buộc chung (ADR #13): **không ghi đè CV gốc**; nội dung sinh ra phải bám vào những gì CV thật sự có.
 
 ## Notes (semantics ngoài schema)
 
@@ -166,8 +204,9 @@ Ràng buộc chung (ADR #13): **không ghi đè CV gốc**; output là đề xu�
 - **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7).
 - **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
 - **mock user** 📝: khi chưa có auth, `userId` của mọi bảng trỏ về `User` có `isMock = true`. Đây là user **hợp lệ trong DB**, không phải id ảo → FK toàn vẹn, clean data 1 câu lệnh.
-- **Lineage `Document.parentId`**: bản CV viết lại **luôn là row mới** — CV gốc không bao giờ bị ghi đè (ADR #13). `ON DELETE SET NULL` (ADR #15): xoá bản gốc thì bản cải tiến **vẫn còn**, chỉ mất liên kết. Bản viết lại có `sourceFormat=text` và `fileData=null` — **không** copy file PDF/DOCX của cha, vì file cũ không còn nói đúng nội dung mới.
-- **AiCredential ↔ MatchResult**: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử match; `provider`/`chatModel`/`embedModel` được **snapshot** vào `MatchResult` nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
+- **Lineage `Document.parentId`**: bản CV viết lại **luôn là row mới** — CV gốc không bao giờ bị ghi đè (ADR #13). `ON DELETE SET NULL` (ADR #15): xoá bản gốc thì bản cải tiến **vẫn còn**, chỉ mất liên kết. Bản viết lại có `sourceFormat=text` và `fileData=null` — **không** copy file PDF/DOCX của cha, vì file cũ không còn nói đúng nội dung mới. **`CoverLetter` không tham gia lineage này** — nó không phải một phiên bản của CV.
+- **AiCredential ↔ MatchResult / CoverLetter**: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử; `provider`/`chatModel`(/`embedModel`) được **snapshot** vào row nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
+- **Thứ tự xoá (FK)** khi clean data: `CoverLetter` → `MatchResult` → `MatchRun` → `Document`. `CoverLetter` cascade theo `MatchResult`, nhưng `MatchResult`/`MatchRun` **restrict** trên `Document` nên vẫn phải xoá từ dưới lên.
 - **So sánh được giữa các provider** 📝: mọi provider trong whitelist đều chạy **cùng công thức điểm** (0.6 semantic + 0.4 keyword) nên điểm giữa các card trong 1 `MatchRun` là so sánh được. Đây là lý do provider không có embeddings API bị loại khỏi enum (`project-goals.md` ADR #10) — nếu sau này nới ra thì `semanticScore` phải thành nullable và tính so sánh mất đi.
 
 ## How to update
