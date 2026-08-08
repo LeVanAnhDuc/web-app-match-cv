@@ -1,7 +1,19 @@
 # ERD — web-app-match-cv
 
-> Sơ bộ tại brainstorm `cv-jd-matching-wizard` (2026-07-14). Chi tiết field/type chốt ở `writing-plans` + sync với Prisma schema khi scaffold `server/`. DB: **PostgreSQL + pgvector**.
+> Sơ bộ tại brainstorm `cv-jd-matching-wizard` (2026-07-14). Chi tiết field/type chốt ở `writing-plans` + sync với Prisma schema khi scaffold `server/`. DB: **PostgreSQL** (pgvector **defer** — chưa bật extension nào, xem ADR #5b).
 > Cập nhật 2026-08-06 (brainstorm Goal 6 — BYO AI credentials): thêm `AiCredential` + `MatchRun`, mở rộng `User` + `MatchResult`. **Các phần đánh dấu 📝 SPEC là spec chưa implement** — ERD mới hơn code, phải flag ở `writing-plans` khi làm.
+> Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
+
+## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08)
+
+| Model | Trong ERD | Trong Prisma | Ghi chú |
+|---|---|---|---|
+| `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
+| `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) |
+| `MatchResult` | ✅ | 🟡 **một phần** | Có `overallScore`/`semanticScore`/`keywordScore`/`report` + FK cv/jd. **Thiếu**: `runId`, `credentialId`, `provider`, `chatModel`, `embedModel`, `status`, `errorCode` (đánh 📝 — Goal 6) |
+| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #3 |
+| `AiCredential` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #3 |
+| ~~`Job`~~ | ❌ | ❌ | **Không làm** — ADR #12 |
 
 ## Module groups
 
@@ -9,6 +21,7 @@
 - **Documents**: `Document` (CV | JD, per-user, reusable)
 - **Matching**: `MatchRun` 📝 + `MatchResult`
 - **AI credentials** 📝: `AiCredential` (token AI của user, mã hoá at-rest)
+- **Generated content** 📝 *(Goal 7 — chưa thiết kế)*: nơi chứa output CV rewrite / cover letter — **chưa chốt model**, xem cuối file
 
 ## Schema
 
@@ -81,7 +94,7 @@ Một lần bấm "Run match" — nhóm N `MatchResult` của cùng cặp CV↔J
 | report | jsonb | { strengths[], gaps[], suggestions[] } |
 | createdAt | timestamptz | |
 
-> **Implemented (Plan 2)**: `MatchResult` (không có các field 📝) + `Document` (Plan 1) đã có trong Prisma schema (`server/prisma/schema.prisma`). Không cột embedding/vector.
+> **Implemented**: `MatchResult` (không có các field 📝) từ Plan 2 + `Document` từ Plan 1, mở rộng `fileData`/`fileMime` ở `home-dashboard-library` — đều đã có trong `server/prisma/schema.prisma`. Không cột embedding/vector. Index hiện có: `Document @@index([userId, kind])`, `MatchResult @@index([userId])`.
 
 ### AiCredential 📝 *(spec — Goal 6)*
 
@@ -105,6 +118,15 @@ Token AI do **user** cung cấp. Mọi provider trong enum đều có **cả** c
 | createdAt | timestamptz | |
 
 > **Bất biến bắt buộc**: `encryptedKey`/`keyIv`/`keyTag` **KHÔNG BAO GIỜ** ra khỏi tầng service — không lên DTO, không vào log, không vào Swagger example. API chỉ trả `id`/`provider`/`label`/`keyLast4`/`chatModel`/`embedModel`/`lastTest*`/`lastUsedAt`.
+
+### Generated content 📝 *(Goal 7 — CV rewrite + cover letter, CHƯA thiết kế)*
+
+Roadmap #4/#5 sẽ sinh nội dung từ một `MatchResult`. **Model chưa chốt** — 2 hướng, quyết ở `superpowers:brainstorming` của feature đó:
+
+- **(a) Không thêm model**: CV rewrite sau khi user duyệt → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`); cover letter chỉ generate-and-copy, không lưu. Rẻ nhất, nhưng mất truy vết "bản này sinh ra từ match nào".
+- **(b) Thêm `GeneratedContent`**: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`. Truy vết được, so được nhiều bản, nhưng thêm 1 bảng + migration.
+
+Ràng buộc chung dù chọn hướng nào (ADR #13): **không ghi đè CV gốc**; output là đề xuất, chỉ thành dữ liệu thật khi user duyệt.
 
 ## Notes (semantics ngoài schema)
 
