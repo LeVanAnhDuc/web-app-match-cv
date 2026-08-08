@@ -9,7 +9,8 @@
     "openMenu": "Mở menu",
     "collapse": "Thu gọn thanh bên",
     "expand": "Mở thanh bên",
-    "aiCredentials": "Credential AI"
+    "aiCredentials": "Credential AI",
+    "myData": "Dữ liệu của tôi"
   },
   "home": {
     "hero": {
@@ -366,5 +367,20 @@
       "copy": "Không tự sao chép được. Hãy bôi đen và sao chép thủ công.",
       "list": "Không tải được danh sách bản nháp."
     }
+  },
+  "myData": {
+    "title": "Dữ liệu của tôi",
+    "description": "Tải về bản sao mọi thứ ứng dụng đang lưu về bạn.",
+    "contents": {
+      "heading": "Bản sao gồm có",
+      "documents": "Các file CV và mô tả công việc đúng như bạn đã tải lên, kèm phần văn bản đã trích xuất",
+      "matches": "Mọi lần chấm độ khớp, kèm điểm số và báo cáo đầy đủ",
+      "credentials": "Cấu hình khoá AI — nhà cung cấp, nhãn và bốn ký tự cuối, không bao giờ có khoá thật"
+    },
+    "download": "Tải dữ liệu của tôi",
+    "downloading": "Đang chuẩn bị bản sao…",
+    "done": "Đã tải bản sao dữ liệu về máy.",
+    "error": "Không chuẩn bị được bản sao. Vui lòng thử lại.",
+    "privacyNote": "Bản sao chứa dữ liệu cá nhân. Hãy lưu ở nơi an toàn."
   }
 }

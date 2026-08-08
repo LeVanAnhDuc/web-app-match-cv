@@ -90,7 +90,7 @@ i18n: src/i18n/config.ts init i18next (side-effect import trong __root)
 ```
 
 - **API base**: mọi request qua `apiFetch<T>` (`src/libs/api.ts`); base `VITE_API_BASE_URL`. KHÔNG hard-code URL BE.
-- **Routing**: file-based (`src/routes/`). Route file chỉ wiring `createFileRoute(...)({ component })`, UI thật nằm ở `src/views/`.
+- **Routing**: file-based (`src/routes/`). Route file chỉ wiring `createFileRoute(...)({ component })`, UI thật nằm ở `src/views/`. Route hiện có: `_app/{index,wizard,cv,jd,my-data}` → `/`, `/wizard`, `/cv`, `/jd`, `/my-data`.
 - **Locales**: `en` (default) + `vi` qua i18next; JSON ở `src/locales/{en,vi}/translation.json`.
 - **Design token**: `src/styles.css` khai báo semantic color token bằng Tailwind 4 `@theme` + override `@media (prefers-color-scheme: dark)` (`bg-surface`, `border-line`, `text-body/muted/faint`, `bg-primary`, `text-accent`). Mọi UI dùng utility này thay cho cặp `slate-*` + `dark:slate-*` — xem rule `layout-primitives`.
 

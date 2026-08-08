@@ -22,5 +22,6 @@ export const ENDPOINTS = {
     `/cover-letters?matchResultId=${encodeURIComponent(matchResultId)}`,
   coverLetterById: (id: string) => `/cover-letters/${encodeURIComponent(id)}`,
   cvRewrite: "/cv-rewrite",
-  cvRewriteAccept: "/cv-rewrite/accept"
+  cvRewriteAccept: "/cv-rewrite/accept",
+  meExport: "/me/export"
 } as const;

@@ -9,7 +9,8 @@
     "openMenu": "Open menu",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
-    "aiCredentials": "AI credentials"
+    "aiCredentials": "AI credentials",
+    "myData": "My data"
   },
   "home": {
     "hero": {
@@ -366,5 +367,20 @@
       "copy": "Could not copy automatically. Select the text and copy it manually.",
       "list": "Could not load your drafts."
     }
+  },
+  "myData": {
+    "title": "My data",
+    "description": "Download a copy of everything this app stores about you.",
+    "contents": {
+      "heading": "The archive contains",
+      "documents": "Your CV and job description files, exactly as you uploaded them, plus the text extracted from them",
+      "matches": "Every match you have run, with its scores and full report",
+      "credentials": "Your AI credential settings — provider, label and the last four characters only, never the key itself"
+    },
+    "download": "Download my data",
+    "downloading": "Preparing your archive…",
+    "done": "Your archive has been downloaded.",
+    "error": "Could not prepare your archive. Please try again.",
+    "privacyNote": "The archive contains personal data. Store it somewhere safe."
   }
 }
