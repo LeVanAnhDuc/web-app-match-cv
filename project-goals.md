@@ -176,7 +176,7 @@ Sửa chân keyword của engine để chấm đúng tài liệu tiếng Việt.
 | 7 | match-cv có **bảng `User` riêng**; IdP chỉ cấp claim | *(2026-08-06)* `store-app` sở hữu `Authentication` + `OAuthConsent`; match-cv sở hữu profile mirror (`email`/`fullName`/`avatar`/`phone`, nullable) + toàn bộ dữ liệu nghiệp vụ. KHÔNG copy bảng credential sang đây. |
 | 8 | **Mock user = user thật** có cờ `isMock` | *(2026-08-06)* Thay khái niệm "stub id ngoài DB": mọi data gắn vào 1 `User` hợp lệ → FK toàn vẹn + clean data bằng `DELETE … WHERE is_mock` cascade. App hành xử **như đã đăng nhập** bằng user này (không có màn login, không có mode khách, không tính năng nào bị khoá) → khi Auth về chỉ đổi nguồn `userId`, không viết lại luồng nghiệp vụ. |
 | 9 | BYO token **lưu server-side, mã hoá AES-256-GCM** | *(2026-08-06)* Để reuse cross-session/cross-device (yêu cầu "lưu để dùng sau"). **Precondition cứng**: chỉ chạy local / single-user, **KHÔNG deploy public trước khi Auth/SSO xong** — vì mock user dùng chung nghĩa là mọi caller đọc được cùng credential. |
-| 10 | Provider whitelist = **có cả chat + embed** | *(2026-08-06)* Engine hybrid cần 2 capability. OpenRouter / OpenAI / Google Gemini đạt; **Anthropic không có embeddings API** → loại (Voyage embed-only → loại). Giữ mọi provider cùng công thức điểm nên kết quả **so sánh được với nhau**. |
+| 10 | Provider whitelist = **có cả chat + embed** — cả 3 lái bằng **một SDK `openai`**, khác nhau chỉ ở `baseURL` + tên model *(xác nhận 2026-08-08)* | *(2026-08-06)* Engine hybrid cần 2 capability. OpenRouter / OpenAI / Google Gemini đạt; **Anthropic không có embeddings API** → loại (Voyage embed-only → loại). Giữ mọi provider cùng công thức điểm nên kết quả **so sánh được với nhau**. |
 | 11 | Multi-provider = **N request độc lập + progressive reveal** | *(2026-08-06)* FE bắn N request song song (mỗi provider 1 `MatchResult` trong cùng `MatchRun`); xong trước render trước, còn lại skeleton. Không cần queue / stream / polling; partial success hợp lệ. |
 | 12 | **Bỏ job-board**: không đăng Job, không apply flow | *(2026-08-08)* Sản phẩm là **công cụ matching + sinh nội dung**, không nối cung–cầu. Loại 2 mục này khỏi roadmap (không phải defer) → **không cần model `Job`**, không cần trạng thái ứng tuyển, không cần notification/messaging. Giữ scope quanh `Document` + `MatchResult`. |
 | 13 | Goal 7 sinh nội dung: **grounded + user duyệt** | *(2026-08-08)* CV rewrite chỉ được diễn đạt lại nội dung **đã có** trong CV gốc — cấm bịa kinh nghiệm/kỹ năng/bằng cấp (rủi ro pháp lý + đạo đức cho user). Output là **đề xuất dạng diff**, user duyệt từng thay đổi; lưu thành `Document` mới, **không ghi đè CV gốc**. |
@@ -198,7 +198,7 @@ Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/fro
 | 1 | **CV↔JD Matching Wizard** | 1–4 | ✅ **DONE** — merge `main` cả 4 repo (Plan 0–2) |
 | 2 | **Home dashboard + Document library** (§6.1) | 1, 4 | ✅ **DONE** — merge `main` (`docs` #11, `server` #7, `client` #9). **Trừ** trang Match history đầy đủ → `unfinished-features.md` |
 | 3 | **Vietnamese document support** (§6.5) | 8 | 🔜 **TIẾP THEO** — spec tầng goal ở `specs/goals-8-9-10/design.md`, chưa có spec feature. Chen lên đầu vì là **lỗi đang chạy trên `main`**, độc lập hoàn toàn (chỉ đụng hàm `tokenize`) |
-| 4 | **BYO AI credentials — single provider** (§6.2 phần 1) | 6a | 🚧 **ĐANG LÀM** — `design.md` + `plan.md` + mock đã xong ở `specs/ai-credentials/`, branch `feat/ai-credentials` chưa merge |
+| 4 | **BYO AI credentials — single provider** (§6.2 phần 1) | 6a | ✅ **DONE** *(2026-08-08)* — merge `main` (`docs` #15, `server` #8, `client` #12). `AiCredential` + AES-256-GCM + test connection chat/embed + trang `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`. Security review PASS; gate A E2E 78/78. **Gate B (MCP walk) chưa chạy** — xem `specs/ai-credentials/e2e.md` |
 | 5 | **Data sovereignty** (§6.7) | 10 | 📝 spec tầng goal xong, chưa có spec feature. Xếp ngay sau #4 vì cả hai cùng sửa `AiService` |
 | 6 | **CV rewrite assistant** (§6.3) | 7a | 📝 chưa có spec/plan. Phụ thuộc mềm #4 (chạy bằng credential user) |
 | 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite |
@@ -217,13 +217,14 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 
 ## 12. Open Questions
 
+> *(2026-08-08, feature `ai-credentials`)* Đã đóng 2 câu của Goal 6: **Gemini có** endpoint OpenAI-compatible phủ cả `/embeddings` (verify tại https://ai.google.dev/gemini-api/docs/openai) nên cả 3 provider dùng chung SDK `openai`; và **model là ô nhập tự do**, để trống = mặc định của provider, test connection là cơ chế xác minh.
+
+
 - Cấu trúc `parsedContent` (jsonb) chuẩn hóa ra sao (schema section CV/JD)? → chốt ở `writing-plans`.
 - Công thức combine `overallScore` từ semantic + keyword (trọng số)? → chốt ở design feature.
 - OpenRouter model (chat default `openai/gpt-4o-mini`; embed `openai/text-embedding-3-small`) → cấu hình qua env `OPENROUTER_CHAT_MODEL`/`OPENROUTER_EMBED_MODEL`.
 - Deploy target (Docker Compose local? cloud nào?) → TBD. **Lưu ý**: ADR #9 chặn deploy public cho tới khi Auth xong.
 - *(Goal 6)* Có cap số provider mỗi lần chạy không (2–3), hay để user chọn tự do? → chốt ở design feature.
-- *(Goal 6)* **Google Gemini**: endpoint OpenAI-compatible có phủ **cả embeddings** hay phải dùng SDK riêng (`@google/genai`)? → **phải verify khi implement**, chưa xác nhận.
-- *(Goal 6)* Model list per-provider: hard-code whitelist, hay gọi `GET /models` của provider để user chọn? → chốt ở design feature.
 - *(Goal 7)* Lưu output ở đâu: bảng `GeneratedContent` riêng, hay CV rewrite → `Document` mới + cover letter → không lưu? → chốt ở design feature (`erd.md` chưa có model nào cho Goal 7).
 - *(Goal 7)* Diff CV hiển thị ở mức nào — dòng, câu, hay section? Phụ thuộc `parsedContent` (jsonb) có được chuẩn hoá chưa. → chốt ở design feature.
 - *(Goal 7)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design feature.
@@ -243,3 +244,4 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
   - **Goal 2 bỏ chữ "skill"** → "keyword overlap + semantic + LLM", kèm phân vai rõ (keyword+vector chấm điểm, LLM chỉ giải thích) ở Goal 2 + ADR #4. Skill-level overlap hạ xuống cải tiến tuỳ chọn (`unfinished-features.md` #5). **Goal 2 = ✅ xong.**
   - **Thêm Goal 8, 9, 10** qua `superpowers:brainstorming` — spec tầng goal ở `specs/goals-8-9-10/design.md` (giữ **lý do**; file này giữ **quyết định**). Goal 8 tài liệu tiếng Việt (§6.5) · Goal 9 so sánh phiên bản CV (§6.6) · Goal 10 chủ quyền dữ liệu (§6.7). Kèm ADR #14 (không tách từ ghép) · #15 (lineage `parentId`) · #16 (nhật ký tiết lộ là bảng riêng, fail-closed). Non-Goals thêm 3 mục. Roadmap sắp lại 11 dòng: Goal 8 chen lên #3 vì là lỗi đang chạy; roadmap #3 cũ tách đôi thành #4/#9; batch ranking #7 → #11.
   - **§6 step 3 Review chốt read-only** — bỏ "sửa text/structured". User không vá nội dung parse bằng tay; parse sai thì nạp lại tài liệu ở step 1/2. (Khớp đúng code hiện tại: `views/Wizard/mains/StepReview` chỉ render `DocumentPreview`.)
+- **2026-08-08** *(feature `ai-credentials`)*: tách Goal 6 làm 2 feature; hiện thực phần 1 (AiCredential + AES-256-GCM + test connection chat/embed + `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`). Đóng 2 open question của Goal 6 (§12). Cập nhật Roadmap #3 + ADR #10.

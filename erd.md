@@ -3,17 +3,18 @@
 > Sơ bộ tại brainstorm `cv-jd-matching-wizard` (2026-07-14). Chi tiết field/type chốt ở `writing-plans` + sync với Prisma schema khi scaffold `server/`. DB: **PostgreSQL** (pgvector **defer** — chưa bật extension nào, xem ADR #5b).
 > Cập nhật 2026-08-06 (brainstorm Goal 6 — BYO AI credentials): thêm `AiCredential` + `MatchRun`, mở rộng `User` + `MatchResult`. **Các phần đánh dấu 📝 SPEC là spec chưa implement** — ERD mới hơn code, phải flag ở `writing-plans` khi làm.
 > Cập nhật 2026-08-08 (Goal 8/9/10 — `specs/goals-8-9-10/design.md`): thêm `Document.parentId` (lineage, Goal 9) + model `DataDisclosure` (Goal 10). Goal 8 không đổi ERD. Đổi số roadmap batch ranking #7 → **#11**.
+> Cập nhật 2026-08-08 (feature `ai-credentials` — **đã merge**): `AiCredential` **đã implement**, `MatchResult` nhận 4 cột snapshot (`credentialId`/`provider`/`chatModel`/`embedModel`). `MatchRun` + `runId`/`status`/`errorCode` **vẫn 📝** — chúng chỉ có nghĩa khi một lần chạy sinh nhiều kết quả, tức Roadmap #9 (multi-provider compare).
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
 
-## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08)
+## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08 — sau feature `ai-credentials`)
 
 | Model | Trong ERD | Trong Prisma | Ghi chú |
 |---|---|---|---|
 | `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
 | `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) |
-| `MatchResult` | ✅ | 🟡 **một phần** | Có `overallScore`/`semanticScore`/`keywordScore`/`report` + FK cv/jd. **Thiếu**: `runId`, `credentialId`, `provider`, `chatModel`, `embedModel`, `status`, `errorCode` (đánh 📝 — Goal 6) |
-| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap **#9** (multi-provider compare) |
-| `AiCredential` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap **#4** (`feat/ai-credentials`, design+plan đã xong) |
+| `MatchResult` | ✅ | 🟡 **một phần** | Có scores + `report` + FK cv/jd, **và** `credentialId`/`provider`/`chatModel`/`embedModel` (feature `ai-credentials`). **Thiếu**: `runId`, `status`, `errorCode` (📝 — chờ Roadmap #9) |
+| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ có nghĩa khi một lần chạy sinh nhiều kết quả → Roadmap **#9** (multi-provider compare) |
+| `AiCredential` | ✅ | ✅ **đủ** | Roadmap **#4** đã merge — migration `add_ai_credential`, kèm enum `AiProvider` + `AiTestStatus` |
 | ~~`Job`~~ | ❌ | ❌ | **Không làm** — ADR #12 |
 | `DataDisclosure` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #5 (Goal 10) |
 
@@ -24,7 +25,7 @@
 - **Identity**: `User` (mock user khi chưa auth — xem `project-goals.md` §3)
 - **Documents**: `Document` (CV | JD, per-user, reusable)
 - **Matching**: `MatchRun` 📝 + `MatchResult`
-- **AI credentials** 📝: `AiCredential` (token AI của user, mã hoá at-rest)
+- **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)
 - **Privacy** 📝 *(Goal 10)*: `DataDisclosure` (nhật ký tài liệu đã gửi tới provider nào)
 - **Generated content** 📝 *(Goal 7 — chưa thiết kế)*: nơi chứa output CV rewrite / cover letter — **chưa chốt model**, xem cuối file
 
@@ -88,10 +89,10 @@ Một lần bấm "Run match" — nhóm N `MatchResult` của cùng cặp CV↔J
 | runId | uuid (FK → MatchRun, nullable) 📝 | nhóm đối chiếu. Nullable để không phá dữ liệu cũ (match tạo trước Goal 6) |
 | cvDocumentId | uuid (FK → Document) | kind=CV |
 | jdDocumentId | uuid (FK → Document) | kind=JD |
-| credentialId | uuid (FK → AiCredential, nullable) 📝 | `null` = chạy bằng key hệ thống (fallback). `ON DELETE SET NULL` — xoá credential KHÔNG được xoá kết quả cũ |
-| provider | enum(openrouter, openai, gemini) 📝 | provider đã chạy — cần để phân biệt kết quả nào của ai |
-| chatModel | text 📝 | model thực tế đã dùng (snapshot, không suy ra từ credential vì credential có thể bị đổi sau) |
-| embedModel | text 📝 | idem |
+| credentialId | uuid (FK → AiCredential, nullable) | `null` = chạy bằng key hệ thống (fallback). `ON DELETE SET NULL` — xoá credential KHÔNG được xoá kết quả cũ |
+| provider | enum(openrouter, openai, gemini) | provider đã chạy — cần để phân biệt kết quả nào của ai |
+| chatModel | text | model thực tế đã dùng (snapshot, không suy ra từ credential vì credential có thể bị đổi sau) |
+| embedModel | text | idem |
 | status | enum(succeeded, failed) 📝 | **không có `pending`** — row chỉ được tạo khi provider đó đã xong (thành công hoặc lỗi). Trạng thái "đang chờ" chỉ tồn tại ở FE (request đang bay). Refresh giữa lúc chạy → run có ít result hơn số provider đã chọn, và đó là hành vi đúng |
 | errorCode | text (nullable) 📝 | `invalid_key` \| `no_quota` \| `model_unavailable` \| `timeout` \| `unreachable`. **KHÔNG chứa message thô của provider** (rủi ro rò rỉ) |
 | overallScore | int | % match tổng = `round(0.6*semantic + 0.4*keyword)` |
@@ -102,7 +103,7 @@ Một lần bấm "Run match" — nhóm N `MatchResult` của cùng cặp CV↔J
 
 > **Implemented**: `MatchResult` (không có các field 📝) từ Plan 2 + `Document` từ Plan 1, mở rộng `fileData`/`fileMime` ở `home-dashboard-library` — đều đã có trong `server/prisma/schema.prisma`. Không cột embedding/vector. Index hiện có: `Document @@index([userId, kind])`, `MatchResult @@index([userId])`.
 
-### AiCredential 📝 *(spec — Goal 6)*
+### AiCredential *(implemented — feature `ai-credentials`)*
 
 Token AI do **user** cung cấp. Mọi provider trong enum đều có **cả** chat + embeddings (ADR #10).
 
@@ -160,7 +161,7 @@ Ràng buộc chung dù chọn hướng nào (ADR #13): **không ghi đè CV gố
 - **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7).
 - **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
 - **mock user** 📝: khi chưa có auth, `userId` của mọi bảng trỏ về `User` có `isMock = true`. Đây là user **hợp lệ trong DB**, không phải id ảo → FK toàn vẹn, clean data 1 câu lệnh.
-- **AiCredential ↔ MatchResult** 📝: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử match; `provider`/`chatModel`/`embedModel` được **snapshot** vào `MatchResult` nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
+- **AiCredential ↔ MatchResult**: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử match; `provider`/`chatModel`/`embedModel` được **snapshot** vào `MatchResult` nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
 - **So sánh được giữa các provider** 📝: mọi provider trong whitelist đều chạy **cùng công thức điểm** (0.6 semantic + 0.4 keyword) nên điểm giữa các card trong 1 `MatchRun` là so sánh được. Đây là lý do provider không có embeddings API bị loại khỏi enum (`project-goals.md` ADR #10) — nếu sau này nới ra thì `semanticScore` phải thành nullable và tính so sánh mất đi.
 
 ## How to update
