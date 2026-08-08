@@ -24,4 +24,13 @@ export class CreateMatchDto {
   @IsOptional()
   @IsUUID()
   credentialId?: string;
+
+  @ApiProperty({
+    required: false,
+    description:
+      "Groups this result with the other providers of the same run. Must be your own run and must point at these same two documents."
+  })
+  @IsOptional()
+  @IsUUID()
+  runId?: string;
 }

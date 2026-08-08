@@ -1,3 +1,9 @@
+import {
+  BadRequestException,
+  NotFoundException,
+  ServiceUnavailableException
+} from "@nestjs/common";
+import { AiProviderError } from "../ai/ai.service";
 import { MatchingService } from "./matching.service";
 
 // Pure-scoring unit tests only — persistence + AI orchestration methods
@@ -17,6 +23,7 @@ const USER_ID = "00000000-0000-0000-0000-000000000001";
 const CV_ID = "11111111-1111-1111-1111-111111111111";
 const JD_ID = "22222222-2222-2222-2222-222222222222";
 const CRED_ID = "33333333-3333-3333-3333-333333333333";
+const RUN_ID = "44444444-4444-4444-4444-444444444444";
 
 const SYSTEM_CFG = {
   provider: "openrouter" as const,
@@ -47,6 +54,26 @@ function makeOrchestrator() {
             rawText: "some text"
           })
         )
+    },
+    matchRun: {
+      create: jest
+        .fn<
+          Promise<Record<string, unknown>>,
+          [{ data: Record<string, unknown> }]
+        >()
+        .mockImplementation(({ data }) =>
+          Promise.resolve({ id: RUN_ID, createdAt: new Date(0), ...data })
+        ),
+      findFirst: jest
+        .fn<Promise<Record<string, unknown> | null>, [unknown]>()
+        .mockResolvedValue({
+          id: RUN_ID,
+          userId: USER_ID,
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          createdAt: new Date(0),
+          results: []
+        })
     },
     matchResult: {
       create: jest
@@ -249,6 +276,142 @@ describe("MatchingService", () => {
         credentialId: CRED_ID
       });
       expect(JSON.stringify(dto)).not.toContain("sk-should-never-appear");
+    });
+  });
+
+  describe("runs", () => {
+    it("opens a run for an owned CV/JD pair", async () => {
+      const { service, prisma } = makeOrchestrator();
+      const run = await service.createRun({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID
+      });
+      expect(run.id).toBe(RUN_ID);
+      const { data } = prisma.matchRun.create.mock.calls[0][0];
+      expect(data).toMatchObject({
+        userId: USER_ID,
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID
+      });
+    });
+
+    it("404s when the run is not the caller's", async () => {
+      const { service, prisma } = makeOrchestrator();
+      prisma.matchRun.findFirst.mockResolvedValue(null);
+      await expect(service.getRun(RUN_ID)).rejects.toBeInstanceOf(
+        NotFoundException
+      );
+      await expect(
+        service.createMatch({
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          runId: RUN_ID
+        })
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it("400s when the run is about a different pair of documents", async () => {
+      const { service, prisma } = makeOrchestrator();
+      prisma.matchRun.findFirst.mockResolvedValue({
+        id: RUN_ID,
+        userId: USER_ID,
+        cvDocumentId: "99999999-9999-9999-9999-999999999999",
+        jdDocumentId: JD_ID,
+        createdAt: new Date(0)
+      });
+      await expect(
+        service.createMatch({
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          runId: RUN_ID
+        })
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it("stamps the runId onto the result", async () => {
+      const { service, prisma } = makeOrchestrator();
+      await service.createMatch({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID,
+        runId: RUN_ID
+      });
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect(data.runId).toBe(RUN_ID);
+      expect(data.status).toBe("succeeded");
+      expect(data.errorCode).toBeNull();
+    });
+  });
+
+  describe("provider failure", () => {
+    it("persists a failed row instead of rejecting", async () => {
+      const { service, ai, prisma } = makeOrchestrator();
+      ai.embed.mockRejectedValue(new AiProviderError("no_quota"));
+
+      const dto = await service.createMatch({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID,
+        runId: RUN_ID
+      });
+
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect(data).toMatchObject({
+        status: "failed",
+        errorCode: "no_quota",
+        overallScore: 0,
+        semanticScore: 0,
+        keywordScore: 0,
+        runId: RUN_ID
+      });
+      expect(dto.status).toBe("failed");
+    });
+
+    it("keeps the provider snapshot on a failed row so the card can name it", async () => {
+      const { service, ai, prisma, credentials } = makeOrchestrator();
+      credentials.getRuntimeConfig.mockResolvedValue({
+        provider: "gemini",
+        apiKey: "k",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        chatModel: "gemini-2.5-flash",
+        embedModel: "gemini-embedding-001"
+      });
+      ai.embed.mockRejectedValue(new AiProviderError("invalid_key"));
+
+      await service.createMatch({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID,
+        credentialId: CRED_ID
+      });
+
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect(data).toMatchObject({
+        provider: "gemini",
+        chatModel: "gemini-2.5-flash",
+        status: "failed"
+      });
+    });
+
+    it("still rethrows a configuration failure — that is not a run outcome", async () => {
+      const { service, ai } = makeOrchestrator();
+      ai.systemRuntimeConfig.mockImplementation(() => {
+        throw new ServiceUnavailableException("not configured");
+      });
+      await expect(
+        service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID })
+      ).rejects.toBeInstanceOf(ServiceUnavailableException);
+    });
+
+    it("never lets a provider message reach errorCode", async () => {
+      const { service, ai, prisma } = makeOrchestrator();
+      ai.embed.mockRejectedValue(new AiProviderError("unreachable"));
+      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect([
+        "invalid_key",
+        "no_quota",
+        "model_unavailable",
+        "timeout",
+        "unreachable"
+      ]).toContain(data.errorCode);
     });
   });
 });

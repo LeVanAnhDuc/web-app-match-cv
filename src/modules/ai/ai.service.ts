@@ -41,13 +41,26 @@ function notConfiguredError(): ServiceUnavailableException {
   );
 }
 
-function aiFailedError(): ServiceUnavailableException {
-  return new ServiceUnavailableException(
-    tAi(
-      "ai.errors.aiFailed",
-      "Matching service failed. Please try again later."
-    )
-  );
+/**
+ * A provider call failed, and we know roughly why.
+ *
+ * Still a 503 carrying the same i18n message, so any caller that does NOT
+ * catch it behaves exactly as before. What it adds is `reason`: multi-provider
+ * compare records one failure per card, and a card has to say *which* failure.
+ */
+export class AiProviderError extends ServiceUnavailableException {
+  constructor(readonly reason: AiTestStatus) {
+    super(
+      tAi(
+        "ai.errors.aiFailed",
+        "Matching service failed. Please try again later."
+      )
+    );
+  }
+}
+
+function aiFailedError(reason: AiTestStatus): AiProviderError {
+  return new AiProviderError(reason);
 }
 
 function toStringArray(value: unknown): string[] {
@@ -57,7 +70,10 @@ function toStringArray(value: unknown): string[] {
 async function withTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: NodeJS.Timeout;
   const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(aiFailedError()), AI_TIMEOUT_MS);
+    timer = setTimeout(
+      () => reject(aiFailedError(AiTestStatus.unreachable)),
+      AI_TIMEOUT_MS
+    );
   });
   try {
     return await Promise.race([work, timeout]);
@@ -94,6 +110,13 @@ export function mapProviderError(error: unknown): AiTestStatus {
     return AiTestStatus.model_unavailable;
   }
   return AiTestStatus.unreachable;
+}
+
+/** Keep an already-classified failure; classify anything else. */
+function asProviderError(error: unknown): AiProviderError {
+  return error instanceof AiProviderError
+    ? error
+    : new AiProviderError(mapProviderError(error));
 }
 
 /** Aggregate per-capability verdicts into the single status stored on the credential. */
@@ -159,10 +182,12 @@ export class AiService {
         })
       );
       embedding = response.data[0]?.embedding;
-    } catch {
-      throw aiFailedError();
+    } catch (error) {
+      throw asProviderError(error);
     }
-    if (!embedding || embedding.length === 0) throw aiFailedError();
+    if (!embedding || embedding.length === 0) {
+      throw aiFailedError(AiTestStatus.unreachable);
+    }
     return embedding;
   }
 
@@ -199,10 +224,10 @@ export class AiService {
         })
       );
       content = response.choices[0]?.message?.content;
-    } catch {
-      throw aiFailedError();
+    } catch (error) {
+      throw asProviderError(error);
     }
-    if (!content) throw aiFailedError();
+    if (!content) throw aiFailedError(AiTestStatus.unreachable);
 
     try {
       const parsed: unknown = JSON.parse(content);
@@ -213,7 +238,8 @@ export class AiService {
         suggestions: toStringArray(record.suggestions)
       };
     } catch {
-      throw aiFailedError();
+      // Unparseable JSON is the model misbehaving, not the transport.
+      throw aiFailedError(AiTestStatus.model_unavailable);
     }
   }
 

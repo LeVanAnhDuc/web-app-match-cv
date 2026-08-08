@@ -1,7 +1,12 @@
 import { ServiceUnavailableException } from "@nestjs/common";
 import type { ConfigService } from "@nestjs/config";
 import OpenAI from "openai";
-import { AiService, mapProviderError, worstStatus } from "./ai.service";
+import {
+  AiProviderError,
+  AiService,
+  mapProviderError,
+  worstStatus
+} from "./ai.service";
 import type { AiRuntimeConfig } from "./providers";
 
 const embeddingsCreateMock = jest.fn();
@@ -37,6 +42,8 @@ class LookalikeError extends Error {
 function fakeConfig(values: Record<string, string | undefined>): ConfigService {
   return { get: (key: string) => values[key] } as unknown as ConfigService;
 }
+
+const SCORES = { overallScore: 70, semanticScore: 80, keywordScore: 60 };
 
 const CFG: AiRuntimeConfig = {
   provider: "openrouter",
@@ -271,6 +278,51 @@ describe("AiService", () => {
         "model_unavailable"
       );
       expect(worstStatus("unreachable", "ok")).toBe("unreachable");
+    });
+  });
+
+  describe("AiProviderError", () => {
+    it("classifies a rate limit as no_quota while still being a 503", async () => {
+      embeddingsCreateMock.mockRejectedValue(apiError(429, "slow down"));
+      const service = new AiService(fakeConfig({}));
+      await expect(service.embed("hello", CFG)).rejects.toMatchObject({
+        reason: "no_quota"
+      });
+      await expect(service.embed("hello", CFG)).rejects.toBeInstanceOf(
+        ServiceUnavailableException
+      );
+    });
+
+    it("classifies a transport failure as unreachable", async () => {
+      embeddingsCreateMock.mockRejectedValue(new Error("socket hang up"));
+      const service = new AiService(fakeConfig({}));
+      await expect(service.embed("hello", CFG)).rejects.toMatchObject({
+        reason: "unreachable"
+      });
+    });
+
+    it("classifies a bad key as invalid_key from generateReport too", async () => {
+      chatCompletionsCreateMock.mockRejectedValue(apiError(401, "bad key"));
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateReport("cv", "jd", SCORES, CFG)
+      ).rejects.toMatchObject({ reason: "invalid_key" });
+    });
+
+    it("classifies an unparseable model response as model_unavailable", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: "definitely not json" } }]
+      });
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateReport("cv", "jd", SCORES, CFG)
+      ).rejects.toMatchObject({ reason: "model_unavailable" });
+    });
+
+    it("does not re-wrap an already classified error", () => {
+      const original = new AiProviderError("no_quota");
+      expect(original.reason).toBe("no_quota");
+      expect(original).toBeInstanceOf(ServiceUnavailableException);
     });
   });
 });

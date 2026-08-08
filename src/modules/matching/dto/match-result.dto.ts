@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { AiProvider, MatchResult } from "@prisma/client";
+import { AiProvider, MatchResult, MatchStatus } from "@prisma/client";
 
 export class MatchReportDto {
   @ApiProperty({ type: [String] }) strengths: string[];
@@ -28,6 +28,23 @@ export class MatchResultDto {
   @ApiProperty() chatModel: string;
   @ApiProperty() embedModel: string;
 
+  @ApiProperty({
+    nullable: true,
+    description: "null for rows created before runs existed"
+  })
+  runId: string | null;
+
+  @ApiProperty({ enum: MatchStatus })
+  status: MatchStatus;
+
+  @ApiProperty({
+    nullable: true,
+    description:
+      "Only when status=failed. Closed set: invalid_key | no_quota | model_unavailable | timeout | unreachable. Never a provider message.",
+    example: "no_quota"
+  })
+  errorCode: string | null;
+
   @ApiProperty() createdAt: Date;
 
   static fromEntity(entity: MatchResult): MatchResultDto {
@@ -43,6 +60,9 @@ export class MatchResultDto {
     dto.provider = entity.provider;
     dto.chatModel = entity.chatModel;
     dto.embedModel = entity.embedModel;
+    dto.runId = entity.runId;
+    dto.status = entity.status;
+    dto.errorCode = entity.errorCode;
     dto.createdAt = entity.createdAt;
     return dto;
   }

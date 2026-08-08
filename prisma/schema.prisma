@@ -30,6 +30,11 @@ enum AiProvider {
   gemini
 }
 
+enum MatchStatus {
+  succeeded
+  failed
+}
+
 enum AiTestStatus {
   ok
   invalid_key
@@ -46,6 +51,7 @@ model User {
 
   documents     Document[]
   matchResults  MatchResult[]
+  matchRuns     MatchRun[]
   aiCredentials AiCredential[]
 }
 
@@ -65,6 +71,8 @@ model Document {
 
   matchResultsAsCv MatchResult[] @relation("MatchResultCvDocument")
   matchResultsAsJd MatchResult[] @relation("MatchResultJdDocument")
+  matchRunsAsCv    MatchRun[]    @relation("MatchRunCvDocument")
+  matchRunsAsJd    MatchRun[]    @relation("MatchRunJdDocument")
 
   @@index([userId, kind])
 }
@@ -86,11 +94,40 @@ model MatchResult {
   // Which AI ran this match. Snapshotted rather than derived from the
   // credential, because the credential can later be re-pointed at another
   // model or deleted outright — the historical result must stay readable.
+  // Which run this result belongs to. Nullable: every row created before
+  // multi-provider compare belongs to no run. CASCADE (not SET NULL like
+  // credentialId) because a run CONTAINS its results, whereas a credential is
+  // merely something a result was produced with.
+  runId        String?
+  run          MatchRun?     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  status       MatchStatus   @default(succeeded)
+  /// Closed set: invalid_key | no_quota | model_unavailable | timeout | unreachable.
+  /// NEVER a provider's raw message — those can echo the submitted API key.
+  errorCode    String?
+
   credentialId String?
   credential   AiCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
   provider     AiProvider
   chatModel    String
   embedModel   String
+
+  @@index([userId])
+}
+
+/// One press of "Run match": groups the N MatchResults (one per provider) of
+/// the same CV/JD pair so they can be compared. Created BEFORE any AI call, so
+/// the client gets an id immediately and can render skeletons.
+model MatchRun {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cvDocumentId String
+  cvDocument   Document @relation("MatchRunCvDocument", fields: [cvDocumentId], references: [id])
+  jdDocumentId String
+  jdDocument   Document @relation("MatchRunJdDocument", fields: [jdDocumentId], references: [id])
+  createdAt    DateTime @default(now())
+
+  results MatchResult[]
 
   @@index([userId])
 }

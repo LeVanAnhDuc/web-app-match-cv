@@ -3,13 +3,16 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { DocumentKind, Prisma } from "@prisma/client";
+import { DocumentKind, MatchStatus, Prisma } from "@prisma/client";
 import { CurrentUserService } from "../../common/current-user/current-user.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateMatchDto } from "./dto/create-match.dto";
+import { CreateMatchRunDto } from "./dto/create-match-run.dto";
 import { MatchResultDto } from "./dto/match-result.dto";
+import { MatchRunDetailDto } from "./dto/match-run-detail.dto";
+import { MatchRunDto } from "./dto/match-run.dto";
 import { MatchSummaryDto } from "./dto/match-summary.dto";
-import { AiService, MatchReport } from "../ai/ai.service";
+import { AiProviderError, AiService, MatchReport } from "../ai/ai.service";
 import { AiRuntimeConfig } from "../ai/providers";
 import { AiCredentialsService } from "../ai-credentials/ai-credentials.service";
 import { tMatch } from "./i18n-messages";
@@ -117,16 +120,13 @@ export class MatchingService {
     };
   }
 
-  async createMatch(dto: CreateMatchDto): Promise<MatchResultDto> {
+  /** Both documents must exist, belong to the caller, and be the right kind. */
+  private async requireOwnedPair(cvDocumentId: string, jdDocumentId: string) {
     const userId = this.currentUser.getUserId();
 
     const [cvDoc, jdDoc] = await Promise.all([
-      this.prisma.document.findFirst({
-        where: { id: dto.cvDocumentId, userId }
-      }),
-      this.prisma.document.findFirst({
-        where: { id: dto.jdDocumentId, userId }
-      })
+      this.prisma.document.findFirst({ where: { id: cvDocumentId, userId } }),
+      this.prisma.document.findFirst({ where: { id: jdDocumentId, userId } })
     ]);
 
     if (!cvDoc || !jdDoc) {
@@ -145,29 +145,125 @@ export class MatchingService {
         )
       );
     }
+    return { userId, cvDoc, jdDoc };
+  }
+
+  /**
+   * Opens a run BEFORE any AI call, so the client can navigate to the result
+   * step and render one skeleton per provider immediately.
+   */
+  async createRun(dto: CreateMatchRunDto): Promise<MatchRunDto> {
+    const { userId, cvDoc, jdDoc } = await this.requireOwnedPair(
+      dto.cvDocumentId,
+      dto.jdDocumentId
+    );
+    const created = await this.prisma.matchRun.create({
+      data: { userId, cvDocumentId: cvDoc.id, jdDocumentId: jdDoc.id }
+    });
+    return MatchRunDto.fromEntity(created);
+  }
+
+  async getRun(id: string): Promise<MatchRunDetailDto> {
+    const userId = this.currentUser.getUserId();
+    const found = await this.prisma.matchRun.findFirst({
+      where: { id, userId },
+      include: { results: { orderBy: { createdAt: "asc" } } }
+    });
+    if (!found) {
+      throw new NotFoundException(
+        tMatch("matching.errors.runNotFound", "Match run not found.")
+      );
+    }
+    return MatchRunDetailDto.fromEntity(found);
+  }
+
+  /** The run must be the caller's and must be about these same two documents. */
+  private async requireRunMatches(
+    runId: string,
+    cvDocumentId: string,
+    jdDocumentId: string
+  ): Promise<void> {
+    const userId = this.currentUser.getUserId();
+    const run = await this.prisma.matchRun.findFirst({
+      where: { id: runId, userId }
+    });
+    if (!run) {
+      throw new NotFoundException(
+        tMatch("matching.errors.runNotFound", "Match run not found.")
+      );
+    }
+    if (
+      run.cvDocumentId !== cvDocumentId ||
+      run.jdDocumentId !== jdDocumentId
+    ) {
+      throw new BadRequestException(
+        tMatch(
+          "matching.errors.runDocumentMismatch",
+          "This run is for a different pair of documents."
+        )
+      );
+    }
+  }
+
+  async createMatch(dto: CreateMatchDto): Promise<MatchResultDto> {
+    const { userId, cvDoc, jdDoc } = await this.requireOwnedPair(
+      dto.cvDocumentId,
+      dto.jdDocumentId
+    );
+
+    if (dto.runId) await this.requireRunMatches(dto.runId, cvDoc.id, jdDoc.id);
 
     // The user's own credential when they picked one, else the system key.
     const runtime = dto.credentialId
       ? await this.credentials.getRuntimeConfig(dto.credentialId)
       : this.ai.systemRuntimeConfig();
 
-    const result = await this.run(cvDoc.rawText, jdDoc.rawText, runtime);
+    const shared = {
+      userId,
+      cvDocumentId: cvDoc.id,
+      jdDocumentId: jdDoc.id,
+      runId: dto.runId ?? null,
+      credentialId: dto.credentialId ?? null,
+      provider: runtime.provider,
+      chatModel: runtime.chatModel,
+      embedModel: runtime.embedModel
+    };
 
-    const created = await this.prisma.matchResult.create({
-      data: {
-        userId,
-        cvDocumentId: cvDoc.id,
-        jdDocumentId: jdDoc.id,
-        credentialId: dto.credentialId ?? null,
-        provider: runtime.provider,
-        chatModel: runtime.chatModel,
-        embedModel: runtime.embedModel,
+    let outcome: Prisma.MatchResultUncheckedCreateInput;
+    try {
+      const result = await this.run(cvDoc.rawText, jdDoc.rawText, runtime);
+      outcome = {
+        ...shared,
+        status: MatchStatus.succeeded,
+        errorCode: null,
         overallScore: result.overallScore,
         semanticScore: result.semanticScore,
         keywordScore: result.keywordScore,
         report: result.report as unknown as Prisma.InputJsonValue
-      }
-    });
+      };
+    } catch (error) {
+      // A dead provider is this card's outcome, not the request's failure.
+      // Rethrowing would take down every other provider in the same run, and
+      // would leave the card with nothing to show after a reload.
+      // Configuration errors never reach here: they are thrown before the
+      // engine runs, and still surface as 503.
+      if (!(error instanceof AiProviderError)) throw error;
+      outcome = {
+        ...shared,
+        status: MatchStatus.failed,
+        errorCode: error.reason,
+        overallScore: 0,
+        semanticScore: 0,
+        keywordScore: 0,
+        report: {
+          strengths: [],
+          gaps: [],
+          suggestions: []
+        }
+      };
+    }
+
+    const created = await this.prisma.matchResult.create({ data: outcome });
 
     // Audit stamp, deliberately AFTER (and outside) the result write: a failed
     // timestamp update must not roll back a match the user already paid for.

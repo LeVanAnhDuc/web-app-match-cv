@@ -25,7 +25,12 @@ App chạy ở `http://localhost:5200` (đổi qua env `PORT`).
 - `POST /api/v1/documents` — nạp CV/JD: multipart `file` (PDF/DOCX ≤10MB) **hoặc** JSON `{ sourceText }`; `kind` (CV|JD), `save`, `title?`. Parse → `rawText`.
 - `GET /api/v1/documents?kind=CV|JD&saved=true` — list tài liệu đã lưu (per-user).
 - `GET /api/v1/documents/:id` — 1 document (per-user), kèm `rawText` (dùng cho review).
-- `POST /api/v1/match` `{ cvDocumentId, jdDocumentId, credentialId? }` — hybrid match (keyword + embedding cosine in-app + chat report) → `MatchResult`. `credentialId` là một `AiCredential` của user; bỏ trống → chạy bằng key hệ thống và **503** nếu thiếu `OPENROUTER_API_KEY`. Kết quả snapshot lại `provider`/`chatModel`/`embedModel` đã dùng.
+- `POST /api/v1/match` `{ cvDocumentId, jdDocumentId, credentialId? }` — hybrid match (keyword + embedding cosine in-app + chat report) → `MatchResult`. `credentialId` là một `AiCredential` của user; bỏ trống → chạy bằng key hệ thống và **503** nếu thiếu `OPENROUTER_API_KEY`. `runId` (tuỳ chọn) gom kết quả này vào một run — phải là run của bạn và đúng cặp document đó. Kết quả snapshot lại `provider`/`chatModel`/`embedModel` đã dùng.
+
+  > **Provider lỗi KHÔNG còn trả 503.** Nó trả **201** với `status: "failed"` + `errorCode` thuộc tập đóng (`invalid_key` | `no_quota` | `model_unavailable` | `timeout` | `unreachable`). Lý do: khi chạy nhiều provider song song, một cái chết không được làm hỏng cả request, và card của nó vẫn cần thứ gì đó để hiển thị sau khi reload. **503 chỉ còn cho lỗi cấu hình** (thiếu key hệ thống, thiếu khoá mã hoá).
+
+- `POST /api/v1/match/runs` `{ cvDocumentId, jdDocumentId }` — mở một **run**, trả `runId` ngay trước khi gọi AI. Client sau đó bắn một `POST /match` cho mỗi provider, dùng chung `runId`.
+- `GET /api/v1/match/runs/:id` — run + toàn bộ result đã có. **Ít result hơn số provider đã chọn là hợp lệ** (các provider còn lại chưa xong).
 - `GET /api/v1/match` — lịch sử match của user (mới nhất trước).
 - `GET /api/v1/match/:id` — lấy lại kết quả match (per-user).
 
