@@ -7,10 +7,16 @@ import {
 import { SourceFormat } from "@prisma/client";
 import { CurrentUserService } from "../../common/current-user/current-user.service";
 import { PrismaService } from "../../prisma/prisma.service";
+import {
+  MAX_LINEAGE_DEPTH,
+  wouldCreateCycle,
+  type ParentLookup
+} from "../comparison/lineage";
 import { CreateDocumentDto } from "./dto/create-document.dto";
 import { DocumentDto } from "./dto/document.dto";
 import { DocumentSummaryDto } from "./dto/document-summary.dto";
 import { ListDocumentsQueryDto } from "./dto/list-documents-query.dto";
+import { SetDocumentParentDto } from "./dto/set-document-parent.dto";
 import { UpdateDocumentDto } from "./dto/update-document.dto";
 import { tDoc } from "./i18n-messages";
 import { parseFile } from "./parsing";
@@ -151,6 +157,121 @@ export class DocumentsService {
       data: { title: dto.title }
     });
     return DocumentDto.fromEntity(updated);
+  }
+
+  /**
+   * Declare (or clear) which document this one is a newer version of — the
+   * manual half of Goal 9's lineage, so a hand-edited CV gets the same link the
+   * rewrite assistant creates automatically (ADR #15).
+   *
+   * A cycle would make the version walk and every future ancestor query
+   * non-terminating, so it is rejected here rather than defended against
+   * downstream: the column permits one, the write path must not.
+   */
+  async setParent(id: string, dto: SetDocumentParentDto): Promise<DocumentDto> {
+    const userId = this.currentUser.getUserId();
+    const doc = await this.prisma.document.findFirst({ where: { id, userId } });
+    if (!doc) {
+      throw new NotFoundException(
+        tDoc("documents.errors.notFound", "Document not found.")
+      );
+    }
+
+    if (dto.parentId !== null) {
+      if (dto.parentId === id) {
+        throw new BadRequestException(
+          tDoc(
+            "documents.errors.lineageSelf",
+            "A document cannot be a version of itself."
+          )
+        );
+      }
+      const parent = await this.prisma.document.findFirst({
+        where: { id: dto.parentId, userId }
+      });
+      // 400, not 404: the id in the path exists — the body is what is wrong.
+      // It also keeps another user's document indistinguishable from a
+      // non-existent one.
+      if (!parent) {
+        throw new BadRequestException(
+          tDoc(
+            "documents.errors.lineageParentNotFound",
+            "The document you picked as the previous version was not found."
+          )
+        );
+      }
+      if (parent.kind !== doc.kind) {
+        throw new BadRequestException(
+          tDoc(
+            "documents.errors.lineageKindMismatch",
+            "A CV can only be a version of another CV, and a JD of another JD."
+          )
+        );
+      }
+      const { parents, complete } = await this.loadAncestors(
+        dto.parentId,
+        userId
+      );
+      // FAIL CLOSED on a truncated walk. A chain longer than the cap looks
+      // exactly like a chain that ended at a root — every lookup past the cap
+      // is simply absent from the map — so "no cycle found" would be a
+      // statement about how far we looked, not about the data. Without this,
+      // building a 21-link chain and then closing it is a supported operation.
+      if (!complete) {
+        throw new BadRequestException(
+          tDoc(
+            "documents.errors.lineageTooDeep",
+            "This version history is too long to extend safely."
+          )
+        );
+      }
+      if (wouldCreateCycle(id, dto.parentId, parents)) {
+        throw new BadRequestException(
+          tDoc(
+            "documents.errors.lineageCycle",
+            "That would make the two documents versions of each other."
+          )
+        );
+      }
+    }
+
+    const updated = await this.prisma.document.update({
+      where: { id },
+      data: { parentId: dto.parentId }
+    });
+    return DocumentDto.fromEntity(updated);
+  }
+
+  /**
+   * Walk up from `startId`, collecting id → parentId. Hard capped, so already
+   * corrupted data cannot turn this into an unbounded query loop.
+   *
+   * `complete` says whether the walk reached an end (a root, a missing row, or
+   * a loop already in the data) rather than hitting the cap. Callers that make
+   * a SAFETY decision from the result must refuse to act when it is false —
+   * see setParent.
+   */
+  private async loadAncestors(
+    startId: string,
+    userId: string
+  ): Promise<{ parents: ParentLookup; complete: boolean }> {
+    const parents: ParentLookup = new Map();
+    let current: string | null = startId;
+    let steps = 0;
+    while (current !== null) {
+      if (steps >= MAX_LINEAGE_DEPTH) return { parents, complete: false };
+      if (parents.has(current)) break;
+      const row: { parentId: string | null } | null =
+        await this.prisma.document.findFirst({
+          where: { id: current, userId },
+          select: { parentId: true }
+        });
+      if (!row) break;
+      parents.set(current, row.parentId);
+      current = row.parentId;
+      steps += 1;
+    }
+    return { parents, complete: true };
   }
 
   async remove(id: string): Promise<void> {

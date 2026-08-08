@@ -12,6 +12,7 @@ import { MatchingModule } from "./modules/matching/matching.module";
 import { AiCredentialsModule } from "./modules/ai-credentials/ai-credentials.module";
 import { CoverLettersModule } from "./modules/cover-letters/cover-letters.module";
 import { CvRewriteModule } from "./modules/cv-rewrite/cv-rewrite.module";
+import { ComparisonModule } from "./modules/comparison/comparison.module";
 import { MeModule } from "./modules/me/me.module";
 import { validateEnv } from "./config/env.validation";
 
@@ -35,6 +36,7 @@ import { validateEnv } from "./config/env.validation";
     AiCredentialsModule,
     CoverLettersModule,
     CvRewriteModule,
+    ComparisonModule,
     MeModule
   ],
   controllers: [],

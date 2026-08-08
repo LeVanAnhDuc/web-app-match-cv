@@ -7,6 +7,11 @@
     "parseFailed": "Không thể đọc file đã tải lên. Hãy đảm bảo đây là file PDF hoặc DOCX hợp lệ.",
     "notFound": "Không tìm thấy tài liệu.",
     "noOriginalFile": "Tài liệu này không có file gốc.",
-    "inUseByMatch": "Không thể xóa: tài liệu đang được dùng trong lịch sử match."
+    "inUseByMatch": "Không thể xóa: tài liệu đang được dùng trong lịch sử match.",
+    "lineageSelf": "Một tài liệu không thể là phiên bản của chính nó.",
+    "lineageParentNotFound": "Không tìm thấy tài liệu bạn chọn làm phiên bản trước.",
+    "lineageKindMismatch": "CV chỉ có thể là phiên bản của CV khác, JD của JD khác.",
+    "lineageCycle": "Thao tác này sẽ khiến hai tài liệu là phiên bản của nhau.",
+    "lineageTooDeep": "Chuỗi phiên bản này quá dài để nối thêm một cách an toàn."
   }
 }

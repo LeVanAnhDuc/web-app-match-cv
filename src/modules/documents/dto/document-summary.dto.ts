@@ -6,6 +6,15 @@ export class DocumentSummaryDto {
   @ApiProperty({ enum: DocumentKind }) kind: DocumentKind;
   @ApiProperty() title: string;
   @ApiProperty({ enum: SourceFormat }) sourceFormat: SourceFormat;
+
+  // Present on the summary, not just the detail DTO: the library decides
+  // whether to offer "Compare versions" per row, and it only has summaries.
+  @ApiProperty({
+    nullable: true,
+    description: "Lineage — the document this one is a newer version of."
+  })
+  parentId: string | null;
+
   @ApiProperty() createdAt: Date;
 
   static fromEntity(doc: Document): DocumentSummaryDto {
@@ -14,6 +23,7 @@ export class DocumentSummaryDto {
     dto.kind = doc.kind;
     dto.title = doc.title;
     dto.sourceFormat = doc.sourceFormat;
+    dto.parentId = doc.parentId;
     dto.createdAt = doc.createdAt;
     return dto;
   }

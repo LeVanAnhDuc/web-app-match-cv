@@ -7,6 +7,11 @@
     "parseFailed": "Could not read the uploaded file. Make sure it is a valid PDF or DOCX.",
     "notFound": "Document not found.",
     "noOriginalFile": "No original file for this document.",
-    "inUseByMatch": "Cannot delete: used in a match history."
+    "inUseByMatch": "Cannot delete: used in a match history.",
+    "lineageSelf": "A document cannot be a version of itself.",
+    "lineageParentNotFound": "The document you picked as the previous version was not found.",
+    "lineageKindMismatch": "A CV can only be a version of another CV, and a JD of another JD.",
+    "lineageCycle": "That would make the two documents versions of each other.",
+    "lineageTooDeep": "This version history is too long to extend safely."
   }
 }

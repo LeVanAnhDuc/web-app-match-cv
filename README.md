@@ -72,6 +72,15 @@ Sinh thư ứng tuyển từ **một `MatchResult` đã thành công** — repor
 
 `Document` giờ có `parentId` (self-FK, `ON DELETE SET NULL`): xoá CV gốc **không** xoá bản viết lại, chỉ mất liên kết (ADR #15).
 
+### CV version comparison (Goal 9)
+
+- `PATCH /api/v1/documents/:id/parent` `{ parentId: string | null }` — khai báo tài liệu này là **phiên bản mới của** `parentId` (hoặc gửi `null` để gỡ liên kết). CV rewrite tự gán; endpoint này là cách một bản sửa tay có được cùng liên kết đó. Từ chối: trỏ vào chính nó, tài liệu khác `kind`, tài liệu không thuộc bạn, và **mọi liên kết tạo thành vòng** — tất cả **400**; `:id` không thuộc bạn → **404**.
+- `GET /api/v1/comparisons/:documentId?jdDocumentId=` — `:documentId` là **bản mới**; bản cũ luôn là `parentId` của nó. Trả delta `overall`/`semantic`/`keyword` (có dấu) + `gapDiff` (`closed` / `persisted` / `introduced`) + danh sách JD so được. Bỏ `jdDocumentId` → server chọn JD mà **cả hai** bản đều đã match; JD không nằm trong danh sách đó → **400** (không im lặng đổi sang JD khác). CV chưa khai `parentId` → **400**; JD → **400**; không thuộc bạn → **404**.
+
+  > **Endpoint này KHÔNG gọi AI.** `ComparisonModule` thậm chí không import `AiModule`. Mở màn so sánh không bao giờ tốn một call nào và không bao giờ gửi CV ra ngoài lần nữa; bản chưa từng match được trả về với `delta: null` (không phải `0`) để FE mời user chạy match qua wizard.
+
+  > **Ghép gap là ước lượng.** Hai bản báo cáo do LLM viết lại mỗi lần, nên `gapDiff` so theo **độ trùng token chủ đề** (dùng chung `matching/tokenizer.ts`, ngưỡng overlap 0.5) chứ không so từng chữ. Nó gộp nhầm 2 gap cùng chủ đề khác chi tiết, và tách nhầm 1 gap diễn đạt bằng từ vựng hoàn toàn khác — cả hai giới hạn được ghi ở `docs/specs/cv-version-comparison/design.md` §3.4, và API luôn trả **nguyên văn** cả hai câu để UI hiển thị.
+
 ## Env vars
 
 Xem `.env.example`:

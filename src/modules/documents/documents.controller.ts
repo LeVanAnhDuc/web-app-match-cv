@@ -29,6 +29,7 @@ import { CreateDocumentDto } from "./dto/create-document.dto";
 import { DocumentDto } from "./dto/document.dto";
 import { DocumentSummaryDto } from "./dto/document-summary.dto";
 import { ListDocumentsQueryDto } from "./dto/list-documents-query.dto";
+import { SetDocumentParentDto } from "./dto/set-document-parent.dto";
 import { UpdateDocumentDto } from "./dto/update-document.dto";
 import { tDoc } from "./i18n-messages";
 import { DOCX_MIME, PDF_MIME } from "./parsing";
@@ -100,6 +101,16 @@ export class DocumentsController {
     @Body() dto: UpdateDocumentDto
   ): Promise<DocumentDto> {
     return this.documentsService.rename(id, dto);
+  }
+
+  // A sub-resource so the rename contract above stays untouched.
+  @Patch(":id/parent")
+  @ApiOkResponse({ type: DocumentDto })
+  async setParent(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() dto: SetDocumentParentDto
+  ): Promise<DocumentDto> {
+    return this.documentsService.setParent(id, dto);
   }
 
   @Delete(":id")
