@@ -2,6 +2,7 @@
 
 > Sơ bộ tại brainstorm `cv-jd-matching-wizard` (2026-07-14). Chi tiết field/type chốt ở `writing-plans` + sync với Prisma schema khi scaffold `server/`. DB: **PostgreSQL** (pgvector **defer** — chưa bật extension nào, xem ADR #5b).
 > Cập nhật 2026-08-06 (brainstorm Goal 6 — BYO AI credentials): thêm `AiCredential` + `MatchRun`, mở rộng `User` + `MatchResult`. **Các phần đánh dấu 📝 SPEC là spec chưa implement** — ERD mới hơn code, phải flag ở `writing-plans` khi làm.
+> Cập nhật 2026-08-08 (Goal 8/9/10 — `specs/goals-8-9-10/design.md`): thêm `Document.parentId` (lineage, Goal 9) + model `DataDisclosure` (Goal 10). Goal 8 không đổi ERD. Đổi số roadmap batch ranking #7 → **#11**.
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
 
 ## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08)
@@ -11,9 +12,12 @@
 | `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
 | `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) |
 | `MatchResult` | ✅ | 🟡 **một phần** | Có `overallScore`/`semanticScore`/`keywordScore`/`report` + FK cv/jd. **Thiếu**: `runId`, `credentialId`, `provider`, `chatModel`, `embedModel`, `status`, `errorCode` (đánh 📝 — Goal 6) |
-| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #3 |
-| `AiCredential` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #3 |
+| `MatchRun` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap **#9** (multi-provider compare) |
+| `AiCredential` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap **#4** (`feat/ai-credentials`, design+plan đã xong) |
 | ~~`Job`~~ | ❌ | ❌ | **Không làm** — ADR #12 |
+| `DataDisclosure` 📝 | ✅ | ❌ **chưa có** | Chỉ tạo khi làm Roadmap #5 (Goal 10) |
+
+> **Goal 8 (tiếng Việt) KHÔNG đổi ERD** — thuần logic trong `matching.service.ts`. Nhưng có **script chạy một lần** tính lại `keywordScore` + `overallScore` cho `MatchResult` đã lưu (không tốn call AI: `rawText` còn, `semanticScore` đã lưu).
 
 ## Module groups
 
@@ -21,6 +25,7 @@
 - **Documents**: `Document` (CV | JD, per-user, reusable)
 - **Matching**: `MatchRun` 📝 + `MatchResult`
 - **AI credentials** 📝: `AiCredential` (token AI của user, mã hoá at-rest)
+- **Privacy** 📝 *(Goal 10)*: `DataDisclosure` (nhật ký tài liệu đã gửi tới provider nào)
 - **Generated content** 📝 *(Goal 7 — chưa thiết kế)*: nơi chứa output CV rewrite / cover letter — **chưa chốt model**, xem cuối file
 
 ## Schema
@@ -57,6 +62,7 @@
 | fileMime | text (nullable) | mimetype file gốc (`application/pdf` \| docx mime); `null` với paste-text |
 | ~~embedding~~ | ~~vector~~ | **CHƯA implement** — pgvector defer; semantic tính embedding on-the-fly + cosine in-app (Plan 2), không lưu vector |
 | isSaved | boolean | true = lưu tái dùng; false = transient session |
+| parentId | uuid (FK → Document, nullable) 📝 | **lineage (Goal 9)** — bản này là phiên bản mới của tài liệu nào. `null` = bản gốc. `ON DELETE SET NULL`: xoá bản gốc KHÔNG được xoá bản cải tiến, chỉ mất liên kết (ADR #15) |
 | createdAt | timestamptz | |
 
 ### MatchRun 📝 *(spec — Goal 6)*
@@ -119,9 +125,28 @@ Token AI do **user** cung cấp. Mọi provider trong enum đều có **cả** c
 
 > **Bất biến bắt buộc**: `encryptedKey`/`keyIv`/`keyTag` **KHÔNG BAO GIỜ** ra khỏi tầng service — không lên DTO, không vào log, không vào Swagger example. API chỉ trả `id`/`provider`/`label`/`keyLast4`/`chatModel`/`embedModel`/`lastTest*`/`lastUsedAt`.
 
+### DataDisclosure 📝 *(spec — Goal 10)*
+
+Nhật ký **mỗi lần dữ liệu của user rời khỏi hệ thống**. Ghi **TRƯỚC** khi gọi AI, không phải sau — nên không phụ thuộc kết quả và không bỏ sót lần lỗi.
+
+| Field | Type | Note |
+|---|---|---|
+| id | uuid (PK) | |
+| userId | uuid (FK → User) | **per-user isolation** |
+| documentId | uuid (FK → Document) | tài liệu nào đã bị gửi đi |
+| provider | enum(openrouter, openai, gemini) | gửi cho ai |
+| purpose | enum(embed, chat) | gửi để làm gì — 1 lần match sinh ≥2 row (2 embed + 1 chat) |
+| sentAt | timestamptz | |
+| outcome | enum(ok, failed) | cập nhật sau khi call xong. `failed` **vẫn nghĩa là dữ liệu đã gửi đi** |
+
+> **Bất biến bắt buộc**:
+> - **KHÔNG chứa nội dung tài liệu** và **KHÔNG chứa key** — chỉ con trỏ (`documentId`) + metadata.
+> - **Fail-closed**: ghi row không thành công → **không gọi AI**. Nhật ký có lỗ là nhật ký không tin được.
+> - **KHÔNG suy nhật ký từ `MatchResult`** (ADR #16): lần match lỗi không tạo row `MatchResult`, nhưng đó lại chính là lần dữ liệu đã rời hệ thống rồi mới lỗi.
+
 ### Generated content 📝 *(Goal 7 — CV rewrite + cover letter, CHƯA thiết kế)*
 
-Roadmap #4/#5 sẽ sinh nội dung từ một `MatchResult`. **Model chưa chốt** — 2 hướng, quyết ở `superpowers:brainstorming` của feature đó:
+Roadmap #6/#8 sẽ sinh nội dung từ một `MatchResult`. **Model chưa chốt** — 2 hướng, quyết ở `superpowers:brainstorming` của feature đó:
 
 - **(a) Không thêm model**: CV rewrite sau khi user duyệt → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`); cover letter chỉ generate-and-copy, không lưu. Rẻ nhất, nhưng mất truy vết "bản này sinh ra từ match nào".
 - **(b) Thêm `GeneratedContent`**: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`. Truy vết được, so được nhiều bản, nhưng thêm 1 bảng + migration.
@@ -132,7 +157,7 @@ Ràng buộc chung dù chọn hướng nào (ADR #13): **không ghi đè CV gố
 
 - **Per-user isolation**: mọi query `Document`/`MatchResult` filter theo `userId`; user khác KHÔNG thấy data của nhau.
 - **isSaved**: reuse ở wizard step 1/2 chỉ liệt kê `Document` có `isSaved=true` của user hiện tại (radio-select).
-- **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (roadmap #7 — số cũ là #5, roadmap đánh số lại 2026-08-06).
+- **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7).
 - **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
 - **mock user** 📝: khi chưa có auth, `userId` của mọi bảng trỏ về `User` có `isMock = true`. Đây là user **hợp lệ trong DB**, không phải id ảo → FK toàn vẹn, clean data 1 câu lệnh.
 - **AiCredential ↔ MatchResult** 📝: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử match; `provider`/`chatModel`/`embedModel` được **snapshot** vào `MatchResult` nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.

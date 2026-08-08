@@ -37,7 +37,7 @@ Chi tiết schema xem `docs/erd.md`.
 
 **Mock user (thay cho khái niệm "stub" trước đây)**: khi chưa có auth, app dùng **một `User` hợp lệ trong DB** — seed idempotent tại `STUB_USER_ID = 00000000-0000-0000-0000-000000000001` (`server/prisma/seed.ts`), lấy qua `CurrentUserService.getUserId()` — không phải một id ảo ngoài DB.
 
-> ⚠️ **Drift code ↔ spec (2026-08-08)**: cột **`isMock` CHƯA có** trong `server/prisma/schema.prisma` (cũng chưa có `email`/`fullName`/`avatar`/`phone`/`updatedAt` — xem `erd.md`, các field đánh 📝). Hệ quả: câu clean data `DELETE FROM users WHERE is_mock = true` **chưa dùng được**; hiện phải xoá theo id hằng số. Bổ sung cột khi làm Roadmap #6 (Auth/SSO) hoặc sớm hơn nếu cần clean data.
+> ⚠️ **Drift code ↔ spec (2026-08-08)**: cột **`isMock` CHƯA có** trong `server/prisma/schema.prisma` (cũng chưa có `email`/`fullName`/`avatar`/`phone`/`updatedAt` — xem `erd.md`, các field đánh 📝). Hệ quả: câu clean data `DELETE FROM users WHERE is_mock = true` **chưa dùng được**; hiện phải xoá theo id hằng số. Bổ sung cột khi làm Roadmap #10 (Auth/SSO) hoặc sớm hơn nếu cần clean data.
 
 **Ý nghĩa hành vi**: app chạy **như thể đã đăng nhập bằng user này**. Không có màn hình login, không có trạng thái "khách", không có tính năng nào bị khoá hay giảm chức năng vì chưa auth. Mọi action user làm trên web (upload CV/JD, lưu tái dùng, chạy match, thêm/xoá AI credential) đi qua đúng code path của một user thật — chỉ khác ở chỗ `userId` đến từ hằng số thay vì từ token. Khi Auth/SSO về, **không có luồng nghiệp vụ nào phải viết lại**, chỉ đổi nguồn `userId`.
 
@@ -61,6 +61,9 @@ Mọi `Document` / `MatchResult` / `MatchRun` / `AiCredential` vì thế gắn v
 5. Kiến trúc **SSO-ready** để tích hợp `web-app-store-server-client` (IdP) ở giai đoạn sau — app tự quản lý bảng `User` + profile, IdP chỉ cấp claim.
 6. **BYO AI credentials**: user cắm API token AI của chính họ, chọn provider tương ứng, **test connection trước khi dùng**, và chạy 1 cặp CV↔JD qua **nhiều provider cùng lúc** để đối chiếu kết quả. Key hệ thống chỉ là **fallback** khi user không có key riêng.
 7. **Sinh nội dung ứng tuyển từ kết quả match** *(2026-08-08)*: từ một `MatchResult` đã có, sinh (a) **bản CV chỉnh sửa đề xuất** đóng các `gaps` — hiển thị dạng diff so với bản gốc, user **duyệt từng thay đổi** trước khi nhận; (b) **cover letter** cho đúng cặp CV↔JD đó. Đây là bước tiếp nối tự nhiên của Goal 3: hiện app chỉ **nói nên sửa gì**, Goal 7 là **sửa hộ** — nhưng luôn để user giữ quyền quyết định cuối.
+8. **Tài liệu tiếng Việt được chấm đúng như tiếng Anh** *(2026-08-08)*: chân keyword của engine matching phải cho kết quả đúng với CV/JD tiếng Việt, không chỉ tiếng Anh. Gồm tokenizer Unicode-aware, stopword tiếng Việt, và normalize alias kỹ thuật (`React`/`ReactJS`/`React.js`). **Đây vừa là goal vừa là lỗi đang chạy trên `main`** — regex tách token hiện coi mọi ký tự có dấu là dấu phân cách, khiến 40% trọng số điểm thành nhiễu với tài liệu tiếng Việt. Chi tiết + bằng chứng: `specs/goals-8-9-10/design.md` §2.
+9. **Đo được sự cải thiện qua các phiên bản CV** *(2026-08-08)*: user thấy được CV của mình tốt lên bao nhiêu sau khi chỉnh sửa, chứ không chỉ nhận điểm rời rạc từng lần. Gồm quan hệ cha–con giữa `Document` (lineage) + màn so sánh 2 phiên bản **trên cùng một JD**: delta điểm + gap nào đã đóng / còn / mới phát sinh. Đây là thứ làm **Goal 7 chứng minh được giá trị** — không có nó, user nhận CV mới mà không biết có tốt hơn thật không.
+10. **Chủ quyền dữ liệu** *(2026-08-08)*: user kiểm soát và **nhìn thấy được** vòng đời dữ liệu cá nhân của mình, kể cả phần đã rời khỏi hệ thống. Gồm export toàn bộ, xoá sạch, và **nhật ký tiết lộ dữ liệu** — tài liệu nào đã gửi tới provider nào, lúc nào, thành công hay lỗi. Nâng §7 Privacy từ một dòng NFR thành năng lực user dùng được; cũng là một nửa còn lại của điều kiện mở khoá ADR #9 (bên cạnh Auth).
 
 ## 5. Non-Goals
 
@@ -74,6 +77,9 @@ Mọi `Document` / `MatchResult` / `MatchRun` / `AiCredential` vì thế gắn v
 - **Quản lý billing / quota hộ user**: không theo dõi số dư, không cảnh báo hết hạn mức — chỉ phản ánh lỗi provider trả về.
 - **Tự chọn provider thay user**: không auto-route "provider nào rẻ/nhanh nhất"; user chọn tường minh, hệ thống chỉ fallback về key hệ thống khi user không có credential nào.
 - **Provider không có embeddings API** (vd Anthropic, hoặc provider embed-only như Voyage) — xem ADR #10.
+- **Tách từ ghép tiếng Việt** (word segmentation) *(chốt 2026-08-08, Goal 8)*: keyword chạy ở **cấp âm tiết**. CV và JD đều viết cùng kiểu nên overlap vẫn đúng; không kéo thư viện NLP vào engine — xem ADR #14.
+- **Từ điển VI↔EN cho cặp lệch ngôn ngữ** *(chốt 2026-08-08, Goal 8)*: CV tiếng Việt ↔ JD tiếng Anh thì vế **semantic gánh**, không dựng từ điển ánh xạ khái niệm và không thêm call AI để dịch.
+- **Retention tự động / tự xoá tài liệu sau N ngày** *(chốt 2026-08-08, Goal 10)*: cần scheduler chạy nền — hạ tầng chưa có và app chưa deploy. Goal 10 chỉ cho user **tự** export và **tự** xoá.
 
 ## 6. Functional Scope
 
@@ -109,7 +115,7 @@ Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất.
 - **Input**: `rawText` của CV gốc + `report.gaps` + `report.suggestions` + JD text.
 - **Output**: bản CV mới hiển thị **diff cạnh bản gốc** (thêm / sửa / bỏ), user **duyệt từng thay đổi** rồi lưu thành một `Document` mới (`kind=CV`) — **không ghi đè CV gốc**.
 - **Ràng buộc nội dung**: chỉ được diễn đạt lại / làm nổi bật cái CV gốc đã có; **KHÔNG bịa kinh nghiệm, kỹ năng, bằng cấp user không có**. Gap nào không thể đóng bằng viết lại → báo là "cần bổ sung thật", không tự điền.
-- **Vòng lặp giá trị**: CV mới đem match lại đúng JD đó → user thấy điểm tăng bao nhiêu (cần so sánh 2 match — xem `unfinished-features.md`).
+- **Vòng lặp giá trị**: CV mới đem match lại đúng JD đó → user thấy điểm tăng bao nhiêu. Phần đo lường này là **Goal 9** (§6.6), không nằm trong feature này.
 
 ### 6.4 Cover letter generator *(sau MVP — Goal 7b)*
 
@@ -118,6 +124,31 @@ Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất.
 - **Tuỳ chọn**: độ dài (ngắn / chuẩn), tone (formal / thân thiện), **ngôn ngữ EN | VI** (khớp NFR i18n §7).
 - **Output**: text edit được tại chỗ + copy / export. Lưu lại là **tuỳ chọn**, không bắt buộc.
 - **Dùng chung hạ tầng Goal 6**: chạy bằng credential user đã cắm; không có credential → fallback key hệ thống.
+
+### 6.5 Vietnamese document support *(Goal 8)*
+
+Sửa chân keyword của engine để chấm đúng tài liệu tiếng Việt. **Bằng chứng lỗi + lập luận đầy đủ: `specs/goals-8-9-10/design.md` §2.**
+
+- **Tokenizer Unicode-aware** — chữ có dấu không bị băm. Hiện `[^a-z0-9+#.]+` coi `ệ`/`á`/`ể` là dấu phân cách: `nghiệm` → `nghi`, `hệ thống` → `th` + `ng`, `năm` → mất hẳn.
+- **Stopword tiếng Việt** — `và`, `với`, `của`, `các`, `được`, `cho`, `trong`…
+- **Normalize alias kỹ thuật** — `React` / `ReactJS` / `React.js` → `react`. Cũng đóng một phần mục #5 ở `unfinished-features.md`.
+- **Tính lại dữ liệu cũ** — script chạy một lần tính lại `keywordScore` + `overallScore` cho `MatchResult` đã lưu. **Không tốn call AI** (`rawText` còn, `semanticScore` đã lưu). Bắt buộc, vì để lẫn 2 hệ điểm sẽ khiến Goal 9 đọc ra delta vô nghĩa.
+- **Không làm**: tách từ ghép (ADR #14), từ điển VI↔EN (§5).
+
+### 6.6 CV version comparison *(Goal 9)*
+
+- **Lineage** — `Document.parentId` (nullable self-FK). CV rewrite của Goal 7 tự gán parent; upload thủ công cũng khai báo được "đây là bản mới của X".
+- **Màn so sánh** — chọn 2 phiên bản CV **trên cùng một JD**: delta `overallScore` / `semanticScore` / `keywordScore`, và gap nào **đã đóng** / **còn lại** / **mới phát sinh**.
+- **Chạy được độc lập với Goal 7** — user tự upload bản sửa tay rồi khai báo lineage là đủ dùng.
+- **Không làm**: hồ sơ định vị CV ("CV này mạnh với nhóm JD nào") và dashboard xu hướng — hướng phân tích khác, để thành goal riêng nếu cần.
+
+### 6.7 Data sovereignty *(Goal 10)*
+
+- **Export toàn bộ** — JSON + file gốc của mọi `Document`, `MatchResult`, `AiCredential` (dạng masked, **không** kèm plaintext key).
+- **Xoá sạch** — cascade toàn bộ dữ liệu của user, xác nhận 2 bước.
+- **Nhật ký tiết lộ dữ liệu** — bảng `DataDisclosure` ghi **trước** mỗi call AI: `documentId`, `provider`, `purpose` (embed | chat), `sentAt`, `outcome` (ok | failed). Màn xem theo từng tài liệu: *"CV này đã gửi ra ngoài mấy lần, cho ai, lúc nào"*.
+- **Hai ràng buộc cứng** (ADR #16): **fail-closed** — ghi nhật ký không thành công thì **không gọi AI**; và nhật ký **không chứa nội dung tài liệu, không chứa key**, chỉ giữ con trỏ + metadata.
+- **Không làm**: retention tự động (§5), consent flow riêng (Goal 6 đã cảnh báo trước khi chạy).
 
 ## 7. Non-Functional Requirements
 
@@ -140,7 +171,7 @@ Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất.
 | 3 | FE **TanStack Start + Tailwind + Ant Design** | Full-stack React (SSR + server fns), antd component lib |
 | 4 | Matching **hybrid** keyword + vector + LLM | Chất lượng cao, có giải thích, kiểm soát cost. *(làm rõ 2026-08-08)* Phân vai cứng: **keyword + vector chấm điểm** (rẻ, tái lập được), **LLM chỉ giải thích** (không đưa vào công thức điểm). Keyword ở cấp token — vế semantic chịu trách nhiệm bắt các cách diễn đạt khác chữ. |
 | 5 | AI = **OpenRouter** (OpenAI-compatible, SDK `openai`) — chat `openai/gpt-4o-mini` (report) + `openai/text-embedding-3-small` (embed) | *(đổi 2026-07-24)* 1 key cả chat + embeddings; đã thử Gemini nhưng key hết quota generation. Không fallback mock. |
-| 5b | Semantic **không pgvector** ở MVP | Match 1 CV × 1 JD → cosine 2 vector **tính in-app**; pgvector chỉ cần khi rank nhiều CV (roadmap #7 — số cũ là #5, roadmap đánh số lại 2026-08-06). |
+| 5b | Semantic **không pgvector** ở MVP | Match 1 CV × 1 JD → cosine 2 vector **tính in-app**; pgvector chỉ cần khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7). |
 | 6 | Auth **defer**, mock user, schema SSO-ready | Không chặn MVP; SSO store-app chưa tồn tại (phải xây từ đầu) |
 | 7 | match-cv có **bảng `User` riêng**; IdP chỉ cấp claim | *(2026-08-06)* `store-app` sở hữu `Authentication` + `OAuthConsent`; match-cv sở hữu profile mirror (`email`/`fullName`/`avatar`/`phone`, nullable) + toàn bộ dữ liệu nghiệp vụ. KHÔNG copy bảng credential sang đây. |
 | 8 | **Mock user = user thật** có cờ `isMock` | *(2026-08-06)* Thay khái niệm "stub id ngoài DB": mọi data gắn vào 1 `User` hợp lệ → FK toàn vẹn + clean data bằng `DELETE … WHERE is_mock` cascade. App hành xử **như đã đăng nhập** bằng user này (không có màn login, không có mode khách, không tính năng nào bị khoá) → khi Auth về chỉ đổi nguồn `userId`, không viết lại luồng nghiệp vụ. |
@@ -149,6 +180,9 @@ Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất.
 | 11 | Multi-provider = **N request độc lập + progressive reveal** | *(2026-08-06)* FE bắn N request song song (mỗi provider 1 `MatchResult` trong cùng `MatchRun`); xong trước render trước, còn lại skeleton. Không cần queue / stream / polling; partial success hợp lệ. |
 | 12 | **Bỏ job-board**: không đăng Job, không apply flow | *(2026-08-08)* Sản phẩm là **công cụ matching + sinh nội dung**, không nối cung–cầu. Loại 2 mục này khỏi roadmap (không phải defer) → **không cần model `Job`**, không cần trạng thái ứng tuyển, không cần notification/messaging. Giữ scope quanh `Document` + `MatchResult`. |
 | 13 | Goal 7 sinh nội dung: **grounded + user duyệt** | *(2026-08-08)* CV rewrite chỉ được diễn đạt lại nội dung **đã có** trong CV gốc — cấm bịa kinh nghiệm/kỹ năng/bằng cấp (rủi ro pháp lý + đạo đức cho user). Output là **đề xuất dạng diff**, user duyệt từng thay đổi; lưu thành `Document` mới, **không ghi đè CV gốc**. |
+| 14 | Keyword tiếng Việt ở **cấp âm tiết**, không tách từ ghép | *(2026-08-08)* CV và JD đều viết rời từng âm tiết theo cùng một kiểu (`hệ thống` → `hệ` + `thống` ở cả hai phía), nên phép đếm overlap vẫn phản ánh đúng độ trùng mà không cần word segmentation. Tránh kéo thư viện NLP + một nguồn sai mới vào engine. Đơn giản hoá **có chủ ý**. |
+| 15 | Lineage bằng `parentId` self-FK trên `Document` | *(2026-08-08)* Bản CV mới **luôn là row mới** (nối tiếp ADR #13 "không ghi đè CV gốc"); lineage chỉ là **liên kết**, không phải version hoá tại chỗ. `ON DELETE SET NULL` — xoá bản gốc không được xoá mất bản cải tiến. Phương án "cho user tự chọn 2 kết quả bất kỳ để so" bị loại vì hệ thống không biết bản nào cải tiến từ bản nào → không tự nói được "CV của bạn đã tốt lên". |
+| 16 | Nhật ký tiết lộ dữ liệu = **bảng riêng**, ghi **trước** call AI, **fail-closed** | *(2026-08-08)* Không suy từ `MatchResult`: lần match **lỗi** không tạo row ở đó, nhưng đó lại chính là lần dữ liệu **đã rời hệ thống** rồi mới lỗi → suy từ `MatchResult` sẽ bỏ sót đúng ca đáng lo nhất. Hai thứ cũng khác ngữ nghĩa (kết quả nghiệp vụ ≠ sự kiện tiết lộ dữ liệu). Bảng riêng còn khiến Goal 10 **độc lập** với `multi-provider-compare`. |
 
 ## 9. Tech Stack (fixed)
 
@@ -163,13 +197,19 @@ Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/fro
 |---|---|---|---|
 | 1 | **CV↔JD Matching Wizard** | 1–4 | ✅ **DONE** — merge `main` cả 4 repo (Plan 0–2) |
 | 2 | **Home dashboard + Document library** (§6.1) | 1, 4 | ✅ **DONE** — merge `main` (`docs` #11, `server` #7, `client` #9). **Trừ** trang Match history đầy đủ → `unfinished-features.md` |
-| 3 | **BYO AI credentials + multi-provider compare** (§6.2) | 6 | 📝 goal chốt 2026-08-06, **chưa có spec/plan** — brainstorm sâu khi bắt tay làm |
-| 4 | **CV rewrite assistant** (§6.3) | 7a | 📝 *(thêm 2026-08-08)* goal chốt, **chưa có spec/plan**. Phụ thuộc mềm #3 (chạy bằng credential user) — làm được trước nếu chấp nhận chỉ dùng key hệ thống |
-| 5 | **Cover letter generator** (§6.4) | 7b | 📝 *(thêm 2026-08-08)* goal chốt, **chưa có spec/plan**. Dùng chung hạ tầng sinh nội dung với #4 → nên làm liền sau #4 |
-| 6 | **Auth / SSO** với `web-app-store-server-client` (IdP) | 5 | ⬜ chưa bắt đầu — IdP phải xây từ đầu. Kèm: thêm cột `isMock` + profile mirror (ADR #7/#8, hiện **chưa có trong schema**) và **mở khoá precondition của ADR #9** |
-| 7 | **Batch ranking** nhiều CV cho 1 JD | — | ⬜ chưa bắt đầu — đây là lúc mới cần pgvector (ADR #5b) + background queue |
+| 3 | **Vietnamese document support** (§6.5) | 8 | 🔜 **TIẾP THEO** — spec tầng goal ở `specs/goals-8-9-10/design.md`, chưa có spec feature. Chen lên đầu vì là **lỗi đang chạy trên `main`**, độc lập hoàn toàn (chỉ đụng hàm `tokenize`) |
+| 4 | **BYO AI credentials — single provider** (§6.2 phần 1) | 6a | 🚧 **ĐANG LÀM** — `design.md` + `plan.md` + mock đã xong ở `specs/ai-credentials/`, branch `feat/ai-credentials` chưa merge |
+| 5 | **Data sovereignty** (§6.7) | 10 | 📝 spec tầng goal xong, chưa có spec feature. Xếp ngay sau #4 vì cả hai cùng sửa `AiService` |
+| 6 | **CV rewrite assistant** (§6.3) | 7a | 📝 chưa có spec/plan. Phụ thuộc mềm #4 (chạy bằng credential user) |
+| 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite |
+| 8 | **Cover letter generator** (§6.4) | 7b | 📝 chưa có spec/plan. Dùng chung hạ tầng sinh nội dung với #6 |
+| 9 | **Multi-provider compare** (§6.2 phần 2) | 6b | 📝 chưa có spec/plan. Thêm `MatchRun` + `MatchResult.status`/`errorCode` (xem `specs/ai-credentials/design.md` §10) |
+| 10 | **Auth / SSO** với `web-app-store-server-client` (IdP) | 5 | ⬜ chưa bắt đầu — IdP phải xây từ đầu. Kèm: thêm cột `isMock` + profile mirror (ADR #7/#8, hiện **chưa có trong schema**) và **mở khoá precondition của ADR #9** |
+| 11 | **Batch ranking** nhiều CV cho 1 JD | — | ⬜ chưa bắt đầu — đây là lúc mới cần pgvector (ADR #5b) + background queue |
 
 > **Đã loại khỏi roadmap (2026-08-08)**: ~~Recruiter đăng Job + candidate list/search~~ và ~~Apply flow~~ — chuyển hẳn sang §5 Non-Goals theo ADR #12. Không còn nhu cầu model `Job`.
+>
+> **Sắp lại thứ tự (2026-08-08, `specs/goals-8-9-10/design.md` §7)**: roadmap #3 cũ ("BYO AI credentials + multi-provider compare") **tách đôi** thành #4 và #9, khớp với việc feature `ai-credentials` đã tự tách phạm vi. Batch ranking từ #7 → **#11** (ADR #5b + `erd.md` trỏ theo số mới).
 
 ## 11. Out of Scope
 
@@ -187,6 +227,9 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 - *(Goal 7)* Lưu output ở đâu: bảng `GeneratedContent` riêng, hay CV rewrite → `Document` mới + cover letter → không lưu? → chốt ở design feature (`erd.md` chưa có model nào cho Goal 7).
 - *(Goal 7)* Diff CV hiển thị ở mức nào — dòng, câu, hay section? Phụ thuộc `parsedContent` (jsonb) có được chuẩn hoá chưa. → chốt ở design feature.
 - *(Goal 7)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design feature.
+- *(Goal 8)* Stopword tiếng Việt lấy từ danh sách công khai nào, hay tự soạn theo ngữ cảnh CV/JD? → chốt ở design feature.
+- *(Goal 9)* Số phiên bản (`v2`, `v3`) suy ra bằng cách đi ngược chuỗi `parentId`, hay lưu hẳn cột `version`? → chốt ở design feature (`specs/goals-8-9-10/design.md` §5).
+- *(Goal 10)* `DataDisclosure` có thêm `credentialId` không (audit *"gửi bằng key cá nhân nào"*)? Khả thi vì lúc làm Goal 10 thì `ai-credentials` đã merge. → chốt ở design feature.
 
 ## 13. Changelog
 
@@ -194,8 +237,9 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 - **2026-08-06**: Thêm **Goal 6** BYO AI credentials + multi-provider compare (§6.2) qua `superpowers:brainstorming` — chỉ chốt goal, **chưa** viết spec/plan. Kèm: ghi nhận feature `home-dashboard-library` vào §6.1 + Roadmap #2 (trước đó nằm ngoài goals); định nghĩa lại "stub user" → **mock user thật** có cờ `isMock` + ranh giới User ↔ IdP (ADR #7/#8); Non-Goals thêm 4 mục; ADR #7–#11; Roadmap đổi sang dạng bảng có trạng thái.
 - **2026-08-08**: **Thu hẹp định vị + đồng bộ doc với code.**
   - **Loại khỏi roadmap**: "Recruiter đăng Job + candidate list/search" và "Apply flow" → chuyển hẳn sang §5 Non-Goals (ADR #12). Không còn nhu cầu model `Job`. §1 Vision viết lại: **không phải marketplace/job-board**.
-  - **Thêm Goal 7** (§6.3 CV rewrite assistant + §6.4 Cover letter generator) → Roadmap #4, #5. Kèm ADR #13 (grounded, cấm bịa, user duyệt diff, không ghi đè CV gốc).
+  - **Thêm Goal 7** (§6.3 CV rewrite assistant + §6.4 Cover letter generator) → Roadmap #6, #8 *(đánh số cuối ngày, sau lần sắp lại ở mục dưới)*. Kèm ADR #13 (grounded, cấm bịa, user duyệt diff, không ghi đè CV gốc).
   - **Sync theo code hiện tại**: Roadmap #2 `home-dashboard-library` 🟡 → ✅ **DONE** (đã merge `main`, doc trước đó ghi sai là "chưa push"); tách phần Match history còn dở sang `unfinished-features.md`; §3 ghi rõ **`isMock` + profile mirror chưa có trong `schema.prisma`** (drift ERD → code).
   - Roadmap bảng thêm cột **Goal** để mỗi dòng truy được về §4.
   - **Goal 2 bỏ chữ "skill"** → "keyword overlap + semantic + LLM", kèm phân vai rõ (keyword+vector chấm điểm, LLM chỉ giải thích) ở Goal 2 + ADR #4. Skill-level overlap hạ xuống cải tiến tuỳ chọn (`unfinished-features.md` #5). **Goal 2 = ✅ xong.**
+  - **Thêm Goal 8, 9, 10** qua `superpowers:brainstorming` — spec tầng goal ở `specs/goals-8-9-10/design.md` (giữ **lý do**; file này giữ **quyết định**). Goal 8 tài liệu tiếng Việt (§6.5) · Goal 9 so sánh phiên bản CV (§6.6) · Goal 10 chủ quyền dữ liệu (§6.7). Kèm ADR #14 (không tách từ ghép) · #15 (lineage `parentId`) · #16 (nhật ký tiết lộ là bảng riêng, fail-closed). Non-Goals thêm 3 mục. Roadmap sắp lại 11 dòng: Goal 8 chen lên #3 vì là lỗi đang chạy; roadmap #3 cũ tách đôi thành #4/#9; batch ranking #7 → #11.
   - **§6 step 3 Review chốt read-only** — bỏ "sửa text/structured". User không vá nội dung parse bằng tay; parse sai thì nạp lại tài liệu ở step 1/2. (Khớp đúng code hiện tại: `views/Wizard/mains/StepReview` chỉ render `DocumentPreview`.)
