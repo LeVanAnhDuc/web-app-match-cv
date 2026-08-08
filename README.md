@@ -45,6 +45,21 @@ App chạy ở `http://localhost:5200` (đổi qua env `PORT`).
 
 Mọi endpoint `/ai-credentials` trả **503** nếu thiếu `CREDENTIAL_ENCRYPTION_KEY`.
 
+### Cover letters
+
+Sinh thư ứng tuyển từ **một `MatchResult` đã thành công** — report của lần chấm đó vừa là chất liệu (`strengths`) vừa là **danh sách cấm** (`gaps`, xem ghi chú grounding bên dưới).
+
+- `POST /api/v1/cover-letters` `{ matchResultId, tone, length, language, credentialId? }` — `tone` = `formal|friendly`, `length` = `short|standard`, `language` = `en|vi` (**ngôn ngữ của lá thư**, không phải của giao diện). Bỏ `credentialId` → chạy bằng key hệ thống. Rate-limit **10 req/phút** (mỗi call gửi cả CV lẫn JD tới provider). Match không thuộc bạn → **404**; match `status=failed` → **400** (không có report thì không có gì để viết).
+- `GET /api/v1/cover-letters?matchResultId=<uuid>` — các bản đã sinh của match đó, mới nhất trước. `matchResultId` **bắt buộc**; id của người khác trả **mảng rỗng**, không phải 403.
+- `PATCH /api/v1/cover-letters/:id` `{ content }` — lưu bản user sửa tay, đánh dấu `edited: true`. Đổi tone/length/language nghĩa là **sinh lại**, không sửa được qua đây. Bản `failed` → **400**.
+- `DELETE /api/v1/cover-letters/:id` — **204**.
+
+  > **Provider lỗi trả 201, không 503** — giống hợp đồng của `POST /match`: row được lưu với `status: "failed"` + `errorCode` thuộc tập đóng, để UI hiện được lỗi và reload vẫn thấy. 503 chỉ còn cho lỗi cấu hình.
+  >
+  > **Mỗi lần sinh được LƯU**, kể cả lần lỗi — đó là cách so được nhiều bản (tone/length/language khác nhau) mà không phải trả tiền lại. User xoá bản không dùng bằng `DELETE`.
+  >
+  > **Grounding (ADR #13)**: prompt nhận `report.gaps` dưới nhãn `MUST NOT CLAIM` và bắt model trả `omittedRequirements` — những yêu cầu của JD mà CV không chống lưng được. Response mang danh sách đó để UI nói thẳng lá thư **không** khẳng định điều gì.
+
 ### CV rewrite (Goal 7a)
 
 - `POST /api/v1/cv-rewrite` `{ matchResultId, credentialId? }` — từ một `MatchResult` **đã thành công** của bạn, sinh danh sách **thay đổi đề xuất** cho CV. Trả `CvRewriteProposalDto` = `changes[]` + `unaddressedGaps[]` + provider/model đã dùng. Rate-limit **10 req/phút** (mỗi lần gọi tốn 1 chat completion trên key của bạn và là một lần CV rời hệ thống). Match `status=failed` → **400**; match không thuộc bạn → **404**; provider chết → **503**.

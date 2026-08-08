@@ -40,7 +40,32 @@ enum AiTestStatus {
   invalid_key
   no_quota
   model_unavailable
+  /// The provider accepted the connection but did not answer in time.
+  /// Distinct from `unreachable` on purpose: "too slow" and "not there" call
+  /// for different things from the user, and the UI already words them apart.
+  timeout
   unreachable
+}
+
+enum CoverLetterTone {
+  formal
+  friendly
+}
+
+enum CoverLetterLength {
+  short
+  standard
+}
+
+/// Language the letter is WRITTEN in — independent of the UI language.
+enum CoverLetterLanguage {
+  en
+  vi
+}
+
+enum CoverLetterStatus {
+  succeeded
+  failed
 }
 
 model User {
@@ -53,6 +78,7 @@ model User {
   matchResults  MatchResult[]
   matchRuns     MatchRun[]
   aiCredentials AiCredential[]
+  coverLetters  CoverLetter[]
 }
 
 model Document {
@@ -120,6 +146,8 @@ model MatchResult {
   chatModel    String
   embedModel   String
 
+  coverLetters CoverLetter[]
+
   @@index([userId])
 }
 
@@ -163,7 +191,50 @@ model AiCredential {
   updatedAt      DateTime      @updatedAt
 
   matchResults MatchResult[]
+  coverLetters CoverLetter[]
 
   @@unique([userId, label])
   @@index([userId])
+}
+
+/// A cover letter generated from ONE MatchResult (one CV x one JD).
+///
+/// Deliberately independent of `Document` and of the `parentId` lineage: a
+/// cover letter is a LEAF. Nothing downstream consumes it — no engine scores
+/// it, no library lists it, no version delta is measured against it. Storing
+/// it as a Document would force every `kind IN (CV, JD)` query and every
+/// library screen to learn about a third kind for no gain.
+///
+/// Every generation is persisted, including failures: a dead provider is this
+/// letter's outcome, not the request's error (same contract as MatchResult
+/// after multi-provider-compare). See docs/specs/cover-letter-generator/design.md.
+model CoverLetter {
+  id            String              @id @default(uuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchResultId String
+  matchResult   MatchResult         @relation(fields: [matchResultId], references: [id], onDelete: Cascade)
+  tone          CoverLetterTone
+  length        CoverLetterLength
+  language      CoverLetterLanguage
+  /// Plain text, never markdown/HTML — its destination is an email box.
+  /// Empty string when status = failed.
+  content       String
+  /// JD requirements the CV could not back up, self-declared by the model so
+  /// the grounding constraint of ADR #13 is something the USER can see.
+  omittedRequirements String[]
+  status        CoverLetterStatus
+  /// Closed set: invalid_key | no_quota | model_unavailable | timeout | unreachable.
+  /// NEVER a provider's raw message — those can echo the submitted API key.
+  errorCode     String?
+  /// True once the user edited the draft by hand.
+  edited        Boolean             @default(false)
+  credentialId  String?
+  credential    AiCredential?       @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  provider      AiProvider
+  chatModel     String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId, matchResultId])
 }

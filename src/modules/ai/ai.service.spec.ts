@@ -202,6 +202,115 @@ describe("AiService", () => {
     });
   });
 
+  describe("generateCoverLetter()", () => {
+    const PROMPT = { system: "sys instructions", user: "user instructions" };
+
+    function resolveWith(payload: unknown) {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: JSON.stringify(payload) } }]
+      });
+    }
+
+    it("parses the body and the self-declared omissions", async () => {
+      resolveWith({
+        body: "Dear hiring manager,\n\nI am writing…",
+        omittedRequirements: ["Kubernetes", "Team leadership"]
+      });
+      const service = new AiService(fakeConfig({}));
+      const draft = await service.generateCoverLetter(PROMPT, CFG);
+      expect(draft.body).toContain("Dear hiring manager");
+      expect(draft.omittedRequirements).toEqual([
+        "Kubernetes",
+        "Team leadership"
+      ]);
+      expect(chatCompletionsCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: "model-y",
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: PROMPT.system },
+            { role: "user", content: PROMPT.user }
+          ]
+        })
+      );
+    });
+
+    it("coerces a non-array omittedRequirements to an empty list", async () => {
+      resolveWith({ body: "letter", omittedRequirements: "Kubernetes" });
+      const service = new AiService(fakeConfig({}));
+      const draft = await service.generateCoverLetter(PROMPT, CFG);
+      expect(draft.omittedRequirements).toEqual([]);
+    });
+
+    it("treats a missing or blank body as the model failing", async () => {
+      resolveWith({ omittedRequirements: [] });
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateCoverLetter(PROMPT, CFG)
+      ).rejects.toBeInstanceOf(AiProviderError);
+
+      resolveWith({ body: "   " });
+      await expect(
+        service.generateCoverLetter(PROMPT, CFG)
+      ).rejects.toBeInstanceOf(AiProviderError);
+    });
+
+    it("classifies unparseable JSON as model_unavailable", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: "not json" } }]
+      });
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateCoverLetter(PROMPT, CFG)
+      ).rejects.toMatchObject({ reason: "model_unavailable" });
+    });
+
+    it("classifies a rejected key as invalid_key", async () => {
+      chatCompletionsCreateMock.mockRejectedValue(apiError(401));
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateCoverLetter(PROMPT, CFG)
+      ).rejects.toMatchObject({ reason: "invalid_key" });
+    });
+
+    it("classifies an empty choice list as unreachable", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({ choices: [] });
+      const service = new AiService(fakeConfig({}));
+      await expect(
+        service.generateCoverLetter(PROMPT, CFG)
+      ).rejects.toMatchObject({ reason: "unreachable" });
+    });
+  });
+
+  // `timeout` used to be documented in the closed set but was impossible to
+  // produce — the timeout guard collapsed into `unreachable`. "Too slow" and
+  // "not there" are different situations and the UI already words them apart.
+  describe("the timeout guard", () => {
+    it("classifies a stalled provider as timeout, not unreachable", async () => {
+      jest.useFakeTimers();
+      try {
+        chatCompletionsCreateMock.mockReturnValue(new Promise(() => {}));
+        const service = new AiService(fakeConfig({}));
+        const pending = service.generateReport("cv", "jd", SCORES, CFG);
+        const assertion = expect(pending).rejects.toMatchObject({
+          reason: "timeout"
+        });
+        await jest.advanceTimersByTimeAsync(20_000);
+        await assertion;
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it("ranks timeout as worse than unreachable but better than a bad model", () => {
+      expect(worstStatus("timeout", "unreachable")).toBe("timeout");
+      expect(worstStatus("model_unavailable", "timeout")).toBe(
+        "model_unavailable"
+      );
+      expect(worstStatus("timeout", "ok")).toBe("timeout");
+    });
+  });
+
   describe("generateCvRewrite()", () => {
     const call = (service: AiService) =>
       service.generateCvRewrite(

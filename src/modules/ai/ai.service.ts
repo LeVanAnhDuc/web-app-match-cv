@@ -17,6 +17,22 @@ export interface MatchReport {
   suggestions: string[];
 }
 
+/** Prompt pair for a chat completion, built by the calling module. */
+export interface ChatPrompt {
+  system: string;
+  user: string;
+}
+
+/**
+ * One generated cover letter. `omittedRequirements` is the model's own
+ * declaration of what the CV could NOT back up — the observable half of the
+ * ADR #13 grounding constraint.
+ */
+export interface CoverLetterDraft {
+  body: string;
+  omittedRequirements: string[];
+}
+
 /**
  * One proposed edit, straight out of the model and NOT yet trusted. `original`
  * is verified against the real CV by `cv-rewrite/grounding.ts` before anyone
@@ -39,6 +55,11 @@ export interface RawCvRewrite {
 const AI_TIMEOUT_MS = 20_000; // availability guard: /match must fail 503, not hang, if the AI provider stalls
 const PING_INPUT = "ping";
 const PING_MAX_TOKENS = 5;
+// A cover letter is 150-350 words by prompt. Cap the completion so a
+// misbehaving model cannot bill for — or make us store — an essay.
+const LETTER_MAX_TOKENS = 1_200;
+// Mirrors the PATCH cap so both ends of the `content` column agree.
+const LETTER_MAX_CHARS = 20_000;
 // Cost + payload ceiling for the rewrite: ~25 changes of ~1.5k characters is
 // the most the grounding layer will keep anyway, so a longer answer is spend
 // with nowhere to land.
@@ -51,6 +72,7 @@ const SEVERITY_ORDER: AiTestStatus[] = [
   AiTestStatus.invalid_key,
   AiTestStatus.no_quota,
   AiTestStatus.model_unavailable,
+  AiTestStatus.timeout,
   AiTestStatus.unreachable,
   AiTestStatus.ok
 ];
@@ -94,7 +116,7 @@ async function withTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: NodeJS.Timeout;
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(
-      () => reject(aiFailedError(AiTestStatus.unreachable)),
+      () => reject(aiFailedError(AiTestStatus.timeout)),
       AI_TIMEOUT_MS
     );
   });
@@ -267,6 +289,58 @@ export class AiService {
   }
 
   /**
+   * Generate a cover letter from a prompt the caller already built.
+   *
+   * The prompt is deliberately NOT assembled here: its grounding rules are
+   * domain policy (ADR #13), they belong with the module that owns them, and
+   * keeping them in a pure function is what makes them assertable in a unit
+   * test rather than a comment nobody enforces.
+   */
+  async generateCoverLetter(
+    prompt: ChatPrompt,
+    cfg: AiRuntimeConfig
+  ): Promise<CoverLetterDraft> {
+    let content: string | null | undefined;
+    try {
+      const response = await withTimeout(
+        this.client(cfg).chat.completions.create({
+          model: cfg.chatModel,
+          max_tokens: LETTER_MAX_TOKENS,
+          messages: [
+            { role: "system", content: prompt.system },
+            { role: "user", content: prompt.user }
+          ],
+          response_format: { type: "json_object" }
+        })
+      );
+      content = response.choices[0]?.message?.content;
+    } catch (error) {
+      throw asProviderError(error);
+    }
+    if (!content) throw aiFailedError(AiTestStatus.unreachable);
+
+    let record: Record<string, unknown>;
+    try {
+      record = JSON.parse(content) as Record<string, unknown>;
+    } catch {
+      // Unparseable JSON is the model misbehaving, not the transport.
+      throw aiFailedError(AiTestStatus.model_unavailable);
+    }
+
+    const body = typeof record.body === "string" ? record.body.trim() : "";
+    // An empty body is not a letter. Treat it as the model failing to answer
+    // rather than persisting a blank draft the user cannot use.
+    if (!body) throw aiFailedError(AiTestStatus.model_unavailable);
+
+    return {
+      // Truncated to the same bound PATCH enforces: a row the user could not
+      // save back after editing is a row that should not have been written.
+      body: body.slice(0, LETTER_MAX_CHARS),
+      omittedRequirements: toStringArray(record.omittedRequirements)
+    };
+  }
+
+  /**
    * Propose edits that close the report's gaps using ONLY what the CV already
    * says (ADR #13). The prompt states the constraint; it is not the enforcement
    * — `cv-rewrite/grounding.ts` drops every change whose `original` is not a
@@ -346,6 +420,9 @@ export class AiService {
   ): Promise<{ chat: AiTestStatus; embed: AiTestStatus }> {
     const client = this.client(cfg);
 
+    // asProviderError, not mapProviderError: a ping that ran out of time
+    // already arrives classified as `timeout`, and re-classifying it would
+    // flatten it back into the vaguer `unreachable`.
     const chat = withTimeout(
       client.chat.completions.create({
         model: cfg.chatModel,
@@ -354,13 +431,13 @@ export class AiService {
       })
     )
       .then(() => AiTestStatus.ok)
-      .catch((error: unknown) => mapProviderError(error));
+      .catch((error: unknown) => asProviderError(error).reason);
 
     const embed = withTimeout(
       client.embeddings.create({ model: cfg.embedModel, input: PING_INPUT })
     )
       .then(() => AiTestStatus.ok)
-      .catch((error: unknown) => mapProviderError(error));
+      .catch((error: unknown) => asProviderError(error).reason);
 
     const [chatStatus, embedStatus] = await Promise.all([chat, embed]);
     return { chat: chatStatus, embed: embedStatus };
