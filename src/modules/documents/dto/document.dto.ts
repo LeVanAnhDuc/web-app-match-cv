@@ -8,6 +8,15 @@ export class DocumentDto {
   @ApiProperty({ enum: SourceFormat }) sourceFormat: SourceFormat;
   @ApiProperty() rawText: string;
   @ApiProperty() isSaved: boolean;
+
+  // Lineage (ADR #15). Set when this document was produced by rewriting
+  // another one; null means it is an original.
+  @ApiProperty({
+    nullable: true,
+    description: "id of the document this one is a newer version of"
+  })
+  parentId: string | null;
+
   @ApiProperty() createdAt: Date;
 
   static fromEntity(doc: Document): DocumentDto {
@@ -18,6 +27,7 @@ export class DocumentDto {
     dto.sourceFormat = doc.sourceFormat;
     dto.rawText = doc.rawText;
     dto.isSaved = doc.isSaved;
+    dto.parentId = doc.parentId;
     dto.createdAt = doc.createdAt;
     return dto;
   }

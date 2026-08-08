@@ -69,12 +69,21 @@ model Document {
   isSaved       Boolean      @default(false)
   createdAt     DateTime     @default(now())
 
+  /// Lineage (ADR #15): this row is a newer version of `parentId`. A rewritten
+  /// CV is always a NEW row — the original is never overwritten (ADR #13) — so
+  /// this is only a link, not in-place versioning. SET NULL, not CASCADE:
+  /// deleting the original must not take the improved version with it.
+  parentId String?
+  parent   Document?  @relation("DocumentLineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children Document[] @relation("DocumentLineage")
+
   matchResultsAsCv MatchResult[] @relation("MatchResultCvDocument")
   matchResultsAsJd MatchResult[] @relation("MatchResultJdDocument")
   matchRunsAsCv    MatchRun[]    @relation("MatchRunCvDocument")
   matchRunsAsJd    MatchRun[]    @relation("MatchRunJdDocument")
 
   @@index([userId, kind])
+  @@index([parentId])
 }
 
 model MatchResult {

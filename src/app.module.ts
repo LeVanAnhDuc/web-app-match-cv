@@ -10,6 +10,7 @@ import { CurrentUserModule } from "./common/current-user/current-user.module";
 import { DocumentsModule } from "./modules/documents/documents.module";
 import { MatchingModule } from "./modules/matching/matching.module";
 import { AiCredentialsModule } from "./modules/ai-credentials/ai-credentials.module";
+import { CvRewriteModule } from "./modules/cv-rewrite/cv-rewrite.module";
 import { validateEnv } from "./config/env.validation";
 
 @Module({
@@ -29,7 +30,8 @@ import { validateEnv } from "./config/env.validation";
     HealthModule,
     DocumentsModule,
     MatchingModule,
-    AiCredentialsModule
+    AiCredentialsModule,
+    CvRewriteModule
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }]

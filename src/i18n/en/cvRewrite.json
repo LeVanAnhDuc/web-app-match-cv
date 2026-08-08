@@ -1,0 +1,10 @@
+{
+  "errors": {
+    "matchNotFound": "Match result not found.",
+    "matchFailed": "This match did not produce a report, so there is nothing to rewrite.",
+    "changeNotGrounded": "One of the approved changes no longer matches the original CV. Generate the suggestions again.",
+    "changesOverlap": "Two approved changes edit the same part of the CV.",
+    "changeTooLong": "A suggested replacement is far longer than the text it replaces.",
+    "emptyResult": "Applying these changes would leave the CV empty."
+  }
+}

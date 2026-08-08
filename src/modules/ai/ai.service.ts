@@ -17,9 +17,32 @@ export interface MatchReport {
   suggestions: string[];
 }
 
+/**
+ * One proposed edit, straight out of the model and NOT yet trusted. `original`
+ * is verified against the real CV by `cv-rewrite/grounding.ts` before anyone
+ * sees it — this type is deliberately loose because the model's output is.
+ */
+export interface RawCvRewriteChange {
+  sectionHint?: unknown;
+  original?: unknown;
+  replacement?: unknown;
+  rationale?: unknown;
+  addressesGap?: unknown;
+}
+
+export interface RawCvRewrite {
+  changes: RawCvRewriteChange[];
+  /** Gaps the model refused to close because closing them would mean inventing. */
+  unaddressedGaps: string[];
+}
+
 const AI_TIMEOUT_MS = 20_000; // availability guard: /match must fail 503, not hang, if the AI provider stalls
 const PING_INPUT = "ping";
 const PING_MAX_TOKENS = 5;
+// Cost + payload ceiling for the rewrite: ~25 changes of ~1.5k characters is
+// the most the grounding layer will keep anyway, so a longer answer is spend
+// with nowhere to land.
+const REWRITE_MAX_TOKENS = 8_000;
 
 // Worst-first. The aggregate test verdict is the first of these that either
 // capability reported, so "chat ok + embed invalid_key" surfaces as invalid_key
@@ -239,6 +262,76 @@ export class AiService {
       };
     } catch {
       // Unparseable JSON is the model misbehaving, not the transport.
+      throw aiFailedError(AiTestStatus.model_unavailable);
+    }
+  }
+
+  /**
+   * Propose edits that close the report's gaps using ONLY what the CV already
+   * says (ADR #13). The prompt states the constraint; it is not the enforcement
+   * — `cv-rewrite/grounding.ts` drops every change whose `original` is not a
+   * verbatim, unique excerpt of the CV, both here and again on accept.
+   */
+  async generateCvRewrite(
+    cvText: string,
+    jdText: string,
+    gaps: string[],
+    suggestions: string[],
+    cfg: AiRuntimeConfig
+  ): Promise<RawCvRewrite> {
+    const prompt = [
+      "Rewrite parts of the CV below so it addresses the job description (JD) better.",
+      "Gaps found by the previous analysis:",
+      gaps.length
+        ? gaps.map((gap) => `- ${gap}`).join("\n")
+        : "- (none listed)",
+      "Suggestions from the previous analysis:",
+      suggestions.length
+        ? suggestions.map((item) => `- ${item}`).join("\n")
+        : "- (none listed)",
+      'Respond ONLY with a JSON object of shape { "changes": [ { "sectionHint": string, "original": string, "replacement": string, "rationale": string, "addressesGap": string } ], "unaddressedGaps": string[] }.',
+      '"original" MUST be copied character-for-character from the CV and must appear there exactly once. Never quote text that is not in the CV.',
+      'To add emphasis, EXPAND an existing excerpt (put the original wording plus the addition in "replacement"). To delete, use an empty "replacement".',
+      'If a gap cannot be closed without inventing experience, skills or qualifications the candidate does not have, DO NOT attempt it — list that gap in "unaddressedGaps".',
+      "--- JD ---",
+      jdText,
+      "--- CV ---",
+      cvText
+    ].join("\n\n");
+
+    let content: string | null | undefined;
+    try {
+      const response = await withTimeout(
+        this.client(cfg).chat.completions.create({
+          model: cfg.chatModel,
+          max_tokens: REWRITE_MAX_TOKENS,
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a CV editing assistant. You may ONLY rephrase, reorder or emphasise content that ALREADY EXISTS in the CV. You must NEVER invent employers, job titles, dates, degrees, certifications, tools or skills that do not already appear in the CV. Respond ONLY with JSON."
+            },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" }
+        })
+      );
+      content = response.choices[0]?.message?.content;
+    } catch (error) {
+      throw asProviderError(error);
+    }
+    if (!content) throw aiFailedError(AiTestStatus.unreachable);
+
+    try {
+      const parsed: unknown = JSON.parse(content);
+      const record = parsed as Record<string, unknown>;
+      return {
+        changes: Array.isArray(record.changes)
+          ? (record.changes as RawCvRewriteChange[])
+          : [],
+        unaddressedGaps: toStringArray(record.unaddressedGaps)
+      };
+    } catch {
       throw aiFailedError(AiTestStatus.model_unavailable);
     }
   }

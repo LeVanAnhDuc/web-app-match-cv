@@ -202,6 +202,82 @@ describe("AiService", () => {
     });
   });
 
+  describe("generateCvRewrite()", () => {
+    const call = (service: AiService) =>
+      service.generateCvRewrite(
+        "cv text",
+        "jd text",
+        ["No CI/CD experience"],
+        ["Mention pipelines"],
+        CFG
+      );
+
+    it("parses changes and unaddressed gaps out of the JSON response", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                changes: [
+                  {
+                    sectionHint: "Experience",
+                    original: "Built REST APIs",
+                    replacement: "Built and deployed REST APIs",
+                    rationale: "Mentions deployment",
+                    addressesGap: "No CI/CD experience"
+                  }
+                ],
+                unaddressedGaps: ["5 years of Kubernetes"]
+              })
+            }
+          }
+        ]
+      });
+      const service = new AiService(fakeConfig({}));
+      const result = await call(service);
+      expect(result.changes).toHaveLength(1);
+      expect(result.unaddressedGaps).toEqual(["5 years of Kubernetes"]);
+    });
+
+    it("instructs the model, in the request itself, never to invent", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: '{"changes":[]}' } }]
+      });
+      await call(new AiService(fakeConfig({})));
+      const [[body]] = chatCompletionsCreateMock.mock.calls as unknown as Array<
+        [{ messages: Array<{ role: string; content: string }> }]
+      >;
+      expect(body.messages[0].content).toContain("NEVER invent");
+      expect(body.messages[1].content).toContain(
+        "copied character-for-character"
+      );
+    });
+
+    it("tolerates a response with no changes array", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: "{}" } }]
+      });
+      const result = await call(new AiService(fakeConfig({})));
+      expect(result).toEqual({ changes: [], unaddressedGaps: [] });
+    });
+
+    it("classifies an unparseable response as model_unavailable", async () => {
+      chatCompletionsCreateMock.mockResolvedValue({
+        choices: [{ message: { content: "not json" } }]
+      });
+      await expect(call(new AiService(fakeConfig({})))).rejects.toMatchObject({
+        reason: "model_unavailable"
+      });
+    });
+
+    it("keeps the provider's failure classification", async () => {
+      chatCompletionsCreateMock.mockRejectedValue(apiError(401));
+      await expect(call(new AiService(fakeConfig({})))).rejects.toMatchObject({
+        reason: "invalid_key"
+      });
+    });
+  });
+
   describe("ping()", () => {
     it("reports ok only when BOTH chat and embeddings succeed", async () => {
       chatCompletionsCreateMock.mockResolvedValue({

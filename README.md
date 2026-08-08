@@ -45,6 +45,18 @@ App chạy ở `http://localhost:5200` (đổi qua env `PORT`).
 
 Mọi endpoint `/ai-credentials` trả **503** nếu thiếu `CREDENTIAL_ENCRYPTION_KEY`.
 
+### CV rewrite (Goal 7a)
+
+- `POST /api/v1/cv-rewrite` `{ matchResultId, credentialId? }` — từ một `MatchResult` **đã thành công** của bạn, sinh danh sách **thay đổi đề xuất** cho CV. Trả `CvRewriteProposalDto` = `changes[]` + `unaddressedGaps[]` + provider/model đã dùng. Rate-limit **10 req/phút** (mỗi lần gọi tốn 1 chat completion trên key của bạn và là một lần CV rời hệ thống). Match `status=failed` → **400**; match không thuộc bạn → **404**; provider chết → **503**.
+
+  > **Đề xuất KHÔNG được lưu.** Không có bảng nào cho nó — reload trang là mất, phải sinh lại. Đúng ADR #13: output chỉ thành dữ liệu thật khi user duyệt.
+
+- `POST /api/v1/cv-rewrite/accept` `{ matchResultId, title, changes: [{ original, replacement }] }` — lưu tập thay đổi user đã duyệt thành một **`Document` mới** (`kind=CV`, `sourceFormat=text`, `isSaved=true`, `parentId` = CV gốc). **CV gốc không bao giờ bị ghi đè** (ADR #13). Rate-limit **20 req/phút**.
+
+  > **Server không tin payload này.** Mỗi `original` phải xuất hiện **nguyên văn và duy nhất** trong `rawText` của CV đọc từ DB (so khớp bỏ qua khác biệt khoảng trắng), không được chồng lấn nhau, và `replacement` không được dài quá 4× đoạn nó thay (trần tuyệt đối 1500 ký tự). Sai bất kỳ điều nào → **400** và **không** tạo document nào. Đây là cách ADR #13 ("chỉ diễn đạt lại nội dung đã có, không bịa") được **thi hành**, không chỉ được dặn trong prompt.
+
+`Document` giờ có `parentId` (self-FK, `ON DELETE SET NULL`): xoá CV gốc **không** xoá bản viết lại, chỉ mất liên kết (ADR #15).
+
 ## Env vars
 
 Xem `.env.example`:
