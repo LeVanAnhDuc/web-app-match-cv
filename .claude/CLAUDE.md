@@ -68,6 +68,8 @@ yarn test             # jest (test:cov, test:watch, test:e2e)
 npx prisma migrate dev --name <name>   # tạo + apply migration
 npx prisma generate                    # regenerate client
 yarn seed             # seed DB (idempotent)
+yarn recompute-scores                  # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
+yarn recompute-scores --apply          # ghi thật
 ```
 
 ## Architecture
@@ -92,6 +94,7 @@ Request flow: Controller (thin, @Api* + pipes) → Service (@Injectable, busines
 - **i18n**: mỗi module có `i18n-messages.ts` → `tDoc/tMatch(key, fallback)` = `I18nContext.current()?.t(key) ?? fallback`; JSON `src/i18n/{en,vi}/<ns>.json` (en+vi đồng bộ).
 - **Imports**: relative (chưa cấu hình alias). `import type` cho type-only.
 - **Constants**: magic value (vd `MAX_FILE_SIZE_BYTES`, regex mime) là named const (module-local hoặc file constants) — không hard-code literal rải rác.
+- **Tokenizer**: chân keyword của matching engine dùng `src/modules/matching/tokenizer.ts` (hàm thuần `tokenize()`, Unicode-aware, gỡ dấu tiếng Việt, alias kỹ thuật). KHÔNG tự viết logic tách token ở nơi khác — sửa bảng từ trong file đó.
 
 ## Quality & Workflow
 

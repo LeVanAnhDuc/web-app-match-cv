@@ -13,6 +13,7 @@ import { AiService, MatchReport } from "../ai/ai.service";
 import { AiRuntimeConfig } from "../ai/providers";
 import { AiCredentialsService } from "../ai-credentials/ai-credentials.service";
 import { tMatch } from "./i18n-messages";
+import { tokenize } from "./tokenizer";
 
 export interface MatchRunResult {
   overallScore: number;
@@ -23,87 +24,12 @@ export interface MatchRunResult {
 
 const SEMANTIC_WEIGHT = 0.6;
 const KEYWORD_WEIGHT = 0.4;
-const MIN_TOKEN_LENGTH = 2;
 // Cap text actually sent to the AI provider (embed + report), independent of the
 // storage-time caps (paste 100k / uploaded-doc extract 2M). Bounds cost +
 // latency: a match report doesn't need the full body of a huge PDF.
 const MAX_MATCH_CHARS = 20_000;
-const capForMatch = (text: string): string => text.slice(0, MAX_MATCH_CHARS);
-
-// Small, deliberately conservative English stopword list — the goal is to
-// strip near-universal filler words, not to build a full NLP pipeline.
-const STOPWORDS = new Set([
-  "a",
-  "an",
-  "the",
-  "and",
-  "or",
-  "but",
-  "if",
-  "then",
-  "else",
-  "of",
-  "to",
-  "in",
-  "on",
-  "at",
-  "by",
-  "for",
-  "with",
-  "about",
-  "as",
-  "is",
-  "are",
-  "was",
-  "were",
-  "be",
-  "been",
-  "being",
-  "have",
-  "has",
-  "had",
-  "do",
-  "does",
-  "did",
-  "will",
-  "would",
-  "shall",
-  "should",
-  "can",
-  "could",
-  "may",
-  "might",
-  "must",
-  "this",
-  "that",
-  "these",
-  "those",
-  "we",
-  "you",
-  "they",
-  "it",
-  "i",
-  "he",
-  "she",
-  "their",
-  "our",
-  "your",
-  "its",
-  "from",
-  "into",
-  "over",
-  "under",
-  "not",
-  "no",
-  "so",
-  "than",
-  "too",
-  "very",
-  "up",
-  "down",
-  "out",
-  "off"
-]);
+export const capForMatch = (text: string): string =>
+  text.slice(0, MAX_MATCH_CHARS);
 
 function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, value));
@@ -124,22 +50,11 @@ export class MatchingService {
     private readonly credentials: AiCredentialsService
   ) {}
 
-  private tokenize(text: string): Set<string> {
-    const tokens = text
-      .toLowerCase()
-      .split(/[^a-z0-9+#.]+/i)
-      .map((token) => token.trim())
-      .filter(
-        (token) => token.length >= MIN_TOKEN_LENGTH && !STOPWORDS.has(token)
-      );
-    return new Set(tokens);
-  }
-
   /** |JD ∩ CV| / |JD| * 100, rounded, clamped to [0, 100]. 0 if JD has no meaningful tokens. */
   keywordScore(cvText: string, jdText: string): number {
-    const jdTokens = this.tokenize(jdText);
+    const jdTokens = tokenize(jdText);
     if (jdTokens.size === 0) return 0;
-    const cvTokens = this.tokenize(cvText);
+    const cvTokens = tokenize(cvText);
     let overlap = 0;
     for (const token of jdTokens) {
       if (cvTokens.has(token)) overlap += 1;

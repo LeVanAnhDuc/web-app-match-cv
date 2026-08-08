@@ -141,6 +141,36 @@ describe("MatchingService", () => {
       const service = makeService();
       expect(service.keywordScore("TypeScript developer", "a an the")).toBe(0);
     });
+
+    it("[EP vietnamese] scores a diacritics CV against a no-diacritics JD", () => {
+      // The design document's worked example, which is also acceptance
+      // criterion 1. The old ASCII-splitting tokenizer scored this ~12%
+      // because it treated every diacritic as a separator; the JD here is
+      // deliberately written without diacritics so the pair cannot pass by
+      // both sides being shredded into the same fragments.
+      const service = makeService();
+      const score = service.keywordScore(
+        "Kinh nghiệm 3 năm phát triển hệ thống với ReactJS và Node.js, đã dùng PostgreSQL",
+        "Tuyển lập trình viên có kinh nghiem phat trien he thong React, Node, Postgres"
+      );
+      expect(score).toBeGreaterThanOrEqual(60);
+    });
+
+    it("[invariant] a JD written without diacritics scores the same as one with", () => {
+      const service = makeService();
+      const cv = "Kinh nghiệm phát triển hệ thống với ReactJS và Node.js";
+      expect(
+        service.keywordScore(
+          cv,
+          "Cần kinh nghiem phat trien he thong React Node"
+        )
+      ).toBe(
+        service.keywordScore(
+          cv,
+          "Cần kinh nghiệm phát triển hệ thống React Node"
+        )
+      );
+    });
   });
 
   describe("combineOverall()", () => {

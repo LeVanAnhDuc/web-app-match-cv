@@ -90,7 +90,7 @@ export default tseslint.config(
     // Standalone CLI script: logging to stdout is its output channel, and its
     // top-level `main().then(...).catch(...)` teardown chain has nothing to
     // return.
-    files: ["prisma/seed.ts"],
+    files: ["prisma/seed.ts", "scripts/recompute-keyword-scores.ts"],
     rules: {
       "no-console": "off",
       "promise/always-return": "off"

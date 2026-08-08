@@ -21,6 +21,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json",
+    "recompute-scores": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/recompute-keyword-scores.ts",
     "prepare": "husky"
   },
   "lint-staged": {
