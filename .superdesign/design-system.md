@@ -37,7 +37,7 @@
 
 ## 2. Typography tiers (system font)
 
-h1 `text-2xl font-bold tracking-tight` · h2 `text-xl font-bold` · title `text-base font-semibold` · body `text-sm` · secondary `text-sm text-slate-500 dark:text-slate-400` · meta/label `text-xs font-medium text-slate-400`.
+h1 `text-2xl font-bold tracking-tight` · h2 `text-xl font-bold` (tiêu đề card) · title `text-base font-semibold` · body `text-sm` · secondary `text-sm text-slate-500 dark:text-slate-400` · **eyebrow/label `text-xs font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500`** (KHÔNG `text-sm font-bold`, KHÔNG `tracking-widest`).
 
 ## 3. Color token (map nhanh)
 
@@ -45,7 +45,9 @@ primary `#2563eb`/dark `#6366f1` · bg `slate-50`/`slate-900` · card `white`/`s
 
 ## 4. Component patterns
 
-- **Card**: `bg-white dark:bg-slate-800 border rounded-xl shadow-sm p-6`; title `text-base font-semibold`.
+- **Page container**: mỗi trang bọc đúng 1 khung `mx-auto w-full max-w-[1600px] p-4 md:p-6`. KHÔNG `max-w-4xl/5xl/6xl`, KHÔNG `md:p-8`.
+- **Card** (một hình dạng duy nhất): `bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm`; header `px-4 py-4 md:px-6 md:py-5` + `border-b`, tiêu đề `text-xl font-bold`, mô tả `text-sm` muted; body `p-4 md:p-6`; footer `border-t` + nền subtle (`bg-slate-50 dark:bg-slate-900/40`). Table/list nhét sát mép thì bỏ padding body.
+- **Sidebar**: desktop mở `w-72` ↔ rail `w-16` (toggle icon `panel-left-close`/`panel-left-open` ở hàng brand). 4 nav item **cùng một style**; chỉ item active đổi màu: `bg-primary/10 text-primary font-semibold` + thanh dọc 3px bên trái. KHÔNG có item fill màu vĩnh viễn. Rail: chỉ icon, căn giữa, có tooltip phải. Mobile: hamburger + drawer, nav luôn ở bản mở rộng (không rail).
 - **Stepper**: dot `w-10 h-10 rounded-full`; active primary solid; done tint+check; idle surface+border+muted. Rail dọc (mặc định) hoặc ngang.
 - **Input tabs (Upload/Paste)**: segmented pill nền `slate-100 rounded-md`, active = white + shadow-sm.
 - **Dropzone**: `border-2 border-dashed rounded-xl p-8`, hover border primary + bg primary/5.
