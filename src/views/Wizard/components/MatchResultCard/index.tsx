@@ -1,9 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Alert, Button, Collapse, Skeleton } from "antd";
+import { Alert, Button, Collapse, Skeleton, Space } from "antd";
 import {
   AlertTriangle,
   CircleCheck,
   Lightbulb,
+  Mail,
   RotateCcw,
   Wand2
 } from "lucide-react";
@@ -13,6 +14,7 @@ import SectionCard from "#/components/SectionCard";
 import { useProviders } from "#/hooks/useAiCredentials";
 import { useRunMatch } from "#/hooks/useMatch";
 import type { MatchResultDto } from "#/types/Matching";
+import CoverLetterModal from "../CoverLetterModal";
 
 const GAUGE_RADIUS = 70;
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
@@ -110,6 +112,7 @@ const MatchResultCard = ({
   );
   const [failed, setFailed] = useState(false);
   const [running, setRunning] = useState(false);
+  const [letterOpen, setLetterOpen] = useState(false);
   const firedRef = useRef(false);
 
   const fire = async () => {
@@ -245,21 +248,30 @@ const MatchResultCard = ({
     <SectionCard
       title={title}
       bodyClassName="p-0"
-      // Entry point for the CV rewrite assistant (Goal 7a). It lives on the
-      // card rather than on the step, so reopening an old match from history —
-      // which renders this same card — gets the action for free.
+      // Both Goal 7 entry points (rewrite the CV, write the letter) live on
+      // the card rather than on the step, so reopening an old match from
+      // history — which renders this same card — gets them for free. They sit
+      // together because they are siblings: two things to do with one report.
       extra={
-        <Button
-          icon={<Wand2 size={16} />}
-          onClick={() =>
-            void navigate({
-              to: "/cv-rewrite/$matchResultId",
-              params: { matchResultId: result.id }
-            })
-          }
-        >
-          {t("action.improveCv")}
-        </Button>
+        <Space wrap>
+          <Button
+            icon={<Wand2 size={16} />}
+            onClick={() =>
+              void navigate({
+                to: "/cv-rewrite/$matchResultId",
+                params: { matchResultId: result.id }
+              })
+            }
+          >
+            {t("action.improveCv")}
+          </Button>
+          {/* Only on a succeeded result: a letter is written FROM the report,
+              so a run that produced none has no material to ground it in —
+              the server rejects it for the same reason. */}
+          <Button icon={<Mail size={16} />} onClick={() => setLetterOpen(true)}>
+            {t("coverLetter.open")}
+          </Button>
+        </Space>
       }
     >
       <div className="flex flex-col items-center gap-6 border-b border-line bg-surface-subtle p-4 md:flex-row md:gap-12 md:p-6">
@@ -324,6 +336,17 @@ const MatchResultCard = ({
           />
         )}
       </div>
+
+      {/* Mounted only while open: the modal owns a query, and every result
+          card on screen would otherwise fetch a draft list nobody asked for. */}
+      {letterOpen && (
+        <CoverLetterModal
+          open
+          matchResultId={result.id}
+          defaultCredentialId={result.credentialId}
+          onClose={() => setLetterOpen(false)}
+        />
+      )}
     </SectionCard>
   );
 };

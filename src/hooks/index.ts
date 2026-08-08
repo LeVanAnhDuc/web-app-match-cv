@@ -21,3 +21,9 @@ export {
   useDeleteCredential,
   useTestCredential
 } from "./useAiCredentials";
+export {
+  useCoverLetters,
+  useGenerateCoverLetter,
+  useUpdateCoverLetter,
+  useDeleteCoverLetter
+} from "./useCoverLetters";

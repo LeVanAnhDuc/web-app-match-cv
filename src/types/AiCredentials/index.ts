@@ -3,7 +3,13 @@
 export type AiProvider = "openrouter" | "openai" | "gemini";
 
 export type AiTestStatus =
-  "ok" | "invalid_key" | "no_quota" | "model_unavailable" | "unreachable";
+  | "ok"
+  | "invalid_key"
+  | "no_quota"
+  | "model_unavailable"
+  /** Answered too slowly — distinct from "not there at all". */
+  | "timeout"
+  | "unreachable";
 
 export interface AiCredentialDto {
   id: string;

@@ -8,6 +8,7 @@ const COLOR: Record<AiTestStatus, string> = {
   invalid_key: "red",
   no_quota: "orange",
   model_unavailable: "orange",
+  timeout: "orange",
   unreachable: "default"
 };
 

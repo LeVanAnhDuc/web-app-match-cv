@@ -17,6 +17,10 @@ export const ENDPOINTS = {
   aiCredentialTest: (id: string) =>
     `/ai-credentials/${encodeURIComponent(id)}/test`,
   aiProviders: "/ai-credentials/providers",
+  coverLetters: "/cover-letters",
+  coverLettersByMatch: (matchResultId: string) =>
+    `/cover-letters?matchResultId=${encodeURIComponent(matchResultId)}`,
+  coverLetterById: (id: string) => `/cover-letters/${encodeURIComponent(id)}`,
   cvRewrite: "/cv-rewrite",
   cvRewriteAccept: "/cv-rewrite/accept"
 } as const;

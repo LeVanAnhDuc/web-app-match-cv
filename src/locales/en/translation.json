@@ -289,6 +289,7 @@
       "invalid_key": "Invalid key",
       "no_quota": "No quota",
       "model_unavailable": "Model unavailable",
+      "timeout": "Timed out",
       "unreachable": "Unreachable"
     },
     "actions": {
@@ -324,6 +325,46 @@
       "untestedCount_other": "{{count}} selected credentials have not passed a connection test.",
       "privacyNone": "Select at least one key to run the match.",
       "privacyList": "Your CV and JD text will be sent to: {{providers}}."
+    }
+  },
+  "coverLetter": {
+    "open": "Write cover letter",
+    "title": "Cover letter",
+    "tone": "Tone",
+    "length": "Length",
+    "language": "Letter language",
+    "toneValue": {
+      "formal": "Formal",
+      "friendly": "Friendly"
+    },
+    "lengthValue": {
+      "short": "Short",
+      "standard": "Standard"
+    },
+    "languageValue": {
+      "en": "English",
+      "vi": "Vietnamese"
+    },
+    "generate": "Generate",
+    "draft": "Draft",
+    "drafts": "Drafts you have generated",
+    "empty": "No drafts yet. Pick a tone and length, then generate one.",
+    "copy": "Copy",
+    "download": "Download .txt",
+    "save": "Save changes",
+    "delete": "Delete draft",
+    "editedTag": "Edited",
+    "failedTag": "Failed",
+    "omitted": {
+      "title": "This letter does not claim",
+      "hint": "Your CV does not back these up, so the letter leaves them out. Add them for real if you can."
+    },
+    "err": {
+      "generate": "Could not generate the letter. Please try again.",
+      "save": "Could not save your changes. Your text is still here — try again.",
+      "delete": "Could not delete that draft.",
+      "copy": "Could not copy automatically. Select the text and copy it manually.",
+      "list": "Could not load your drafts."
     }
   }
 }

@@ -289,6 +289,7 @@
       "invalid_key": "Key không hợp lệ",
       "no_quota": "Hết hạn mức",
       "model_unavailable": "Model không khả dụng",
+      "timeout": "Quá thời gian",
       "unreachable": "Không kết nối được"
     },
     "actions": {
@@ -324,6 +325,46 @@
       "untestedCount_other": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
       "privacyNone": "Chọn ít nhất một key để chạy so khớp.",
       "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}."
+    }
+  },
+  "coverLetter": {
+    "open": "Viết thư ứng tuyển",
+    "title": "Thư ứng tuyển",
+    "tone": "Giọng văn",
+    "length": "Độ dài",
+    "language": "Ngôn ngữ lá thư",
+    "toneValue": {
+      "formal": "Trang trọng",
+      "friendly": "Thân thiện"
+    },
+    "lengthValue": {
+      "short": "Ngắn",
+      "standard": "Chuẩn"
+    },
+    "languageValue": {
+      "en": "Tiếng Anh",
+      "vi": "Tiếng Việt"
+    },
+    "generate": "Sinh thư",
+    "draft": "Bản nháp",
+    "drafts": "Các bản đã sinh",
+    "empty": "Chưa có bản nào. Chọn giọng văn và độ dài rồi sinh thử.",
+    "copy": "Sao chép",
+    "download": "Tải .txt",
+    "save": "Lưu thay đổi",
+    "delete": "Xoá bản nháp",
+    "editedTag": "Đã sửa",
+    "failedTag": "Lỗi",
+    "omitted": {
+      "title": "Lá thư này KHÔNG khẳng định",
+      "hint": "CV của bạn không chống lưng được những điều sau nên thư đã bỏ qua. Hãy bổ sung thật nếu có thể."
+    },
+    "err": {
+      "generate": "Không sinh được lá thư. Vui lòng thử lại.",
+      "save": "Không lưu được thay đổi. Nội dung bạn gõ vẫn còn — hãy thử lại.",
+      "delete": "Không xoá được bản nháp này.",
+      "copy": "Không tự sao chép được. Hãy bôi đen và sao chép thủ công.",
+      "list": "Không tải được danh sách bản nháp."
     }
   }
 }
