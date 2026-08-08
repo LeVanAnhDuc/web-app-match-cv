@@ -12,6 +12,7 @@ import { MatchingModule } from "./modules/matching/matching.module";
 import { AiCredentialsModule } from "./modules/ai-credentials/ai-credentials.module";
 import { CoverLettersModule } from "./modules/cover-letters/cover-letters.module";
 import { CvRewriteModule } from "./modules/cv-rewrite/cv-rewrite.module";
+import { MeModule } from "./modules/me/me.module";
 import { validateEnv } from "./config/env.validation";
 
 @Module({
@@ -33,7 +34,8 @@ import { validateEnv } from "./config/env.validation";
     MatchingModule,
     AiCredentialsModule,
     CoverLettersModule,
-    CvRewriteModule
+    CvRewriteModule,
+    MeModule
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }]

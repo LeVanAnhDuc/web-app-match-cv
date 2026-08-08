@@ -80,7 +80,7 @@ main.ts  bootstrap: NestFactory → setGlobalPrefix('api/v1') → helmet → COR
 AppModule: ConfigModule.forRoot({isGlobal, validate: validateEnv})
          + ThrottlerModule (+ APP_GUARD ThrottlerGuard)
          + I18nModule (fallback 'en', QueryResolver 'lang' + AcceptLanguageResolver)
-         + PrismaModule + CurrentUserModule + feature modules (Documents, Matching, Health)
+         + PrismaModule + CurrentUserModule + feature modules (Documents, Matching, Me, Health)
 Request flow: Controller (thin, @Api* + pipes) → Service (@Injectable, business) → PrismaService (data)
 ```
 
@@ -95,6 +95,7 @@ Request flow: Controller (thin, @Api* + pipes) → Service (@Injectable, busines
 - **Imports**: relative (chưa cấu hình alias). `import type` cho type-only.
 - **Constants**: magic value (vd `MAX_FILE_SIZE_BYTES`, regex mime) là named const (module-local hoặc file constants) — không hard-code literal rải rác.
 - **Tokenizer**: chân keyword của matching engine dùng `src/modules/matching/tokenizer.ts` (hàm thuần `tokenize()`, Unicode-aware, gỡ dấu tiếng Việt, alias kỹ thuật). KHÔNG tự viết logic tách token ở nơi khác — sửa bảng từ trong file đó.
+- **Export dữ liệu**: `src/modules/me/export-manifest.ts` là nơi DUY NHẤT quyết định field nào rời khỏi hệ thống. Map từng field một, KHÔNG spread entity — cột nhạy cảm thêm sau này sẽ tự động không bị rò. `AiCredential.encryptedKey`/`keyIv`/`keyTag` không bao giờ được có mặt.
 
 ## Quality & Workflow
 
@@ -111,3 +112,4 @@ yarn build        # nest build phải thành công
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
 - `yarn format`/`yarn lint` có thể tự sửa file → đọc lại sau khi chạy.
 - Đổi Prisma schema → `npx prisma migrate dev` + cập nhật `seed.ts` idempotent; note ảnh hưởng data trong `design.md`.
+- **`yarn test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `yarn format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Case thật: `archiver@8` là pure ESM, Jest (CommonJS) không `require` được, nhưng không unit spec nào import service dùng nó và `yarn build` chỉ compile nên không phát hiện ra; lỗi chỉ lộ khi chạy `yarn test:e2e` thật.

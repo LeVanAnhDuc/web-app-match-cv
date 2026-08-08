@@ -24,6 +24,10 @@
     "recompute-scores": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/recompute-keyword-scores.ts",
     "prepare": "husky"
   },
+  "resolutions": {
+    "string-width": "4.2.3",
+    "strip-ansi": "6.0.1"
+  },
   "lint-staged": {
     "*.ts": [
       "eslint --fix",
@@ -41,6 +45,7 @@
     "@nestjs/swagger": "^11.4.5",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "6.19.3",
+    "archiver": "^7.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "helmet": "^8.3.0",
@@ -57,11 +62,14 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@types/adm-zip": "^0.5.8",
+    "@types/archiver": "^7.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.2.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
+    "adm-zip": "^0.6.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
