@@ -2,6 +2,7 @@
 
 > Chốt tại brainstorm feature đầu (`cv-jd-matching-wizard`) ngày 2026-07-14.
 > Cập nhật 2026-08-06: thêm **Goal 6** (BYO AI credentials + multi-provider compare) + ghi nhận feature `home-dashboard-library` vào scope/roadmap.
+> Cập nhật 2026-08-09: Roadmap **#6 CV rewrite assistant (Goal 7a) DONE** — chốt 2 open question của Goal 7 (§12) và chốt phương án lưu trữ ở `erd.md`.
 > Cập nhật 2026-08-08: **thu hẹp định vị** — bỏ "Recruiter đăng Job" + "Apply flow" khỏi roadmap (chuyển hẳn sang Non-Goals); thêm **Goal 7** (CV rewrite assistant + Cover letter generator); **đồng bộ trạng thái theo code hiện tại** (Roadmap #2 đã DONE + merge `main`).
 > Source of truth về Identity/Vision/Goals/Non-Goals. Feature mới phải đối chiếu §4 Goals + §5 Non-Goals **trước khi** `superpowers:brainstorming`.
 
@@ -107,15 +108,16 @@ Mở rộng của Goal 1 (lưu tái dùng per-user). Spec + mock SuperDesign ở
 - **Partial success là trạng thái hợp lệ**: 1 provider fail (sai key / hết quota / timeout) → chỉ card đó hiện lỗi, các card khác giữ nguyên kết quả.
 - **Fallback key hệ thống** — user không có credential nào thì vẫn chạy được bằng `OPENROUTER_API_KEY` của hệ thống (1 kết quả).
 
-### 6.3 CV rewrite assistant *(sau MVP — Goal 7a)*
+### 6.3 CV rewrite assistant — ✅ **ĐÃ IMPLEMENT** *(Goal 7a, Roadmap #6, merge 2026-08-09)*
 
-Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất.
+Từ 1 `MatchResult` đã có → sinh bản CV chỉnh sửa đề xuất. Spec: `specs/cv-rewrite-assistant/`.
 
-- **Điểm vào**: nút ở wizard step 4 (Result) + ở trang match history — không phải một luồng riêng từ đầu.
-- **Input**: `rawText` của CV gốc + `report.gaps` + `report.suggestions` + JD text.
-- **Output**: bản CV mới hiển thị **diff cạnh bản gốc** (thêm / sửa / bỏ), user **duyệt từng thay đổi** rồi lưu thành một `Document` mới (`kind=CV`) — **không ghi đè CV gốc**.
-- **Ràng buộc nội dung**: chỉ được diễn đạt lại / làm nổi bật cái CV gốc đã có; **KHÔNG bịa kinh nghiệm, kỹ năng, bằng cấp user không có**. Gap nào không thể đóng bằng viết lại → báo là "cần bổ sung thật", không tự điền.
-- **Vòng lặp giá trị**: CV mới đem match lại đúng JD đó → user thấy điểm tăng bao nhiêu. Phần đo lường này là **Goal 9** (§6.6), không nằm trong feature này.
+- ✅ **Điểm vào**: nút "Improve my CV" trên card kết quả ở wizard step 4 — **cùng card đó** cũng là thứ hiện ra khi mở lại một match từ history, nên một nút phục vụ cả hai điểm vào.
+- ✅ **Input**: `rawText` của CV gốc + `report.gaps` + `report.suggestions` + JD text; chạy bằng credential user chọn (hoặc key hệ thống), có thông báo quyền riêng tư nêu đích danh provider **trước** khi bấm sinh.
+- ✅ **Output**: danh sách **thay đổi có neo** (anchored change) — mỗi thay đổi kèm đoạn gốc nguyên văn để đối chiếu; user tick **từng cái** (mặc định không tick gì) rồi lưu thành `Document` mới (`kind=CV`, `parentId` = CV gốc) — **không ghi đè CV gốc**.
+- ✅ **Ràng buộc nội dung được THI HÀNH, không chỉ được dặn**: mỗi thay đổi phải neo vào một đoạn **nguyên văn và duy nhất** của CV gốc; neo bịa / mơ hồ / phình quá cỡ bị **loại ở server**, cả lúc sinh lẫn lúc lưu. Gap không đóng được bằng viết lại → trả về `unaddressedGaps` và hiển thị là *"cần kinh nghiệm thật"*. Chi tiết + phần **không** chặn được (bịa ở mức ngữ nghĩa): `specs/cv-rewrite-assistant/design.md` §3.
+- **Diff ở mức toàn văn có neo, KHÔNG theo section** *(chốt 2026-08-09)* — `Document.parsedContent` vẫn `null`, xem `unfinished-features.md` #2 và design §2.
+- **Vòng lặp giá trị**: CV mới đem match lại đúng JD đó → user thấy điểm tăng bao nhiêu. Phần đo lường này là **Goal 9** (§6.6), không nằm trong feature này — nhưng `parentId` mà nó cần **đã có sẵn**.
 
 ### 6.4 Cover letter generator *(sau MVP — Goal 7b)*
 
@@ -200,8 +202,8 @@ Chi tiết + version xem `.claude/techstack/backend.md` + `.claude/techstack/fro
 | 3 | **Vietnamese document support** (§6.5) | 8 | 🔜 **TIẾP THEO** — spec tầng goal ở `specs/goals-8-9-10/design.md`, chưa có spec feature. Chen lên đầu vì là **lỗi đang chạy trên `main`**, độc lập hoàn toàn (chỉ đụng hàm `tokenize`) |
 | 4 | **BYO AI credentials — single provider** (§6.2 phần 1) | 6a | ✅ **DONE** *(2026-08-08)* — merge `main` (`docs` #15, `server` #8, `client` #12). `AiCredential` + AES-256-GCM + test connection chat/embed + trang `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`. Security review PASS; gate A E2E 78/78. **Gate B (MCP walk) chưa chạy** — xem `specs/ai-credentials/e2e.md` |
 | 5 | **Data sovereignty** (§6.7) | 10 | 📝 spec tầng goal xong, chưa có spec feature. Xếp ngay sau #4 vì cả hai cùng sửa `AiService` |
-| 6 | **CV rewrite assistant** (§6.3) | 7a | 📝 chưa có spec/plan. Phụ thuộc mềm #4 (chạy bằng credential user) |
-| 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite |
+| 6 | **CV rewrite assistant** (§6.3) | 7a | ✅ **DONE** *(2026-08-09)* — `Document.parentId` (ADR #15) + `POST /cv-rewrite` / `POST /cv-rewrite/accept` + trang `/cv-rewrite/$matchResultId` (diff có neo, duyệt từng thay đổi, lưu thành CV mới). ADR #13 được **thi hành bằng code** (grounding), không chỉ bằng prompt. Security review PASS (2 HIGH về availability đã fix); gate A E2E 115/115. **Gate B (MCP walk) chưa chạy** — xem `specs/cv-rewrite-assistant/e2e.md` |
+| 7 | **CV version comparison** (§6.6) | 9 | 📝 chưa có spec/plan. Đặt liền sau #6 để đóng vòng lặp — chứng minh ngay giá trị của CV rewrite. **Tiền đề `Document.parentId` đã có sẵn** (làm ở #6) |
 | 8 | **Cover letter generator** (§6.4) | 7b | 📝 chưa có spec/plan. Dùng chung hạ tầng sinh nội dung với #6 |
 | 9 | **Multi-provider compare** (§6.2 phần 2) | 6b | ✅ **DONE** *(2026-08-08)* — `MatchRun` + `runId`/`status`/`errorCode`, multi-select ở step 3, N card progressive reveal + partial success ở step 4. **Goal 6 hoàn tất.** Gate A E2E 96/96; gate B chưa chạy — xem `specs/multi-provider-compare/e2e.md` |
 | 10 | **Auth / SSO** với `web-app-store-server-client` (IdP) | 5 | ⬜ chưa bắt đầu — IdP phải xây từ đầu. Kèm: thêm cột `isMock` + profile mirror (ADR #7/#8, hiện **chưa có trong schema**) và **mở khoá precondition của ADR #9** |
@@ -224,9 +226,9 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
 - Công thức combine `overallScore` từ semantic + keyword (trọng số)? → chốt ở design feature.
 - OpenRouter model (chat default `openai/gpt-4o-mini`; embed `openai/text-embedding-3-small`) → cấu hình qua env `OPENROUTER_CHAT_MODEL`/`OPENROUTER_EMBED_MODEL`.
 - Deploy target (Docker Compose local? cloud nào?) → TBD. **Lưu ý**: ADR #9 chặn deploy public cho tới khi Auth xong.
-- *(Goal 7)* Lưu output ở đâu: bảng `GeneratedContent` riêng, hay CV rewrite → `Document` mới + cover letter → không lưu? → chốt ở design feature (`erd.md` chưa có model nào cho Goal 7).
-- *(Goal 7)* Diff CV hiển thị ở mức nào — dòng, câu, hay section? Phụ thuộc `parsedContent` (jsonb) có được chuẩn hoá chưa. → chốt ở design feature.
-- *(Goal 7)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design feature.
+- ~~*(Goal 7)* Lưu output ở đâu~~ → **ĐÃ CHỐT 2026-08-09** (feature `cv-rewrite-assistant`): **không thêm model**. Bản đề xuất **không lưu** (ADR #13: chỉ thành dữ liệu thật khi user duyệt; lưu đề xuất = lưu thêm một bản sao PII cho thứ có thể không bao giờ được nhận). Bản đã duyệt → `Document` mới + `parentId`. Không thêm `sourceMatchResultId` vì Goal 9 so 2 phiên bản trên **JD do user chọn**, không cần con trỏ ngược. Xem `erd.md` mục "Generated content".
+- ~~*(Goal 7)* Diff CV hiển thị ở mức nào~~ → **ĐÃ CHỐT 2026-08-09**: **toàn văn, dạng thay đổi có neo** (mỗi thay đổi trích nguyên văn một đoạn duy nhất của CV), **không** theo section. Lý do: cái feature cần là *neo*, không phải *section*; và neo chính là thứ biến ADR #13 từ lời dặn trong prompt thành ràng buộc kiểm tra được bằng máy. `parsedContent` **giữ nguyên `null`** — xem `specs/cv-rewrite-assistant/design.md` §2.
+- *(Goal 7b)* Cover letter có cần lưu lịch sử để so nhiều bản không, hay chỉ generate-and-copy? → chốt ở design của Roadmap #8.
 - *(Goal 8)* Stopword tiếng Việt lấy từ danh sách công khai nào, hay tự soạn theo ngữ cảnh CV/JD? → chốt ở design feature.
 - *(Goal 9)* Số phiên bản (`v2`, `v3`) suy ra bằng cách đi ngược chuỗi `parentId`, hay lưu hẳn cột `version`? → chốt ở design feature (`specs/goals-8-9-10/design.md` §5).
 - *(Goal 10)* `DataDisclosure` có thêm `credentialId` không (audit *"gửi bằng key cá nhân nào"*)? Khả thi vì lúc làm Goal 10 thì `ai-credentials` đã merge. → chốt ở design feature.
@@ -244,4 +246,5 @@ Xem §5 Non-Goals. Ngoài ra: crawling job từ site ngoài, video interview, AT
   - **Thêm Goal 8, 9, 10** qua `superpowers:brainstorming` — spec tầng goal ở `specs/goals-8-9-10/design.md` (giữ **lý do**; file này giữ **quyết định**). Goal 8 tài liệu tiếng Việt (§6.5) · Goal 9 so sánh phiên bản CV (§6.6) · Goal 10 chủ quyền dữ liệu (§6.7). Kèm ADR #14 (không tách từ ghép) · #15 (lineage `parentId`) · #16 (nhật ký tiết lộ là bảng riêng, fail-closed). Non-Goals thêm 3 mục. Roadmap sắp lại 11 dòng: Goal 8 chen lên #3 vì là lỗi đang chạy; roadmap #3 cũ tách đôi thành #4/#9; batch ranking #7 → #11.
   - **§6 step 3 Review chốt read-only** — bỏ "sửa text/structured". User không vá nội dung parse bằng tay; parse sai thì nạp lại tài liệu ở step 1/2. (Khớp đúng code hiện tại: `views/Wizard/mains/StepReview` chỉ render `DocumentPreview`.)
 - **2026-08-08** *(feature `ai-credentials`)*: tách Goal 6 làm 2 feature; hiện thực phần 1 (AiCredential + AES-256-GCM + test connection chat/embed + `/ai-credentials` + chọn credential ở wizard step 3 + snapshot provider trên `MatchResult`). Đóng 2 open question của Goal 6 (§12). Cập nhật Roadmap #3 + ADR #10.
+- **2026-08-09** *(feature `cv-rewrite-assistant`)*: hoàn tất **Goal 7a** (Roadmap #6). Thêm `Document.parentId` (self-FK, `ON DELETE SET NULL` — ADR #15, tiền đề của Goal 9); module BE `cv-rewrite` với `POST /cv-rewrite` (throttle 10/phút) + `POST /cv-rewrite/accept` (throttle 20/phút); trang FE `/cv-rewrite/$matchResultId`. **ADR #13 được thi hành bằng code**: mỗi thay đổi phải neo vào một đoạn nguyên văn duy nhất của CV, kiểm ở cả lúc sinh lẫn lúc lưu (`grounding.ts`) — bịa ở mức ngữ nghĩa vẫn không chặn được và được nói thẳng trong design §3. Chốt 2 open question của Goal 7 (§12) + phương án lưu trữ ở `erd.md`. Kèm sửa **bug đang chạy trên `main`**: mở lại một match từ Home hiện *"No run to show"* (regression của `multi-provider-compare` — `StepResult` chỉ đọc `runId`, bỏ quên `matchId`).
 - **2026-08-08** *(feature `multi-provider-compare`)*: hoàn tất **Goal 6**. Thêm `MatchRun` + 3 cột `runId`/`status`/`errorCode`; **đổi hợp đồng `POST /match`**: provider lỗi trả 201 kèm `status=failed` + `errorCode` thay vì 503 (503 chỉ còn cho lỗi cấu hình). Chốt open question cap provider: **không cap**, nhưng CTA nêu số lượng và thông báo quyền riêng tư liệt kê đủ tên provider.

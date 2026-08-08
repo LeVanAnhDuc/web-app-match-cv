@@ -4,6 +4,7 @@
 > Cập nhật 2026-08-06 (brainstorm Goal 6 — BYO AI credentials): thêm `AiCredential` + `MatchRun`, mở rộng `User` + `MatchResult`. **Các phần đánh dấu 📝 SPEC là spec chưa implement** — ERD mới hơn code, phải flag ở `writing-plans` khi làm.
 > Cập nhật 2026-08-08 (Goal 8/9/10 — `specs/goals-8-9-10/design.md`): thêm `Document.parentId` (lineage, Goal 9) + model `DataDisclosure` (Goal 10). Goal 8 không đổi ERD. Đổi số roadmap batch ranking #7 → **#11**.
 > Cập nhật 2026-08-08 (feature `ai-credentials` — **đã merge**): `AiCredential` **đã implement**, `MatchResult` nhận 4 cột snapshot (`credentialId`/`provider`/`chatModel`/`embedModel`). `MatchRun` + `runId`/`status`/`errorCode` **vẫn 📝** — chúng chỉ có nghĩa khi một lần chạy sinh nhiều kết quả, tức Roadmap #9 (multi-provider compare).
+> Cập nhật 2026-08-09 (feature `cv-rewrite-assistant` — Roadmap #6): `Document.parentId` **đã implement** (migration `add_document_parent`, self-FK `ON DELETE SET NULL`, ADR #15). Mục "Generated content 📝" **đã chốt phương án (a)** — không thêm model, xem cuối file.
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
 
 ## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08 — sau feature `ai-credentials`)
@@ -11,7 +12,7 @@
 | Model | Trong ERD | Trong Prisma | Ghi chú |
 |---|---|---|---|
 | `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
-| `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) |
+| `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) và `parentId` (Roadmap **#6**, migration `add_document_parent`) |
 | `MatchResult` | ✅ | ✅ **đủ** | Scores + `report` + FK cv/jd, `credentialId`/`provider`/`chatModel`/`embedModel` (Roadmap #4), và `runId`/`status`/`errorCode` (Roadmap #9) |
 | `MatchRun` | ✅ | ✅ **đủ** | Roadmap **#9** đã merge — migration `add_match_run` |
 | `AiCredential` | ✅ | ✅ **đủ** | Roadmap **#4** đã merge — migration `add_ai_credential`, kèm enum `AiProvider` + `AiTestStatus` |
@@ -27,7 +28,7 @@
 - **Matching**: `MatchRun` + `MatchResult`
 - **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)
 - **Privacy** 📝 *(Goal 10)*: `DataDisclosure` (nhật ký tài liệu đã gửi tới provider nào)
-- **Generated content** 📝 *(Goal 7 — chưa thiết kế)*: nơi chứa output CV rewrite / cover letter — **chưa chốt model**, xem cuối file
+- **Generated content** *(Goal 7)*: **không có model riêng** — CV rewrite đã duyệt lưu thành `Document` mới có `parentId`; bản đề xuất không được lưu. Chốt 2026-08-09, xem cuối file
 
 ## Schema
 
@@ -63,7 +64,7 @@
 | fileMime | text (nullable) | mimetype file gốc (`application/pdf` \| docx mime); `null` với paste-text |
 | ~~embedding~~ | ~~vector~~ | **CHƯA implement** — pgvector defer; semantic tính embedding on-the-fly + cosine in-app (Plan 2), không lưu vector |
 | isSaved | boolean | true = lưu tái dùng; false = transient session |
-| parentId | uuid (FK → Document, nullable) 📝 | **lineage (Goal 9)** — bản này là phiên bản mới của tài liệu nào. `null` = bản gốc. `ON DELETE SET NULL`: xoá bản gốc KHÔNG được xoá bản cải tiến, chỉ mất liên kết (ADR #15) |
+| parentId | uuid (FK → Document, nullable) | **lineage (Goal 9 — implemented ở Roadmap #6)** — bản này là phiên bản mới của tài liệu nào. `null` = bản gốc. `ON DELETE SET NULL`: xoá bản gốc KHÔNG được xoá bản cải tiến, chỉ mất liên kết (ADR #15) |
 | createdAt | timestamptz | |
 
 ### MatchRun *(implemented — feature `multi-provider-compare`)*
@@ -145,14 +146,18 @@ Nhật ký **mỗi lần dữ liệu của user rời khỏi hệ thống**. Ghi
 > - **Fail-closed**: ghi row không thành công → **không gọi AI**. Nhật ký có lỗ là nhật ký không tin được.
 > - **KHÔNG suy nhật ký từ `MatchResult`** (ADR #16): lần match lỗi không tạo row `MatchResult`, nhưng đó lại chính là lần dữ liệu đã rời hệ thống rồi mới lỗi.
 
-### Generated content 📝 *(Goal 7 — CV rewrite + cover letter, CHƯA thiết kế)*
+### Generated content — **chốt phương án (a)**, không thêm model *(2026-08-09, feature `cv-rewrite-assistant`)*
 
-Roadmap #6/#8 sẽ sinh nội dung từ một `MatchResult`. **Model chưa chốt** — 2 hướng, quyết ở `superpowers:brainstorming` của feature đó:
+Roadmap #6 (CV rewrite) đã chọn **(a) không thêm model**; #8 (cover letter) chưa làm và tự quyết khi tới.
 
-- **(a) Không thêm model**: CV rewrite sau khi user duyệt → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`); cover letter chỉ generate-and-copy, không lưu. Rẻ nhất, nhưng mất truy vết "bản này sinh ra từ match nào".
-- **(b) Thêm `GeneratedContent`**: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`. Truy vết được, so được nhiều bản, nhưng thêm 1 bảng + migration.
+- **CV rewrite**: đề xuất **KHÔNG được lưu**. Sau khi user duyệt từng thay đổi → lưu thành `Document` mới (`kind=CV`, `sourceFormat=text`, `isSaved=true`, `parentId` = CV gốc, `fileData`/`fileMime` = `null`).
+- **Vì sao không lưu bản đề xuất**: ADR #13 nói output "chỉ thành dữ liệu thật khi user duyệt". Lưu mọi đề xuất chưa duyệt là **lưu thêm một bản sao CV (PII)** cho thứ user có thể không bao giờ nhận — đi ngược Goal 10.
+- **Vì sao không cần `GeneratedContent`**: cái nó mua là truy vết *"bản này sinh ra từ match nào"*. Consumer duy nhất được biết là Goal 9, mà §6.6 so **2 phiên bản CV trên một JD do user chọn** — nó cần `parentId` + JD, không cần con trỏ ngược về `MatchResult`. Xem `specs/cv-rewrite-assistant/design.md` §4.1.
+- **Đánh đổi đã chấp nhận**: reload giữa chừng làm mất đề xuất, phải sinh lại (tốn 1 chat call). Khác `multi-provider-compare` — ở đó **kết quả** là sản phẩm cuối nên phải bền; ở đây sản phẩm cuối là `Document` sau khi duyệt, và nó được lưu hẳn hoi.
 
-Ràng buộc chung dù chọn hướng nào (ADR #13): **không ghi đè CV gốc**; output là đề xuất, chỉ thành dữ liệu thật khi user duyệt.
+~~**(b) Thêm `GeneratedContent`**~~ — đã loại, giữ lại đây để không cân nhắc lại từ đầu: `id`, `userId`, `matchResultId` (FK), `kind` enum(`cv_rewrite`, `cover_letter`), `content` text, `accepted` boolean, `createdAt`.
+
+Ràng buộc chung (ADR #13): **không ghi đè CV gốc**; output là đề xuất, chỉ thành dữ liệu thật khi user duyệt.
 
 ## Notes (semantics ngoài schema)
 
@@ -161,6 +166,7 @@ Ràng buộc chung dù chọn hướng nào (ADR #13): **không ghi đè CV gố
 - **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7).
 - **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
 - **mock user** 📝: khi chưa có auth, `userId` của mọi bảng trỏ về `User` có `isMock = true`. Đây là user **hợp lệ trong DB**, không phải id ảo → FK toàn vẹn, clean data 1 câu lệnh.
+- **Lineage `Document.parentId`**: bản CV viết lại **luôn là row mới** — CV gốc không bao giờ bị ghi đè (ADR #13). `ON DELETE SET NULL` (ADR #15): xoá bản gốc thì bản cải tiến **vẫn còn**, chỉ mất liên kết. Bản viết lại có `sourceFormat=text` và `fileData=null` — **không** copy file PDF/DOCX của cha, vì file cũ không còn nói đúng nội dung mới.
 - **AiCredential ↔ MatchResult**: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử match; `provider`/`chatModel`/`embedModel` được **snapshot** vào `MatchResult` nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
 - **So sánh được giữa các provider** 📝: mọi provider trong whitelist đều chạy **cùng công thức điểm** (0.6 semantic + 0.4 keyword) nên điểm giữa các card trong 1 `MatchRun` là so sánh được. Đây là lý do provider không có embeddings API bị loại khỏi enum (`project-goals.md` ADR #10) — nếu sau này nới ra thì `semanticScore` phải thành nullable và tính so sánh mất đi.
 
