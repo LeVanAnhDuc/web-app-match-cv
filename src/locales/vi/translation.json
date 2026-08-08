@@ -164,7 +164,57 @@
     "startOver": "Làm lại",
     "saveReport": "Lưu báo cáo",
     "runMatchCount": "Chạy so khớp · {{count}} provider",
-    "tryAgain": "Thử lại"
+    "tryAgain": "Thử lại",
+    "improveCv": "Cải thiện CV"
+  },
+  "rewrite": {
+    "title": "Cải thiện CV này",
+    "subtitle": "Gợi ý chỉnh sửa chỉ dựa trên những gì CV của bạn đã có. Bạn duyệt từng thay đổi.",
+    "setup": {
+      "title": "Viết lại \"{{title}}\"",
+      "description": "Gợi ý dựa trên các điểm thiếu tìm được ở lần so khớp này.",
+      "thisCv": "CV này"
+    },
+    "gapsTitle": "Điểm thiếu từ lần so khớp này",
+    "noGaps": "Lần so khớp này không tìm thấy điểm thiếu nào. Bạn vẫn có thể xin gợi ý diễn đạt lại.",
+    "generate": "Sinh gợi ý",
+    "regenerate": "Sinh lại",
+    "saveAsNew": "Lưu thành CV mới",
+    "preview": "Xem trước kết quả",
+    "change": {
+      "original": "Hiện có trong CV",
+      "suggested": "Đề xuất viết lại",
+      "removal": "Xoá dòng này",
+      "untitled": "Thay đổi đề xuất"
+    },
+    "changes": {
+      "title": "Thay đổi đề xuất",
+      "description": "Chưa có gì được áp dụng cho tới khi bạn tích chọn và lưu.",
+      "selectAll": "Chọn tất cả",
+      "selectedCount_one": "Đã chọn {{count}} thay đổi",
+      "selectedCount_other": "Đã chọn {{count}} thay đổi",
+      "empty": "Không có thay đổi nào để đề xuất",
+      "emptyHint": "Không phần nào trong CV có thể diễn đạt lại để đóng các điểm thiếu này mà không bịa thêm."
+    },
+    "unaddressed": {
+      "title": "Những điểm thiếu này cần kinh nghiệm thật",
+      "hint": "Chúng được giữ nguyên có chủ ý — không có gì ở đây được bịa hộ bạn."
+    },
+    "save": {
+      "title": "Lưu thành CV mới",
+      "nameLabel": "Tên tài liệu",
+      "nameTooLong": "Tối đa 200 ký tự",
+      "confirm": "Lưu",
+      "hint": "CV gốc của bạn được giữ nguyên. Bản này lưu thành tài liệu mới liên kết với nó.",
+      "defaultTitle": "{{title}} (cải thiện)",
+      "success": "Đã lưu thành CV mới"
+    },
+    "err": {
+      "matchNotFound": "Kết quả so khớp này không còn tồn tại.",
+      "generateFailed": "Không sinh được gợi ý. Vui lòng thử lại.",
+      "notGrounded": "Một thay đổi đã duyệt không còn khớp với CV của bạn. Hãy sinh lại gợi ý.",
+      "saveFailed": "Không lưu được CV mới. Vui lòng thử lại."
+    }
   },
   "result": {
     "overall": "Mức khớp tổng",

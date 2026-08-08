@@ -12,6 +12,7 @@ export {
   useCreateMatchRun,
   useMatchRun
 } from "./useMatch";
+export { useGenerateCvRewrite, useAcceptCvRewrite } from "./useCvRewrite";
 export {
   useAiCredentials,
   useProviders,

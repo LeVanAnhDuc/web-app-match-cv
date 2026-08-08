@@ -1,5 +1,12 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Alert, Button, Collapse, Skeleton } from "antd";
-import { AlertTriangle, CircleCheck, Lightbulb, RotateCcw } from "lucide-react";
+import {
+  AlertTriangle,
+  CircleCheck,
+  Lightbulb,
+  RotateCcw,
+  Wand2
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
@@ -95,6 +102,7 @@ const MatchResultCard = ({
   expanded: boolean;
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const providersQuery = useProviders();
   const runMatch = useRunMatch();
   const [result, setResult] = useState<MatchResultDto | undefined>(
@@ -234,7 +242,26 @@ const MatchResultCard = ({
   );
 
   return (
-    <SectionCard title={title} bodyClassName="p-0">
+    <SectionCard
+      title={title}
+      bodyClassName="p-0"
+      // Entry point for the CV rewrite assistant (Goal 7a). It lives on the
+      // card rather than on the step, so reopening an old match from history —
+      // which renders this same card — gets the action for free.
+      extra={
+        <Button
+          icon={<Wand2 size={16} />}
+          onClick={() =>
+            void navigate({
+              to: "/cv-rewrite/$matchResultId",
+              params: { matchResultId: result.id }
+            })
+          }
+        >
+          {t("action.improveCv")}
+        </Button>
+      }
+    >
       <div className="flex flex-col items-center gap-6 border-b border-line bg-surface-subtle p-4 md:flex-row md:gap-12 md:p-6">
         <div className="relative size-32 shrink-0 md:size-40">
           <svg className="-rotate-90" viewBox="0 0 160 160">

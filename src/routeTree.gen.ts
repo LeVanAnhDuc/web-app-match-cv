@@ -15,6 +15,7 @@ import { Route as AppAiCredentialsRouteImport } from './routes/_app/ai-credentia
 import { Route as AppCvRouteImport } from './routes/_app/cv'
 import { Route as AppJdRouteImport } from './routes/_app/jd'
 import { Route as AppWizardRouteImport } from './routes/_app/wizard'
+import { Route as AppCvRewriteMatchResultIdRouteImport } from './routes/_app/cv-rewrite.$matchResultId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -45,6 +46,12 @@ const AppWizardRoute = AppWizardRouteImport.update({
   path: '/wizard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCvRewriteMatchResultIdRoute =
+  AppCvRewriteMatchResultIdRouteImport.update({
+    id: '/cv-rewrite/$matchResultId',
+    path: '/cv-rewrite/$matchResultId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -52,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/cv': typeof AppCvRoute
   '/jd': typeof AppJdRoute
   '/wizard': typeof AppWizardRoute
+  '/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRoutesByTo {
   '/ai-credentials': typeof AppAiCredentialsRoute
@@ -59,6 +67,7 @@ export interface FileRoutesByTo {
   '/jd': typeof AppJdRoute
   '/wizard': typeof AppWizardRoute
   '/': typeof AppIndexRoute
+  '/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +77,25 @@ export interface FileRoutesById {
   '/_app/jd': typeof AppJdRoute
   '/_app/wizard': typeof AppWizardRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-credentials' | '/cv' | '/jd' | '/wizard'
+  fullPaths:
+    | '/'
+    | '/ai-credentials'
+    | '/cv'
+    | '/jd'
+    | '/wizard'
+    | '/cv-rewrite/$matchResultId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/ai-credentials' | '/cv' | '/jd' | '/wizard' | '/'
+  to:
+    | '/ai-credentials'
+    | '/cv'
+    | '/jd'
+    | '/wizard'
+    | '/'
+    | '/cv-rewrite/$matchResultId'
   id:
     | '__root__'
     | '/_app'
@@ -82,6 +104,7 @@ export interface FileRouteTypes {
     | '/_app/jd'
     | '/_app/wizard'
     | '/_app/'
+    | '/_app/cv-rewrite/$matchResultId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +155,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWizardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/cv-rewrite/$matchResultId': {
+      id: '/_app/cv-rewrite/$matchResultId'
+      path: '/cv-rewrite/$matchResultId'
+      fullPath: '/cv-rewrite/$matchResultId'
+      preLoaderRoute: typeof AppCvRewriteMatchResultIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -141,6 +171,7 @@ interface AppRouteChildren {
   AppJdRoute: typeof AppJdRoute
   AppWizardRoute: typeof AppWizardRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCvRewriteMatchResultIdRoute: typeof AppCvRewriteMatchResultIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -149,6 +180,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppJdRoute: AppJdRoute,
   AppWizardRoute: AppWizardRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCvRewriteMatchResultIdRoute: AppCvRewriteMatchResultIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

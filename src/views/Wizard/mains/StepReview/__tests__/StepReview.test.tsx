@@ -34,6 +34,7 @@ const jdDto: DocumentDto = {
   sourceFormat: "pdf",
   rawText: "We need a senior product designer with Figma experience.",
   isSaved: true,
+  parentId: null,
   createdAt: "2023-10-12T00:00:00.000Z"
 };
 
@@ -44,6 +45,7 @@ const cvDto: DocumentDto = {
   sourceFormat: "docx",
   rawText: "Sarah Johnson — 6 years of product design experience.",
   isSaved: true,
+  parentId: null,
   createdAt: "2023-10-12T00:00:00.000Z"
 };
 

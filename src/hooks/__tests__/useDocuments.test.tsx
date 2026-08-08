@@ -65,6 +65,7 @@ describe("useCreateDocument", () => {
       sourceFormat: "text",
       rawText: "some jd text",
       isSaved: true,
+      parentId: null,
       createdAt: "2023-10-12T00:00:00.000Z"
     };
     const fetchMock = vi.fn(
@@ -109,6 +110,7 @@ describe("useCreateDocument", () => {
       sourceFormat: "pdf",
       rawText: "parsed text",
       isSaved: false,
+      parentId: null,
       createdAt: "2023-10-12T00:00:00.000Z"
     };
     const fetchMock = vi.fn(
@@ -177,6 +179,7 @@ describe("useDocument", () => {
       sourceFormat: "pdf",
       rawText: "We are hiring a senior product designer.",
       isSaved: true,
+      parentId: null,
       createdAt: "2023-10-12T00:00:00.000Z"
     };
     const fetchMock = vi.fn(
@@ -218,6 +221,7 @@ describe("useRenameDocument", () => {
       sourceFormat: "pdf",
       rawText: "some jd text",
       isSaved: true,
+      parentId: null,
       createdAt: "2023-10-12T00:00:00.000Z"
     };
     const fetchMock = vi.fn(

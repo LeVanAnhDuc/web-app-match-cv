@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
-import { useMatchRun, useRunMatch } from "#/hooks/useMatch";
+import { useMatchResult, useMatchRun, useRunMatch } from "#/hooks/useMatch";
 import { useProviders } from "#/hooks/useAiCredentials";
 import { useWizardStore } from "#/stores";
 import type {
@@ -119,6 +119,9 @@ describe("StepResult", () => {
     vi.mocked(useMatchRun).mockReturnValue(
       asQuery<MatchRunDetailDto>(undefined)
     );
+    vi.mocked(useMatchResult).mockReturnValue(
+      asQuery<MatchResultDto>(undefined)
+    );
     useWizardStore.getState().reset();
   });
 
@@ -234,6 +237,47 @@ describe("StepResult", () => {
     render(<StepResult />);
 
     expect(await screen.findByText("Nothing finished yet")).toBeInTheDocument();
+  });
+
+  it("reopens a single stored result when history hands over a match id", async () => {
+    // How Home's recent-matches widget arrives: a match id and nothing else.
+    setStore({
+      runId: null,
+      cvDocId: null,
+      jdDocId: null,
+      matchId: succeeded.id,
+      pendingCredentialIds: []
+    });
+    const mutate = mockRunMatch({});
+    vi.mocked(useMatchResult).mockReturnValue(asQuery(succeeded));
+
+    render(<StepResult />);
+
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(screen.getByText("Strong backend background")).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("offers the rewrite assistant on a succeeded card only", async () => {
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: succeeded });
+
+    const { unmount } = render(<StepResult />);
+    expect(
+      await screen.findByRole("button", { name: "Improve my CV" })
+    ).toBeInTheDocument();
+    unmount();
+
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: failed });
+    render(<StepResult />);
+
+    expect(
+      await screen.findByText("This key has no quota left with the provider.")
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Improve my CV" })
+    ).not.toBeInTheDocument();
   });
 
   it("offers a way out when there is no run at all", () => {

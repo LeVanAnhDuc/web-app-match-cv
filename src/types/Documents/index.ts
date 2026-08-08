@@ -11,6 +11,8 @@ export interface DocumentDto {
   sourceFormat: SourceFormat;
   rawText: string;
   isSaved: boolean;
+  /** Lineage: the document this one is a rewritten version of. */
+  parentId: string | null;
   createdAt: string;
 }
 

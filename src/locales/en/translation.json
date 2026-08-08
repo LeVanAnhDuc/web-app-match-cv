@@ -164,7 +164,57 @@
     "startOver": "Start over",
     "saveReport": "Save report",
     "runMatchCount": "Run match · {{count}} providers",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "improveCv": "Improve my CV"
+  },
+  "rewrite": {
+    "title": "Improve this CV",
+    "subtitle": "Suggested edits that use only what your CV already says. You approve each one.",
+    "setup": {
+      "title": "Rewrite \"{{title}}\"",
+      "description": "Suggestions are based on the gaps found in this match.",
+      "thisCv": "this CV"
+    },
+    "gapsTitle": "Gaps from this match",
+    "noGaps": "This match found no gaps. You can still ask for wording improvements.",
+    "generate": "Generate suggestions",
+    "regenerate": "Generate again",
+    "saveAsNew": "Save as new CV",
+    "preview": "Preview the result",
+    "change": {
+      "original": "Currently in your CV",
+      "suggested": "Suggested wording",
+      "removal": "Removes this line",
+      "untitled": "Suggested change"
+    },
+    "changes": {
+      "title": "Suggested changes",
+      "description": "Nothing is applied until you tick it and save.",
+      "selectAll": "Select all",
+      "selectedCount_one": "{{count}} change selected",
+      "selectedCount_other": "{{count}} changes selected",
+      "empty": "No changes to suggest",
+      "emptyHint": "Nothing in your CV could be reworded to close these gaps without inventing new facts."
+    },
+    "unaddressed": {
+      "title": "These gaps need real experience",
+      "hint": "They were left alone on purpose — nothing here was invented for you."
+    },
+    "save": {
+      "title": "Save as a new CV",
+      "nameLabel": "Document name",
+      "nameTooLong": "Use at most 200 characters",
+      "confirm": "Save",
+      "hint": "Your original CV is kept untouched. This is saved as a new document linked to it.",
+      "defaultTitle": "{{title}} (improved)",
+      "success": "Saved as a new CV"
+    },
+    "err": {
+      "matchNotFound": "That match no longer exists.",
+      "generateFailed": "Couldn't generate suggestions. Please try again.",
+      "notGrounded": "One of the approved changes no longer matches your CV. Generate the suggestions again.",
+      "saveFailed": "Couldn't save the new CV. Please try again."
+    }
   },
   "result": {
     "overall": "Overall match",

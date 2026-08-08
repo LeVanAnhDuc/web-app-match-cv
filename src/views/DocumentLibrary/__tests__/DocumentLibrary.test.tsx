@@ -76,6 +76,7 @@ const fullDoc: DocumentDto = {
   sourceFormat: "pdf",
   rawText: "hello",
   isSaved: true,
+  parentId: null,
   createdAt: "2023-10-10T00:00:00.000Z"
 };
 
