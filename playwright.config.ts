@@ -12,7 +12,13 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: "line",
-  timeout: 30_000,
+  // 60s, raised from 30s once the suite passed 170 serial tests. Nothing here
+  // is slow by design; the budget covers the FIRST visit to a route in a run,
+  // which against a Vite dev server also pays to compile that route's chunk.
+  // A cold run lost six wizard specs to that compile while the identical warm
+  // re-run passed all 176 — a timeout that only fails when the machine is cold
+  // is reporting on the machine, not on the code.
+  timeout: 60_000,
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
   use: {

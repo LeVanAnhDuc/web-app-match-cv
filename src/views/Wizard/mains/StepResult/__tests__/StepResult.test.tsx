@@ -4,17 +4,22 @@ import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
 import { useMatchResult, useMatchRun, useRunMatch } from "#/hooks/useMatch";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useDocument } from "#/hooks/useDocuments";
 import { useWizardStore } from "#/stores";
 import type {
   CreateMatchInput,
   MatchResultDto,
   MatchRunDetailDto
 } from "#/types/Matching";
+import type { DocumentDto } from "#/types/Documents";
 import type { ProviderInfoDto } from "#/types/AiCredentials";
 import StepResult from "../index";
 
 vi.mock("#/hooks/useMatch");
 vi.mock("#/hooks/useAiCredentials");
+// The card reads the CV only to learn whether it descends from an earlier
+// version (Goal 9), so the comparison action can be offered.
+vi.mock("#/hooks/useDocuments");
 
 const RUN_ID = "run-1";
 const CV_ID = "cv-1";
@@ -54,6 +59,17 @@ const succeeded: MatchResultDto = {
   provider: "openrouter",
   chatModel: "openai/gpt-4o-mini",
   embedModel: "openai/text-embedding-3-small",
+  createdAt: "2026-08-08T00:00:00.000Z"
+};
+
+const originalCv: DocumentDto = {
+  id: CV_ID,
+  kind: "CV",
+  title: "Backend Resume",
+  sourceFormat: "text",
+  rawText: "…",
+  isSaved: true,
+  parentId: null,
   createdAt: "2026-08-08T00:00:00.000Z"
 };
 
@@ -116,6 +132,7 @@ describe("StepResult", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useProviders).mockReturnValue(asQuery(providers));
+    vi.mocked(useDocument).mockReturnValue(asQuery(originalCv));
     vi.mocked(useMatchRun).mockReturnValue(
       asQuery<MatchRunDetailDto>(undefined)
     );
@@ -278,6 +295,30 @@ describe("StepResult", () => {
     expect(
       screen.queryByRole("button", { name: "Improve my CV" })
     ).not.toBeInTheDocument();
+  });
+
+  it("offers the version comparison only when the CV came from an earlier one", async () => {
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: succeeded });
+
+    const { unmount } = render(<StepResult />);
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    // An original CV has no previous version, so the action does not exist.
+    expect(
+      screen.queryByRole("button", { name: "Compare versions" })
+    ).not.toBeInTheDocument();
+    unmount();
+
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: succeeded });
+    vi.mocked(useDocument).mockReturnValue(
+      asQuery({ ...originalCv, parentId: "cv-0" })
+    );
+    render(<StepResult />);
+
+    expect(
+      await screen.findByRole("button", { name: "Compare versions" })
+    ).toBeInTheDocument();
   });
 
   it("offers a way out when there is no run at all", () => {

@@ -39,6 +39,7 @@ const cvDocs: Array<DocumentSummaryDto> = [
     kind: "CV",
     title: "Resume",
     sourceFormat: "pdf",
+    parentId: null,
     createdAt: "2023-10-10T00:00:00.000Z"
   },
   {
@@ -46,6 +47,7 @@ const cvDocs: Array<DocumentSummaryDto> = [
     kind: "CV",
     title: "Resume 2",
     sourceFormat: "pdf",
+    parentId: null,
     createdAt: "2023-10-11T00:00:00.000Z"
   }
 ];
@@ -56,6 +58,7 @@ const jdDocs: Array<DocumentSummaryDto> = [
     kind: "JD",
     title: "Senior Frontend Engineer",
     sourceFormat: "text",
+    parentId: null,
     createdAt: "2023-10-09T00:00:00.000Z"
   }
 ];

@@ -21,6 +21,8 @@ export interface DocumentSummaryDto {
   kind: DocumentKind;
   title: string;
   sourceFormat: SourceFormat;
+  /** Lineage: set when this document is a newer version of another one. */
+  parentId: string | null;
   createdAt: string;
 }
 

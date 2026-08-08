@@ -16,6 +16,7 @@ import { Route as AppCvRouteImport } from './routes/_app/cv'
 import { Route as AppJdRouteImport } from './routes/_app/jd'
 import { Route as AppMyDataRouteImport } from './routes/_app/my-data'
 import { Route as AppWizardRouteImport } from './routes/_app/wizard'
+import { Route as AppCompareDocumentIdRouteImport } from './routes/_app/compare.$documentId'
 import { Route as AppCvRewriteMatchResultIdRouteImport } from './routes/_app/cv-rewrite.$matchResultId'
 
 const AppRoute = AppRouteImport.update({
@@ -52,6 +53,11 @@ const AppWizardRoute = AppWizardRouteImport.update({
   path: '/wizard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCompareDocumentIdRoute = AppCompareDocumentIdRouteImport.update({
+  id: '/compare/$documentId',
+  path: '/compare/$documentId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCvRewriteMatchResultIdRoute =
   AppCvRewriteMatchResultIdRouteImport.update({
     id: '/cv-rewrite/$matchResultId',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/jd': typeof AppJdRoute
   '/my-data': typeof AppMyDataRoute
   '/wizard': typeof AppWizardRoute
+  '/compare/$documentId': typeof AppCompareDocumentIdRoute
   '/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRoutesByTo {
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/my-data': typeof AppMyDataRoute
   '/wizard': typeof AppWizardRoute
   '/': typeof AppIndexRoute
+  '/compare/$documentId': typeof AppCompareDocumentIdRoute
   '/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRoutesById {
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_app/my-data': typeof AppMyDataRoute
   '/_app/wizard': typeof AppWizardRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/compare/$documentId': typeof AppCompareDocumentIdRoute
   '/_app/cv-rewrite/$matchResultId': typeof AppCvRewriteMatchResultIdRoute
 }
 export interface FileRouteTypes {
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/jd'
     | '/my-data'
     | '/wizard'
+    | '/compare/$documentId'
     | '/cv-rewrite/$matchResultId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/my-data'
     | '/wizard'
     | '/'
+    | '/compare/$documentId'
     | '/cv-rewrite/$matchResultId'
   id:
     | '__root__'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_app/my-data'
     | '/_app/wizard'
     | '/_app/'
+    | '/_app/compare/$documentId'
     | '/_app/cv-rewrite/$matchResultId'
   fileRoutesById: FileRoutesById
 }
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWizardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/compare/$documentId': {
+      id: '/_app/compare/$documentId'
+      path: '/compare/$documentId'
+      fullPath: '/compare/$documentId'
+      preLoaderRoute: typeof AppCompareDocumentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/cv-rewrite/$matchResultId': {
       id: '/_app/cv-rewrite/$matchResultId'
       path: '/cv-rewrite/$matchResultId'
@@ -191,6 +210,7 @@ interface AppRouteChildren {
   AppMyDataRoute: typeof AppMyDataRoute
   AppWizardRoute: typeof AppWizardRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCompareDocumentIdRoute: typeof AppCompareDocumentIdRoute
   AppCvRewriteMatchResultIdRoute: typeof AppCvRewriteMatchResultIdRoute
 }
 
@@ -201,6 +221,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMyDataRoute: AppMyDataRoute,
   AppWizardRoute: AppWizardRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCompareDocumentIdRoute: AppCompareDocumentIdRoute,
   AppCvRewriteMatchResultIdRoute: AppCvRewriteMatchResultIdRoute,
 }
 

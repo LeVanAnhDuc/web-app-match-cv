@@ -81,6 +81,7 @@ describe("DocumentInputStep", () => {
         kind: "JD",
         title: "Senior Product Designer",
         sourceFormat: "pdf",
+        parentId: null,
         createdAt: "2023-10-12T00:00:00.000Z"
       }
     ]);
@@ -102,6 +103,7 @@ describe("DocumentInputStep", () => {
         kind: "JD",
         title: "Senior Product Designer",
         sourceFormat: "pdf",
+        parentId: null,
         createdAt: "2023-10-12T00:00:00.000Z"
       }
     ]);

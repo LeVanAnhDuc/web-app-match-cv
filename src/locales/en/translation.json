@@ -111,7 +111,9 @@
       "preview": "Preview",
       "rename": "Rename",
       "download": "Download",
-      "delete": "Delete"
+      "delete": "Delete",
+      "compare": "Compare versions",
+      "setLineage": "Mark as a new version of…"
     },
     "delete": {
       "confirm": "Delete this document?",
@@ -126,6 +128,16 @@
       "success": "Renamed",
       "required": "Please enter a name",
       "failed": "Couldn't rename. Please try again."
+    },
+    "lineage": {
+      "title": "Version history",
+      "description": "Pick the document that \"{{title}}\" is a newer version of. Clear it to remove the link.",
+      "label": "Previous version",
+      "placeholder": "No previous version",
+      "confirm": "Save",
+      "success": "Version history updated",
+      "rejected": "That link isn't allowed — a document can't be a version of itself or of its own newer version.",
+      "failed": "Couldn't save. Please try again."
     }
   },
   "reuse": {
@@ -166,7 +178,8 @@
     "saveReport": "Save report",
     "runMatchCount": "Run match · {{count}} providers",
     "tryAgain": "Try again",
-    "improveCv": "Improve my CV"
+    "improveCv": "Improve my CV",
+    "compareVersions": "Compare versions"
   },
   "rewrite": {
     "title": "Improve this CV",
@@ -382,5 +395,46 @@
     "done": "Your archive has been downloaded.",
     "error": "Could not prepare your archive. Please try again.",
     "privacyNote": "The archive contains personal data. Store it somewhere safe."
+  },
+  "compare": {
+    "title": "Version comparison",
+    "subtitle": "How much this CV improved over the version it came from, on one job description.",
+    "version": "Version {{n}}",
+    "jdLabel": "Job description",
+    "backToLibrary": "Back to the library",
+    "delta": {
+      "up": "better than the previous version",
+      "down": "worse than the previous version",
+      "flat": "unchanged from the previous version"
+    },
+    "empty": {
+      "title": "Neither version has been matched yet",
+      "hint": "Run a match for both versions against the same job description, then come back to see the difference.",
+      "cta": "Go to the wizard"
+    },
+    "missing": {
+      "base": "The earlier version has not been matched against this job description.",
+      "revision": "This version has not been matched against this job description yet.",
+      "hint": "Comparing never runs a match on its own — your CV is only sent to a provider when you ask for it.",
+      "cta": "Match this version"
+    },
+    "modelWarning": {
+      "title": "The two matches used different AI models",
+      "hint": "Scores and gap wording from {{base}} and {{revision}} are not strictly comparable. Re-run both versions on the same model for a clean comparison."
+    },
+    "gaps": {
+      "title": "Gaps",
+      "caveat": "Gaps are matched by topic overlap, not exact wording — read the text below before trusting the grouping.",
+      "closed": "Closed",
+      "persisted": "Still open",
+      "introduced": "New",
+      "none": "None"
+    },
+    "err": {
+      "notFound": "That CV doesn't exist, or it isn't yours.",
+      "noParent": "This CV is not marked as a new version of another CV, so there is nothing to compare it with.",
+      "jdNotComparable": "Neither version has been matched against that job description.",
+      "failed": "Couldn't load the comparison. Please try again."
+    }
   }
 }

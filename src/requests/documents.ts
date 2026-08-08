@@ -76,6 +76,22 @@ export function renameDocument(
   });
 }
 
+/**
+ * PATCH /documents/:id/parent — declare (or clear, with null) which document
+ * this one is a newer version of. A sub-resource of its own so the rename
+ * contract above stays untouched.
+ */
+export function setDocumentParent(
+  id: string,
+  parentId: string | null
+): Promise<DocumentDto> {
+  return apiFetch<DocumentDto>(ENDPOINTS.documentParent(id), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ parentId })
+  });
+}
+
 /** DELETE /documents/:id — 204 on success, 409 when still referenced by a match. */
 export function deleteDocument(id: string): Promise<void> {
   return apiFetch<void>(ENDPOINTS.documentById(id), { method: "DELETE" });

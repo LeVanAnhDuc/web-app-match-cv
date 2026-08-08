@@ -3,6 +3,7 @@ import { Alert, Button, Collapse, Skeleton, Space } from "antd";
 import {
   AlertTriangle,
   CircleCheck,
+  GitCompareArrows,
   Lightbulb,
   Mail,
   RotateCcw,
@@ -12,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
 import type { MatchResultDto } from "#/types/Matching";
 import CoverLetterModal from "../CoverLetterModal";
@@ -106,6 +108,9 @@ const MatchResultCard = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const providersQuery = useProviders();
+  // Only to learn whether this CV descends from an earlier version. React Query
+  // dedupes by key, so N provider cards on the same run share one request.
+  const cvQuery = useDocument(cvDocumentId);
   const runMatch = useRunMatch();
   const [result, setResult] = useState<MatchResultDto | undefined>(
     initialResult
@@ -248,10 +253,15 @@ const MatchResultCard = ({
     <SectionCard
       title={title}
       bodyClassName="p-0"
-      // Both Goal 7 entry points (rewrite the CV, write the letter) live on
-      // the card rather than on the step, so reopening an old match from
-      // history — which renders this same card — gets them for free. They sit
-      // together because they are siblings: two things to do with one report.
+      // Everything you can do with one report lives on the card rather than on
+      // the step, so reopening an old match from history — which renders this
+      // same card — gets all of it for free.
+      //
+      // Two groups, in this order deliberately: the Goal 7 pair PRODUCES
+      // something new from the report and is always present; comparing (Goal 9)
+      // LOOKS BACK at whether the CV improved and only exists for a CV that has
+      // a previous version. The conditional one goes last so its absence cannot
+      // reflow the two that are always there.
       extra={
         <Space wrap>
           <Button
@@ -271,6 +281,24 @@ const MatchResultCard = ({
           <Button icon={<Mail size={16} />} onClick={() => setLetterOpen(true)}>
             {t("coverLetter.open")}
           </Button>
+          {/* Goal 9: only offered when this CV descends from an earlier one —
+              which is also why no existing spec needed changing, since every
+              fixture in the suite leaves parentId null. */}
+          {cvQuery.data?.parentId && (
+            <Button
+              icon={<GitCompareArrows size={16} />}
+              onClick={() =>
+                void navigate({
+                  to: "/compare/$documentId",
+                  params: { documentId: result.cvDocumentId },
+                  // Compare on the JD the user is looking at right now.
+                  search: { jd: result.jdDocumentId }
+                })
+              }
+            >
+              {t("action.compareVersions")}
+            </Button>
+          )}
         </Space>
       }
     >

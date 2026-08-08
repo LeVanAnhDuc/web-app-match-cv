@@ -111,7 +111,9 @@
       "preview": "Xem trước",
       "rename": "Đổi tên",
       "download": "Tải xuống",
-      "delete": "Xóa"
+      "delete": "Xóa",
+      "compare": "So sánh phiên bản",
+      "setLineage": "Khai báo là phiên bản mới của…"
     },
     "delete": {
       "confirm": "Xóa tài liệu này?",
@@ -126,6 +128,16 @@
       "success": "Đã đổi tên",
       "required": "Vui lòng nhập tên",
       "failed": "Không đổi tên được. Vui lòng thử lại."
+    },
+    "lineage": {
+      "title": "Lịch sử phiên bản",
+      "description": "Chọn tài liệu mà \"{{title}}\" là phiên bản mới hơn. Xoá lựa chọn để gỡ liên kết.",
+      "label": "Phiên bản trước",
+      "placeholder": "Không có phiên bản trước",
+      "confirm": "Lưu",
+      "success": "Đã cập nhật lịch sử phiên bản",
+      "rejected": "Liên kết này không hợp lệ — một tài liệu không thể là phiên bản của chính nó hoặc của bản mới hơn nó.",
+      "failed": "Không lưu được. Vui lòng thử lại."
     }
   },
   "reuse": {
@@ -166,7 +178,8 @@
     "saveReport": "Lưu báo cáo",
     "runMatchCount": "Chạy so khớp · {{count}} provider",
     "tryAgain": "Thử lại",
-    "improveCv": "Cải thiện CV"
+    "improveCv": "Cải thiện CV",
+    "compareVersions": "So sánh phiên bản"
   },
   "rewrite": {
     "title": "Cải thiện CV này",
@@ -382,5 +395,46 @@
     "done": "Đã tải bản sao dữ liệu về máy.",
     "error": "Không chuẩn bị được bản sao. Vui lòng thử lại.",
     "privacyNote": "Bản sao chứa dữ liệu cá nhân. Hãy lưu ở nơi an toàn."
+  },
+  "compare": {
+    "title": "So sánh phiên bản",
+    "subtitle": "CV này tốt hơn phiên bản trước bao nhiêu, trên cùng một JD.",
+    "version": "Phiên bản {{n}}",
+    "jdLabel": "Mô tả công việc",
+    "backToLibrary": "Về thư viện",
+    "delta": {
+      "up": "tốt hơn phiên bản trước",
+      "down": "kém hơn phiên bản trước",
+      "flat": "không đổi so với phiên bản trước"
+    },
+    "empty": {
+      "title": "Chưa phiên bản nào được match",
+      "hint": "Hãy chạy match cho cả hai phiên bản trên cùng một JD, rồi quay lại đây để xem chênh lệch.",
+      "cta": "Tới wizard"
+    },
+    "missing": {
+      "base": "Phiên bản cũ chưa được match với JD này.",
+      "revision": "Phiên bản này chưa được match với JD này.",
+      "hint": "Màn so sánh không bao giờ tự chạy match — CV chỉ được gửi tới provider khi bạn yêu cầu.",
+      "cta": "Match phiên bản này"
+    },
+    "modelWarning": {
+      "title": "Hai lần match dùng model AI khác nhau",
+      "hint": "Điểm và cách diễn đạt gap từ {{base}} và {{revision}} không so sánh sòng phẳng được. Hãy chạy lại cả hai phiên bản trên cùng một model."
+    },
+    "gaps": {
+      "title": "Điểm thiếu",
+      "caveat": "Gap được ghép theo độ trùng chủ đề, không phải theo từng chữ — hãy đọc nội dung bên dưới trước khi tin vào cách nhóm.",
+      "closed": "Đã đóng",
+      "persisted": "Còn tồn tại",
+      "introduced": "Mới phát sinh",
+      "none": "Không có"
+    },
+    "err": {
+      "notFound": "CV không tồn tại hoặc không thuộc về bạn.",
+      "noParent": "CV này chưa được khai là phiên bản mới của CV nào nên không có gì để so sánh.",
+      "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
+      "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
+    }
   }
 }

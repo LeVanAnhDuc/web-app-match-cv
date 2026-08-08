@@ -24,6 +24,13 @@ export async function switchToPasteTab(page: Page): Promise<void> {
   // segment can be clicked before TanStack Start finishes hydrating, so the
   // React onChange isn't wired yet and the first click is a no-op. Re-click
   // until the paste textarea actually renders.
+  //
+  // 30s, not 15s: against a Vite DEV server the first visit to /wizard in a
+  // run also pays for compiling that route's chunk, and a cold compile under a
+  // full 176-test suite has been observed to outlast a 15s budget — six wizard
+  // specs failed on a cold run and all of them passed on the warm re-run. The
+  // budget only matters when hydration is genuinely slow; a warm run still
+  // passes on the first attempt.
   await expect(async () => {
     await page
       .locator(".ant-segmented-item")
@@ -34,7 +41,7 @@ export async function switchToPasteTab(page: Page): Promise<void> {
     ).toBeVisible({
       timeout: 1000
     });
-  }).toPass({ timeout: 15000 });
+  }).toPass({ timeout: 30000 });
 }
 
 export async function pasteText(page: Page, text: string): Promise<void> {

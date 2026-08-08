@@ -1,5 +1,13 @@
 import { Button, Popconfirm, Tag } from "antd";
-import { Download, Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import {
+  Download,
+  Eye,
+  FileText,
+  GitBranch,
+  GitCompareArrows,
+  Pencil,
+  Trash2
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { documentFileUrl } from "#/requests/documents";
 import type { DocumentSummaryDto } from "#/types/Documents";
@@ -14,12 +22,16 @@ const DocumentRow = ({
   onPreview,
   onRename,
   onDelete,
+  onCompare,
+  onSetLineage,
   deleting
 }: {
   doc: DocumentSummaryDto;
   onPreview: () => void;
   onRename: () => void;
   onDelete: () => void;
+  onCompare: () => void;
+  onSetLineage: () => void;
   deleting: boolean;
 }) => {
   const { t, i18n } = useTranslation();
@@ -58,6 +70,22 @@ const DocumentRow = ({
           aria-label={t("library.action.rename")}
           icon={<Pencil size={16} />}
           onClick={onRename}
+        />
+        {/* Only a document that descends from another one has anything to
+            compare against, so the action simply does not exist otherwise. */}
+        {doc.parentId !== null && (
+          <Button
+            type="text"
+            aria-label={t("library.action.compare")}
+            icon={<GitCompareArrows size={16} />}
+            onClick={onCompare}
+          />
+        )}
+        <Button
+          type="text"
+          aria-label={t("library.action.setLineage")}
+          icon={<GitBranch size={16} />}
+          onClick={onSetLineage}
         />
         {canDownload && (
           <Button

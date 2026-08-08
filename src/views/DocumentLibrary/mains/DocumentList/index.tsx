@@ -1,7 +1,7 @@
 import { Button, message, Skeleton } from "antd";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import PageContainer from "#/components/PageContainer";
 import SectionCard from "#/components/SectionCard";
@@ -10,10 +10,12 @@ import {
   useDeleteDocument,
   useDocument,
   useRenameDocument,
-  useSavedDocuments
+  useSavedDocuments,
+  useSetDocumentParent
 } from "#/hooks/useDocuments";
 import type { DocumentKind, DocumentSummaryDto } from "#/types/Documents";
 import DocumentRow from "../../components/DocumentRow";
+import LineageModal from "../../components/LineageModal";
 import PreviewModal from "../../components/PreviewModal";
 import RenameModal from "../../components/RenameModal";
 
@@ -24,17 +26,27 @@ import RenameModal from "../../components/RenameModal";
  */
 const DocumentList = ({ kind }: { kind: DocumentKind }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 
   const savedQuery = useSavedDocuments(kind);
   const renameMutation = useRenameDocument();
   const deleteMutation = useDeleteDocument();
+  const lineageMutation = useSetDocumentParent();
 
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [renameTarget, setRenameTarget] = useState<DocumentSummaryDto | null>(
     null
   );
+  const [lineageTarget, setLineageTarget] = useState<DocumentSummaryDto | null>(
+    null
+  );
+  const [lineageError, setLineageError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Guarded by a ref, not by the mutation's isPending: a double click fires
+  // both presses inside one tick, before React has re-rendered the dialog with
+  // its button disabled, so a state flag arrives too late to stop the second.
+  const lineageInFlight = useRef(false);
 
   const previewQuery = useDocument(previewId);
 
@@ -68,6 +80,27 @@ const DocumentList = ({ kind }: { kind: DocumentKind }) => {
         }
       }
     );
+  };
+
+  // mutateAsync + try/catch rather than mutate's callbacks: those have been
+  // observed not to fire in this codebase (see RewriteReview).
+  const handleLineage = async (parentId: string | null) => {
+    if (!lineageTarget || lineageInFlight.current) return;
+    lineageInFlight.current = true;
+    setLineageError(null);
+    try {
+      await lineageMutation.mutateAsync({ id: lineageTarget.id, parentId });
+      setLineageTarget(null);
+      void messageApi.success(t("library.lineage.success"));
+    } catch (error) {
+      setLineageError(
+        error instanceof ApiError && error.status === 400
+          ? t("library.lineage.rejected")
+          : t("library.lineage.failed")
+      );
+    } finally {
+      lineageInFlight.current = false;
+    }
   };
 
   const kindKey = kind.toLowerCase() as "cv" | "jd";
@@ -120,6 +153,16 @@ const DocumentList = ({ kind }: { kind: DocumentKind }) => {
                 onPreview={() => setPreviewId(doc.id)}
                 onRename={() => setRenameTarget(doc)}
                 onDelete={() => handleDelete(doc.id)}
+                onCompare={() =>
+                  void navigate({
+                    to: "/compare/$documentId",
+                    params: { documentId: doc.id }
+                  })
+                }
+                onSetLineage={() => {
+                  setLineageError(null);
+                  setLineageTarget(doc);
+                }}
               />
             ))}
           </ul>
@@ -139,6 +182,16 @@ const DocumentList = ({ kind }: { kind: DocumentKind }) => {
         confirmLoading={renameMutation.isPending}
         onCancel={() => setRenameTarget(null)}
         onConfirm={handleRename}
+      />
+
+      <LineageModal
+        open={lineageTarget !== null}
+        doc={lineageTarget}
+        candidates={docs}
+        confirmLoading={lineageMutation.isPending}
+        error={lineageError}
+        onCancel={() => setLineageTarget(null)}
+        onConfirm={(parentId) => void handleLineage(parentId)}
       />
     </PageContainer>
   );

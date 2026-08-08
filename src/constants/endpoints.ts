@@ -23,5 +23,10 @@ export const ENDPOINTS = {
   coverLetterById: (id: string) => `/cover-letters/${encodeURIComponent(id)}`,
   cvRewrite: "/cv-rewrite",
   cvRewriteAccept: "/cv-rewrite/accept",
+  documentParent: (id: string) => `/documents/${encodeURIComponent(id)}/parent`,
+  comparison: (id: string, jdDocumentId?: string) =>
+    `/comparisons/${encodeURIComponent(id)}${
+      jdDocumentId ? `?jdDocumentId=${encodeURIComponent(jdDocumentId)}` : ""
+    }`,
   meExport: "/me/export"
 } as const;

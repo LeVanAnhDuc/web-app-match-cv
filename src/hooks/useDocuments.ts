@@ -6,7 +6,8 @@ import {
   fetchDocument,
   fetchSavedDocuments,
   renameDocument,
-  savedDocumentsQueryKey
+  savedDocumentsQueryKey,
+  setDocumentParent
 } from "#/requests/documents";
 import type { DocumentKind } from "#/types/Documents";
 
@@ -52,6 +53,21 @@ export function useRenameDocument() {
       renameDocument(id, title),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
+    }
+  });
+}
+
+/** PATCH /documents/:id/parent — declare or clear a lineage link (Goal 9). */
+export function useSetDocumentParent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
+      setDocumentParent(id, parentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["documents"] });
+      // The comparison reads the chain this just changed.
+      void queryClient.invalidateQueries({ queryKey: ["comparison"] });
     }
   });
 }

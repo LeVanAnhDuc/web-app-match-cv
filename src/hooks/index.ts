@@ -3,8 +3,10 @@ export {
   useSavedDocuments,
   useCreateDocument,
   useRenameDocument,
-  useDeleteDocument
+  useDeleteDocument,
+  useSetDocumentParent
 } from "./useDocuments";
+export { useComparison } from "./useComparison";
 export {
   useRunMatch,
   useMatchResult,
