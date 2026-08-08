@@ -9,7 +9,9 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { CreateMatchDto } from "./dto/create-match.dto";
 import { MatchResultDto } from "./dto/match-result.dto";
 import { MatchSummaryDto } from "./dto/match-summary.dto";
-import { AiService, MatchReport } from "./ai.service";
+import { AiService, MatchReport } from "../ai/ai.service";
+import { AiRuntimeConfig } from "../ai/providers";
+import { AiCredentialsService } from "../ai-credentials/ai-credentials.service";
 import { tMatch } from "./i18n-messages";
 
 export interface MatchRunResult {
@@ -118,7 +120,8 @@ export class MatchingService {
   constructor(
     private readonly ai: AiService,
     private readonly prisma: PrismaService,
-    private readonly currentUser: CurrentUserService
+    private readonly currentUser: CurrentUserService,
+    private readonly credentials: AiCredentialsService
   ) {}
 
   private tokenize(text: string): Set<string> {
@@ -169,23 +172,28 @@ export class MatchingService {
   }
 
   /** Runs the hybrid engine (embed x2 + cosine + keyword + AI report) over raw text. */
-  async run(rawCvText: string, rawJdText: string): Promise<MatchRunResult> {
+  async run(
+    rawCvText: string,
+    rawJdText: string,
+    cfg: AiRuntimeConfig
+  ): Promise<MatchRunResult> {
     const cvText = capForMatch(rawCvText);
     const jdText = capForMatch(rawJdText);
     const [cvEmbedding, jdEmbedding] = await Promise.all([
-      this.ai.embed(cvText),
-      this.ai.embed(jdText)
+      this.ai.embed(cvText, cfg),
+      this.ai.embed(jdText, cfg)
     ]);
     const semanticScore = clampPercent(
       Math.round(this.cosine(cvEmbedding, jdEmbedding) * 100)
     );
     const keywordScoreValue = this.keywordScore(cvText, jdText);
     const overallScore = this.combineOverall(semanticScore, keywordScoreValue);
-    const report = await this.ai.generateReport(cvText, jdText, {
-      overallScore,
-      semanticScore,
-      keywordScore: keywordScoreValue
-    });
+    const report = await this.ai.generateReport(
+      cvText,
+      jdText,
+      { overallScore, semanticScore, keywordScore: keywordScoreValue },
+      cfg
+    );
     return {
       overallScore,
       semanticScore,
@@ -223,19 +231,32 @@ export class MatchingService {
       );
     }
 
-    const result = await this.run(cvDoc.rawText, jdDoc.rawText);
+    // The user's own credential when they picked one, else the system key.
+    const runtime = dto.credentialId
+      ? await this.credentials.getRuntimeConfig(dto.credentialId)
+      : this.ai.systemRuntimeConfig();
+
+    const result = await this.run(cvDoc.rawText, jdDoc.rawText, runtime);
 
     const created = await this.prisma.matchResult.create({
       data: {
         userId,
         cvDocumentId: cvDoc.id,
         jdDocumentId: jdDoc.id,
+        credentialId: dto.credentialId ?? null,
+        provider: runtime.provider,
+        chatModel: runtime.chatModel,
+        embedModel: runtime.embedModel,
         overallScore: result.overallScore,
         semanticScore: result.semanticScore,
         keywordScore: result.keywordScore,
         report: result.report as unknown as Prisma.InputJsonValue
       }
     });
+
+    // Audit stamp, deliberately AFTER (and outside) the result write: a failed
+    // timestamp update must not roll back a match the user already paid for.
+    if (dto.credentialId) await this.credentials.markUsed(dto.credentialId);
 
     return MatchResultDto.fromEntity(created);
   }

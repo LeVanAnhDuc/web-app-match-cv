@@ -24,14 +24,29 @@ enum SourceFormat {
   text
 }
 
+enum AiProvider {
+  openrouter
+  openai
+  gemini
+}
+
+enum AiTestStatus {
+  ok
+  invalid_key
+  no_quota
+  model_unavailable
+  unreachable
+}
+
 model User {
   id          String   @id @default(uuid())
   role        Role
   externalSub String?
   createdAt   DateTime @default(now())
 
-  documents    Document[]
-  matchResults MatchResult[]
+  documents     Document[]
+  matchResults  MatchResult[]
+  aiCredentials AiCredential[]
 }
 
 model Document {
@@ -68,5 +83,41 @@ model MatchResult {
   report        Json
   createdAt     DateTime @default(now())
 
+  // Which AI ran this match. Snapshotted rather than derived from the
+  // credential, because the credential can later be re-pointed at another
+  // model or deleted outright — the historical result must stay readable.
+  credentialId String?
+  credential   AiCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  provider     AiProvider
+  chatModel    String
+  embedModel   String
+
+  @@index([userId])
+}
+
+/// A provider API key owned by a user. The key is stored as AES-256-GCM
+/// ciphertext; encryptedKey/keyIv/keyTag must never leave the service layer.
+model AiCredential {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       AiProvider
+  label          String
+  encryptedKey   Bytes
+  keyIv          Bytes
+  keyTag         Bytes
+  /// Last 4 characters, for display only — not enough to reuse the key.
+  keyLast4       String
+  chatModel      String?
+  embedModel     String?
+  lastTestStatus AiTestStatus?
+  lastTestedAt   DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  matchResults MatchResult[]
+
+  @@unique([userId, label])
   @@index([userId])
 }

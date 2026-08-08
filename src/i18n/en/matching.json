@@ -1,7 +1,5 @@
 {
   "errors": {
-    "notConfigured": "Matching service is not configured. Please contact the administrator.",
-    "aiFailed": "Matching service failed. Please try again later.",
     "documentNotOwned": "Document not found or does not belong to you.",
     "invalidDocumentKind": "Document kind does not match (expected CV/JD as specified).",
     "matchNotFound": "Match result not found."

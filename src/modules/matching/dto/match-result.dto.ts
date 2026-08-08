@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { MatchResult } from "@prisma/client";
+import { AiProvider, MatchResult } from "@prisma/client";
 
 export class MatchReportDto {
   @ApiProperty({ type: [String] }) strengths: string[];
@@ -15,6 +15,19 @@ export class MatchResultDto {
   @ApiProperty() semanticScore: number;
   @ApiProperty() keywordScore: number;
   @ApiProperty({ type: MatchReportDto }) report: MatchReportDto;
+
+  // Snapshot of which AI produced this result. Kept on the row rather than
+  // derived from the credential, so the record stays readable after the
+  // credential is re-pointed at another model or deleted.
+  @ApiProperty({
+    nullable: true,
+    description: "null means the system key was used"
+  })
+  credentialId: string | null;
+  @ApiProperty({ enum: AiProvider }) provider: AiProvider;
+  @ApiProperty() chatModel: string;
+  @ApiProperty() embedModel: string;
+
   @ApiProperty() createdAt: Date;
 
   static fromEntity(entity: MatchResult): MatchResultDto {
@@ -26,6 +39,10 @@ export class MatchResultDto {
     dto.semanticScore = entity.semanticScore;
     dto.keywordScore = entity.keywordScore;
     dto.report = entity.report as unknown as MatchReportDto;
+    dto.credentialId = entity.credentialId;
+    dto.provider = entity.provider;
+    dto.chatModel = entity.chatModel;
+    dto.embedModel = entity.embedModel;
     dto.createdAt = entity.createdAt;
     return dto;
   }

@@ -8,8 +8,76 @@ function makeService(): MatchingService {
   return new MatchingService(
     undefined as never,
     undefined as never,
+    undefined as never,
     undefined as never
   );
+}
+
+const USER_ID = "00000000-0000-0000-0000-000000000001";
+const CV_ID = "11111111-1111-1111-1111-111111111111";
+const JD_ID = "22222222-2222-2222-2222-222222222222";
+const CRED_ID = "33333333-3333-3333-3333-333333333333";
+
+const SYSTEM_CFG = {
+  provider: "openrouter" as const,
+  apiKey: "system-key-000000000000",
+  baseUrl: "https://openrouter.ai/api/v1",
+  chatModel: "openai/gpt-4o-mini",
+  embedModel: "openai/text-embedding-3-small"
+};
+
+/** Harness for createMatch — every collaborator stubbed, no network, no DB. */
+function makeOrchestrator() {
+  const ai = {
+    systemRuntimeConfig: jest.fn().mockReturnValue(SYSTEM_CFG),
+    embed: jest.fn().mockResolvedValue([1, 0, 0]),
+    generateReport: jest
+      .fn()
+      .mockResolvedValue({ strengths: [], gaps: [], suggestions: [] })
+  };
+  const prisma = {
+    document: {
+      findFirst: jest
+        .fn()
+        .mockImplementation(({ where }: { where: { id: string } }) =>
+          Promise.resolve({
+            id: where.id,
+            userId: USER_ID,
+            kind: where.id === CV_ID ? "CV" : "JD",
+            rawText: "some text"
+          })
+        )
+    },
+    matchResult: {
+      create: jest
+        .fn<
+          Promise<Record<string, unknown>>,
+          [{ data: Record<string, unknown> }]
+        >()
+        .mockImplementation(({ data }) =>
+          Promise.resolve({
+            id: "match-1",
+            report: { strengths: [], gaps: [], suggestions: [] },
+            createdAt: new Date("2026-08-08T00:00:00Z"),
+            ...data
+          })
+        )
+    }
+  };
+  const currentUser = {
+    getUserId: jest.fn<string, []>().mockReturnValue(USER_ID)
+  };
+  const credentials = {
+    getRuntimeConfig: jest.fn(),
+    markUsed: jest.fn().mockResolvedValue(undefined)
+  };
+  const service = new MatchingService(
+    ai as never,
+    prisma as never,
+    currentUser,
+    credentials as never
+  );
+  return { service, ai, prisma, credentials };
 }
 
 describe("MatchingService", () => {
@@ -89,6 +157,68 @@ describe("MatchingService", () => {
       const service = makeService();
       expect(service.combineOverall(100, 100)).toBe(100);
       expect(service.combineOverall(0, 0)).toBe(0);
+    });
+  });
+
+  describe("createMatch() provider snapshot", () => {
+    it("uses the system config and stores a null credentialId when none is given", async () => {
+      const { service, prisma, ai } = makeOrchestrator();
+      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      expect(ai.systemRuntimeConfig).toHaveBeenCalled();
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect(data).toMatchObject({
+        credentialId: null,
+        provider: "openrouter",
+        chatModel: "openai/gpt-4o-mini",
+        embedModel: "openai/text-embedding-3-small"
+      });
+    });
+
+    it("uses the chosen credential and stamps lastUsedAt", async () => {
+      const { service, prisma, credentials, ai } = makeOrchestrator();
+      credentials.getRuntimeConfig.mockResolvedValue({
+        provider: "gemini",
+        apiKey: "user-key-0000000000000",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        chatModel: "gemini-2.5-flash",
+        embedModel: "gemini-embedding-001"
+      });
+
+      await service.createMatch({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID,
+        credentialId: CRED_ID
+      });
+
+      expect(ai.systemRuntimeConfig).not.toHaveBeenCalled();
+      const { data } = prisma.matchResult.create.mock.calls[0][0];
+      expect(data).toMatchObject({
+        credentialId: CRED_ID,
+        provider: "gemini",
+        chatModel: "gemini-2.5-flash",
+        embedModel: "gemini-embedding-001"
+      });
+      expect(credentials.markUsed).toHaveBeenCalledWith(CRED_ID);
+    });
+
+    it("does not stamp lastUsedAt when running on the system key", async () => {
+      const { service, credentials } = makeOrchestrator();
+      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      expect(credentials.markUsed).not.toHaveBeenCalled();
+    });
+
+    it("never puts the plaintext key on the returned DTO", async () => {
+      const { service, credentials } = makeOrchestrator();
+      credentials.getRuntimeConfig.mockResolvedValue({
+        ...SYSTEM_CFG,
+        apiKey: "sk-should-never-appear"
+      });
+      const dto = await service.createMatch({
+        cvDocumentId: CV_ID,
+        jdDocumentId: JD_ID,
+        credentialId: CRED_ID
+      });
+      expect(JSON.stringify(dto)).not.toContain("sk-should-never-appear");
     });
   });
 });

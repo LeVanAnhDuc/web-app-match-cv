@@ -9,7 +9,8 @@ import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
-import { AiService } from "../src/modules/matching/ai.service";
+import { AiService } from "../src/modules/ai/ai.service";
+import type { AiRuntimeConfig } from "../src/modules/ai/providers";
 import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
 
 interface DocumentResponseBody {
@@ -53,8 +54,18 @@ function deterministicVector(text: string): number[] {
  * is needed to exercise `/match`.
  */
 class FakeAiService {
-  isConfigured(): boolean {
+  isSystemConfigured(): boolean {
     return true;
+  }
+
+  systemRuntimeConfig(): AiRuntimeConfig {
+    return {
+      provider: "openrouter",
+      apiKey: "fake-key-000000000000",
+      baseUrl: "https://openrouter.ai/api/v1",
+      chatModel: "openai/gpt-4o-mini",
+      embedModel: "openai/text-embedding-3-small"
+    };
   }
 
   embed(text: string): Promise<number[]> {
@@ -76,8 +87,14 @@ class FakeAiService {
 
 /** Test double mirroring the real AiService's unconfigured behavior. */
 class UnconfiguredAiService {
-  isConfigured(): boolean {
+  isSystemConfigured(): boolean {
     return false;
+  }
+
+  systemRuntimeConfig(): AiRuntimeConfig {
+    throw new ServiceUnavailableException(
+      "Matching service is not configured. Please contact the administrator."
+    );
   }
 
   embed(): Promise<number[]> {
@@ -260,7 +277,10 @@ describe("Matching (e2e)", () => {
           overallScore: 50,
           semanticScore: 50,
           keywordScore: 50,
-          report: { strengths: [], gaps: [], suggestions: [] }
+          report: { strengths: [], gaps: [], suggestions: [] },
+          provider: "openrouter",
+          chatModel: "openai/gpt-4o-mini",
+          embedModel: "openai/text-embedding-3-small"
         }
       });
 
@@ -330,6 +350,9 @@ describe("Matching (e2e)", () => {
           semanticScore: 40,
           keywordScore: 40,
           report: { strengths: [], gaps: [], suggestions: [] },
+          provider: "openrouter",
+          chatModel: "openai/gpt-4o-mini",
+          embedModel: "openai/text-embedding-3-small",
           createdAt: new Date(Date.now() - 60_000)
         }
       });
@@ -341,7 +364,10 @@ describe("Matching (e2e)", () => {
           overallScore: 80,
           semanticScore: 80,
           keywordScore: 80,
-          report: { strengths: [], gaps: [], suggestions: [] }
+          report: { strengths: [], gaps: [], suggestions: [] },
+          provider: "openrouter",
+          chatModel: "openai/gpt-4o-mini",
+          embedModel: "openai/text-embedding-3-small"
         }
       });
       createdMatchIds.push(older.id, newer.id);
@@ -358,7 +384,10 @@ describe("Matching (e2e)", () => {
           overallScore: 10,
           semanticScore: 10,
           keywordScore: 10,
-          report: { strengths: [], gaps: [], suggestions: [] }
+          report: { strengths: [], gaps: [], suggestions: [] },
+          provider: "openrouter",
+          chatModel: "openai/gpt-4o-mini",
+          embedModel: "openai/text-embedding-3-small"
         }
       });
 

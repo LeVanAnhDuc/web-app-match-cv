@@ -1,0 +1,6 @@
+{
+  "errors": {
+    "notConfigured": "Dịch vụ ghép nối chưa được cấu hình. Vui lòng liên hệ quản trị viên.",
+    "aiFailed": "Dịch vụ ghép nối gặp sự cố. Vui lòng thử lại sau."
+  }
+}

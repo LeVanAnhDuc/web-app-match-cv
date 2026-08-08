@@ -25,8 +25,20 @@ App chạy ở `http://localhost:5200` (đổi qua env `PORT`).
 - `POST /api/v1/documents` — nạp CV/JD: multipart `file` (PDF/DOCX ≤10MB) **hoặc** JSON `{ sourceText }`; `kind` (CV|JD), `save`, `title?`. Parse → `rawText`.
 - `GET /api/v1/documents?kind=CV|JD&saved=true` — list tài liệu đã lưu (per-user).
 - `GET /api/v1/documents/:id` — 1 document (per-user), kèm `rawText` (dùng cho review).
-- `POST /api/v1/match` `{ cvDocumentId, jdDocumentId }` — hybrid match (keyword + OpenRouter embedding cosine in-app + OpenRouter report) → `MatchResult`. **503** nếu thiếu `OPENROUTER_API_KEY`.
+- `POST /api/v1/match` `{ cvDocumentId, jdDocumentId, credentialId? }` — hybrid match (keyword + embedding cosine in-app + chat report) → `MatchResult`. `credentialId` là một `AiCredential` của user; bỏ trống → chạy bằng key hệ thống và **503** nếu thiếu `OPENROUTER_API_KEY`. Kết quả snapshot lại `provider`/`chatModel`/`embedModel` đã dùng.
+- `GET /api/v1/match` — lịch sử match của user (mới nhất trước).
 - `GET /api/v1/match/:id` — lấy lại kết quả match (per-user).
+
+### AI credentials (BYO key)
+
+- `GET /api/v1/ai-credentials/providers` — whitelist provider + model mặc định của từng provider.
+- `GET /api/v1/ai-credentials` — credential của user. Response **không bao giờ** chứa key; chỉ `keyLast4`.
+- `POST /api/v1/ai-credentials` `{ provider, label, apiKey, chatModel?, embedModel? }` — key được mã hoá AES-256-GCM trước khi lưu. Label trùng → **409**.
+- `PATCH /api/v1/ai-credentials/:id` `{ label?, apiKey?, chatModel?, embedModel? }` — bỏ `apiKey` để giữ key hiện tại; gửi model rỗng để xoá override. Đổi key/model → trạng thái test bị reset.
+- `DELETE /api/v1/ai-credentials/:id` — kết quả match cũ **không** bị xoá (FK `ON DELETE SET NULL` + snapshot provider/model).
+- `POST /api/v1/ai-credentials/:id/test` — ping **cả** chat và embeddings bằng key đã lưu, trả trạng thái từng cái. Rate-limit 10 req/phút.
+
+Mọi endpoint `/ai-credentials` trả **503** nếu thiếu `CREDENTIAL_ENCRYPTION_KEY`.
 
 ## Env vars
 
@@ -37,6 +49,7 @@ Xem `.env.example`:
 - `DATABASE_URL` — **bắt buộc**, Postgres local (`postgresql://<user>:<pass>@localhost:5432/matchcv`)
 - `OPENROUTER_API_KEY` — **bắt buộc cho `/match`** (OpenRouter, OpenAI-compatible; embedding + chat report). Thiếu → `/match` trả 503. Optional cho các endpoint khác.
 - `OPENROUTER_BASE_URL` (default `https://openrouter.ai/api/v1`), `OPENROUTER_CHAT_MODEL` (default `openai/gpt-4o-mini`), `OPENROUTER_EMBED_MODEL` (default `openai/text-embedding-3-small`) — optional.
+- `CREDENTIAL_ENCRYPTION_KEY` — **bắt buộc cho `/ai-credentials`**; base64 của **đúng 32 byte**. Sinh bằng `openssl rand -base64 32`. Thiếu hoặc sai độ dài → mọi endpoint credential trả 503; các endpoint khác vẫn chạy. **Đổi hoặc mất khoá này làm mọi credential đã lưu không giải mã được** — không có đường khôi phục, user phải nhập lại key.
 
 ## Scripts
 

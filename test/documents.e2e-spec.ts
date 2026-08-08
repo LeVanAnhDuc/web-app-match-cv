@@ -450,13 +450,17 @@ describe("Documents (e2e)", () => {
     let textDocId: string;
     let otherUserDocId: string;
 
+    // supertest types `.parse()` as accepting a superagent Response, not a raw
+    // IncomingMessage — so declare it that way and narrow to the stream we
+    // actually consume, rather than fighting the overload resolution.
     const binaryParser = (
-      res: import("http").IncomingMessage & { body?: Buffer },
+      res: import("superagent").Response,
       cb: (err: Error | null, body: Buffer) => void
     ) => {
       const chunks: Buffer[] = [];
-      res.on("data", (chunk: Buffer) => chunks.push(chunk));
-      res.on("end", () => cb(null, Buffer.concat(chunks)));
+      const stream = res as unknown as import("stream").Readable;
+      stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+      stream.on("end", () => cb(null, Buffer.concat(chunks)));
     };
 
     beforeAll(async () => {
@@ -710,7 +714,10 @@ describe("Documents (e2e)", () => {
           overallScore: 80,
           semanticScore: 80,
           keywordScore: 80,
-          report: {}
+          report: {},
+          provider: "openrouter",
+          chatModel: "openai/gpt-4o-mini",
+          embedModel: "openai/text-embedding-3-small"
         }
       });
       matchResultId = matchResult.id;

@@ -11,6 +11,12 @@ class EnvVars {
   @IsOptional() @IsString() OPENROUTER_BASE_URL?: string;
   @IsOptional() @IsString() OPENROUTER_CHAT_MODEL?: string;
   @IsOptional() @IsString() OPENROUTER_EMBED_MODEL?: string;
+
+  // --- Credential encryption (BYO AI credentials) — base64 of exactly 32 bytes.
+  // Optional at boot so tests/CI need no real key; required the moment any
+  // /ai-credentials endpoint is called (503 otherwise). Length is checked in
+  // CredentialCryptoService, which owns what "valid" means for this value.
+  @IsOptional() @IsString() CREDENTIAL_ENCRYPTION_KEY?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
