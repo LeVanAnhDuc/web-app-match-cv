@@ -1,0 +1,18 @@
+# Normalise line endings so a checkout on Windows does not immediately look
+# dirty. `core.autocrlf=true` converts LF to CRLF in the working tree, but with
+# no .gitattributes git had no record of the canonical form — so
+# `src/routeTree.gen.ts` reported as modified after every checkout and blocked
+# `git pull` with "your local changes would be overwritten", despite
+# `git diff --numstat` being empty.
+#
+# `text=auto eol=lf` stores everything with LF and checks it out with LF, which
+# matches what prettier writes and what the repo already contains.
+* text=auto eol=lf
+
+# Binary — never touch these.
+*.png binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.woff binary
+*.woff2 binary
