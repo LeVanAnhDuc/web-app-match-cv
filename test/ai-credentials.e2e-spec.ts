@@ -1,5 +1,6 @@
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { Test } from "@nestjs/testing";
+import type { ConfigService } from "@nestjs/config";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { AiTestStatus } from "@prisma/client";
 import request from "supertest";
@@ -49,6 +50,24 @@ class FakeAiService {
   }
 }
 
+/**
+ * A key belonging to THIS SPEC, so the suite does not depend on the developer
+ * having `CREDENTIAL_ENCRYPTION_KEY` in a local `.env`.
+ *
+ * The service is deliberately optional at boot so unrelated endpoints work
+ * without a key — but these tests exercise the endpoints that DO need one, so
+ * they have to bring their own. Reading it from the environment made a clean
+ * clone show 20 red tests with no explanation.
+ */
+const SPEC_ENCRYPTION_KEY = randomBytes(32).toString("base64");
+
+function configuredCrypto(): CredentialCryptoService {
+  return new CredentialCryptoService({
+    get: (name: string) =>
+      name === "CREDENTIAL_ENCRYPTION_KEY" ? SPEC_ENCRYPTION_KEY : undefined
+  } as unknown as ConfigService);
+}
+
 /** Mirrors the real service when CREDENTIAL_ENCRYPTION_KEY is absent. */
 class UnconfiguredCryptoService {
   isConfigured(): boolean {
@@ -85,6 +104,8 @@ describe("AiCredentials (e2e)", () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(AiService)
       .useClass(FakeAiService)
+      .overrideProvider(CredentialCryptoService)
+      .useValue(configuredCrypto())
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix("api/v1");
@@ -102,6 +123,15 @@ describe("AiCredentials (e2e)", () => {
       });
     }
     await app.close();
+  });
+
+  describe("spec self-sufficiency", () => {
+    it("[EP] runs without CREDENTIAL_ENCRYPTION_KEY in the environment", () => {
+      // The guard for the bug this spec used to have: it read the key from
+      // .env, so a clean clone saw 20 red tests. If someone reverts to the
+      // ambient key, this fails on any machine that does not have one set.
+      expect(app.get(CredentialCryptoService).isConfigured()).toBe(true);
+    });
   });
 
   describe("GET /ai-credentials/providers", () => {
