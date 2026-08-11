@@ -101,6 +101,10 @@ Xem `.env.example`:
 - `yarn lint:fix` — ESLint + auto-fix
 - `yarn format` / `yarn format:check` — Prettier write / check
 - `yarn test:e2e` — e2e tests (Jest + supertest)
+- `yarn seed:mock` — **dev only**: chèn 6 document mock (3 CV + 3 JD, tiếng Việt + tiếng Anh) thuộc stub user, `isSaved = true` nên hiện luôn ở `/cv` và `/jd`. Idempotent — chạy lại **ghi đè** mock về nội dung gốc (kể cả khi đã rename trên UI), không nhân bản.
+- `yarn seed:mock:clean` — xoá 6 document đó, kèm `MatchResult`/`MatchRun` sinh ra từ chúng (`CoverLetter` tự cascade). Chỉ xoá theo danh sách UUID hằng số nên **không chạm dữ liệu thật**.
+
+> Mock document dùng dial UUID cố định (`10000000-0000-4000-8000-…` cho CV, `20000000-0000-4000-8000-…` cho JD) thay vì cột `isMock`; `clean` xoá theo dial nên đổi số fixture không làm sót row cũ. `4`/`8` là nibble version/variant **bắt buộc** — id không hợp UUIDv4 vẫn seed được nhưng mọi endpoint ghi sẽ trả 400. Chi tiết + ma trận điểm của bộ fixture: `docs/specs/seed-mock-documents/design.md`.
 
 > **Chạy `npx prisma generate` trước khi lint** (nhất là ở worktree mới). ESLint dùng typed rules (`recommendedTypeChecked`); thiếu Prisma Client thì các model delegate suy ra `any` → vừa sinh cả trăm lỗi `no-unsafe-*` giả, vừa khiến `no-unnecessary-type-assertion` **tự xoá** type assertion hợp lệ khi `--fix`.
 

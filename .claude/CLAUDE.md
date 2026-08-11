@@ -70,6 +70,8 @@ npx prisma generate                    # regenerate client
 yarn seed             # seed DB (idempotent)
 yarn recompute-scores                  # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
 yarn recompute-scores --apply          # ghi thật
+yarn seed:mock                         # dev only: chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
+yarn seed:mock:clean                   # xoá mock document + MatchResult/MatchRun sinh ra từ chúng
 ```
 
 ## Architecture
