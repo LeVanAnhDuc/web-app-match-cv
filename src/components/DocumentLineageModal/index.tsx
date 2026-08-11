@@ -8,10 +8,10 @@ import type { DocumentSummaryDto } from "#/types/Documents";
  * lineage, for a CV edited by hand rather than produced by the rewrite
  * assistant.
  *
- * Presentational: the DocumentList organism owns the mutation. Clearing the
- * selection sends null, which is how a wrong link is undone.
+ * Shared and presentational: the calling page hook owns the mutation. Clearing
+ * the selection sends null, which is how a wrong link is undone.
  */
-const LineageModal = ({
+const DocumentLineageModal = ({
   open,
   doc,
   candidates,
@@ -74,4 +74,4 @@ const LineageModal = ({
   );
 };
 
-export default LineageModal;
+export default DocumentLineageModal;

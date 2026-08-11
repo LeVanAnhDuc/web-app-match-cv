@@ -17,7 +17,7 @@ import {
 } from "#/hooks/useDocuments";
 import { ApiError } from "#/libs/api";
 import type { DocumentDto, DocumentSummaryDto } from "#/types/Documents";
-import DocumentLibrary from "../index";
+import CvLibrary from "../index";
 
 vi.mock("#/hooks/useDocuments");
 vi.mock("#/components/DocumentPreview", () => ({
@@ -26,7 +26,7 @@ vi.mock("#/components/DocumentPreview", () => ({
 
 async function renderLibrary() {
   const rootRoute = createRootRoute({
-    component: () => <DocumentLibrary kind="CV" />
+    component: () => <CvLibrary />
   });
   const router = createRouter({
     routeTree: rootRoute,
@@ -106,7 +106,15 @@ beforeEach(() => {
   } as unknown as ReturnType<typeof useDeleteDocument>);
 });
 
-describe("DocumentLibrary", () => {
+describe("CvLibrary", () => {
+  it("asks for the saved CVs and titles the page accordingly", async () => {
+    await renderLibrary();
+    expect(vi.mocked(useSavedDocuments)).toHaveBeenCalledWith("CV");
+    expect(
+      screen.getByRole("heading", { name: "Curriculum Vitae" })
+    ).toBeDefined();
+  });
+
   it("renders a row per saved document with its actions", async () => {
     await renderLibrary();
     expect(screen.getByText("Backend Resume")).toBeDefined();
@@ -183,6 +191,15 @@ describe("DocumentLibrary", () => {
     expect(
       screen.getByRole("button", { name: "Start matching" })
     ).toBeDefined();
+  });
+
+  it("reports a failed load instead of an empty library", async () => {
+    vi.mocked(useSavedDocuments).mockReturnValue(
+      asQuery<Array<DocumentSummaryDto>>(undefined, { isError: true })
+    );
+    await renderLibrary();
+    expect(screen.getByRole("alert")).toBeDefined();
+    expect(screen.queryByText("No saved CVs yet")).toBeNull();
   });
 
   it("opens the preview modal rendering DocumentPreview", async () => {

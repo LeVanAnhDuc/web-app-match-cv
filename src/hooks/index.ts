@@ -7,6 +7,8 @@ export {
   useSetDocumentParent
 } from "./useDocuments";
 export { useComparison } from "./useComparison";
+export { useCvLibrary } from "./useCvLibrary";
+export { useJdLibrary } from "./useJdLibrary";
 export {
   useRunMatch,
   useMatchResult,
@@ -15,6 +17,7 @@ export {
   useMatchRun
 } from "./useMatch";
 export { useGenerateCvRewrite, useAcceptCvRewrite } from "./useCvRewrite";
+export { useDownloadMyData } from "./useMyData";
 export {
   useAiCredentials,
   useProviders,

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "#/i18n/config";
@@ -9,6 +10,18 @@ vi.mock("#/requests/myData", () => ({
 }));
 
 const mockedDownloadMyData = vi.mocked(downloadMyData);
+
+/** The panel downloads through a React Query mutation, so it needs a client. */
+function renderPanel() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MyDataPanel />
+    </QueryClientProvider>
+  );
+}
 
 /** Resolves/rejects on demand, so a test can assert the in-flight state. */
 function deferred<T>() {
@@ -27,7 +40,7 @@ describe("MyDataPanel", () => {
   });
 
   it("renders the title, description and all three contents items", () => {
-    render(<MyDataPanel />);
+    renderPanel();
 
     expect(
       screen.getByRole("heading", { level: 1, name: "My data" })
@@ -48,11 +61,13 @@ describe("MyDataPanel", () => {
     const { promise, resolve } = deferred<void>();
     mockedDownloadMyData.mockReturnValue(promise);
 
-    render(<MyDataPanel />);
+    renderPanel();
     const button = screen.getByRole("button", { name: "Download my data" });
     fireEvent.click(button);
 
-    expect(mockedDownloadMyData).toHaveBeenCalledTimes(1);
+    // `mutate` dispatches the request off the click, not inside it, so the call
+    // lands a tick later — assert it the same way as the pending state.
+    await waitFor(() => expect(mockedDownloadMyData).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(button).toBeDisabled());
 
     resolve();
@@ -63,7 +78,7 @@ describe("MyDataPanel", () => {
     const { promise, resolve } = deferred<void>();
     mockedDownloadMyData.mockReturnValue(promise);
 
-    render(<MyDataPanel />);
+    renderPanel();
     const button = screen.getByRole("button", { name: "Download my data" });
     fireEvent.click(button);
     await waitFor(() => expect(button).toBeDisabled());
@@ -79,7 +94,7 @@ describe("MyDataPanel", () => {
     const { promise, reject } = deferred<void>();
     mockedDownloadMyData.mockReturnValue(promise);
 
-    render(<MyDataPanel />);
+    renderPanel();
     const button = screen.getByRole("button", { name: "Download my data" });
     fireEvent.click(button);
     await waitFor(() => expect(button).toBeDisabled());
@@ -95,7 +110,7 @@ describe("MyDataPanel", () => {
   it("shows the success message when the download resolves", async () => {
     mockedDownloadMyData.mockResolvedValue(undefined);
 
-    render(<MyDataPanel />);
+    renderPanel();
     const button = screen.getByRole("button", { name: "Download my data" });
     fireEvent.click(button);
 

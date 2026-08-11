@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
- * Rename dialog (molecule, presentational). Holds the editable title locally
- * and hands the trimmed value back through `onConfirm`; the DocumentList
- * organism owns the mutation.
+ * Rename dialog (shared molecule, presentational). Holds the editable title
+ * locally and hands the trimmed value back through `onConfirm`; the calling
+ * page hook owns the mutation.
  */
-const RenameModal = ({
+const DocumentRenameModal = ({
   open,
   initialTitle,
   confirmLoading,
@@ -57,4 +57,4 @@ const RenameModal = ({
   );
 };
 
-export default RenameModal;
+export default DocumentRenameModal;

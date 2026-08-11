@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import DocumentLibrary from "#/views/DocumentLibrary";
+import JdLibrary from "#/views/JdLibrary";
 
 export const Route = createFileRoute("/_app/jd")({
-  component: () => <DocumentLibrary kind="JD" />
+  component: JdLibrary
 });

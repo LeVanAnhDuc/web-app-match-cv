@@ -6,11 +6,11 @@ import { documentFileUrl } from "#/requests/documents";
 import type { DocumentDto } from "#/types/Documents";
 
 /**
- * Preview dialog (molecule, presentational) wrapping the shared
+ * Preview dialog (shared molecule, presentational) wrapping the shared
  * DocumentPreview. The full document (with rawText + sourceFormat) is fetched
- * by the DocumentList organism and handed in via `doc`.
+ * by the calling page hook and handed in via `doc`.
  */
-const PreviewModal = ({
+const DocumentPreviewModal = ({
   open,
   doc,
   loading,
@@ -71,4 +71,4 @@ const PreviewModal = ({
   );
 };
 
-export default PreviewModal;
+export default DocumentPreviewModal;

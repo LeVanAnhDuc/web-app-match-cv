@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import DocumentLibrary from "#/views/DocumentLibrary";
+import CvLibrary from "#/views/CvLibrary";
 
 export const Route = createFileRoute("/_app/cv")({
-  component: () => <DocumentLibrary kind="CV" />
+  component: CvLibrary
 });

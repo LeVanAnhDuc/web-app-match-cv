@@ -13,9 +13,14 @@ import { documentFileUrl } from "#/requests/documents";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
 /**
- * One saved-document row (molecule, presentational). Actions are surfaced as
- * icon buttons with aria-labels; delete is guarded by a Popconfirm. All data
- * and behaviour arrive via props from the DocumentList organism.
+ * One saved-document row (shared molecule, presentational). Actions are
+ * surfaced as icon buttons with aria-labels; delete is guarded by a
+ * Popconfirm. All data and behaviour arrive via props from the calling list
+ * organism (CvLibrary / JdLibrary today, any document list tomorrow).
+ *
+ * `onCompare` is optional: version comparison is a CV-only feature, so the
+ * JD library simply leaves it out instead of offering an action the server
+ * answers with 400 notCv.
  */
 const DocumentRow = ({
   doc,
@@ -30,7 +35,7 @@ const DocumentRow = ({
   onPreview: () => void;
   onRename: () => void;
   onDelete: () => void;
-  onCompare: () => void;
+  onCompare?: () => void;
   onSetLineage: () => void;
   deleting: boolean;
 }) => {
@@ -73,7 +78,7 @@ const DocumentRow = ({
         />
         {/* Only a document that descends from another one has anything to
             compare against, so the action simply does not exist otherwise. */}
-        {doc.parentId !== null && (
+        {doc.parentId !== null && onCompare && (
           <Button
             type="text"
             aria-label={t("library.action.compare")}
