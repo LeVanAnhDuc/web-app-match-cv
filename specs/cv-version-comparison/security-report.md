@@ -62,4 +62,4 @@ Tối đa 20 round-trip tuần tự cho mỗi `GET /comparisons/:id`, chỉ đ�
 
 ## Ghi chú không thuộc bảo mật
 
-- Nút "Compare versions" ở `DocumentRow` hiện với **mọi** document có `parentId`, kể cả JD (thư viện `/jd` cũng dùng chung row). Server trả 400 `notCv` đúng, nên đây là vết xước UX, không phải lỗ hổng — ghi lại để lần chạm `DocumentLibrary` tới thì dọn.
+- ~~Nút "Compare versions" ở `DocumentRow` hiện với **mọi** document có `parentId`, kể cả JD (thư viện `/jd` cũng dùng chung row). Server trả 400 `notCv` đúng, nên đây là vết xước UX, không phải lỗ hổng — ghi lại để lần chạm `DocumentLibrary` tới thì dọn.~~ ✅ **Đã dọn** khi tách `DocumentLibrary` thành `views/CvLibrary` + `views/JdLibrary`: `onCompare` của `components/DocumentRow` thành optional, `JdDocumentList` không truyền → `/jd` không còn nút. Chặn hồi quy bằng test "never offers version comparison, even on a JD that has a parent" (`JdLibrary.test.tsx`).
