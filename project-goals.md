@@ -97,7 +97,7 @@ Mọi `Document` / `MatchResult` / `MatchRun` / `AiCredential` vì thế gắn v
 
 Mở rộng của Goal 1 (lưu tái dùng per-user). Spec + mock SuperDesign ở `specs/home-dashboard-library/` + `ui-designs/home-dashboard-library/`.
 
-- ✅ **App shell** — sidebar nav responsive (`views/AppShell/`), thay cho app 2-route (`/`, `/wizard`).
+- ✅ **App shell** — sidebar nav responsive (`layouts/AppShell/`), thay cho app 2-route (`/`, `/wizard`).
 - ✅ **Home dashboard** — hero CTA vào wizard + stat cards + recent matches (`views/Home/mains/{HeroCta,StatCards,RecentMatches}`).
 - ✅ **Library** — routes `/cv` + `/jd` (`views/DocumentLibrary/`): rename, delete (chặn 409 khi đang được 1 match dùng), download/stream file gốc (`GET /documents/:id/file`), preview PDF / DOCX / text.
 - 🟡 **Match history** — **BE xong, FE chưa đủ**: `GET /match` (list newest-first) + `GET /match/:id` đã có; FE mới chỉ có widget `RecentMatches` trên Home, **chưa có trang `/history` riêng** và sidebar chưa có link. Còn thiếu: filter theo CV/JD, sort theo điểm/ngày, `DELETE /match/:id`. → ghi ở `unfinished-features.md`.
