@@ -2,10 +2,6 @@ import DocumentRow from "#/components/DocumentRow";
 import SectionCard from "#/components/SectionCard";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
-/**
- * The saved-CV rows themselves. Purely a layout organism: every action is
- * handed down from the CvLibrary view, which owns them through `useCvLibrary`.
- */
 const CvDocumentList = ({
   docs,
   deletingId,

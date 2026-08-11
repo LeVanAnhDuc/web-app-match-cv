@@ -2,13 +2,6 @@ import DocumentRow from "#/components/DocumentRow";
 import SectionCard from "#/components/SectionCard";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
-/**
- * The saved-JD rows themselves. Purely a layout organism: every action is
- * handed down from the JdLibrary view, which owns them through `useJdLibrary`.
- *
- * No compare action here — version comparison only accepts a CV
- * (docs/specs/cv-version-comparison/security-report.md).
- */
 const JdDocumentList = ({
   docs,
   deletingId,

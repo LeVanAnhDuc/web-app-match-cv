@@ -8,14 +8,6 @@ import { useAiCredentials, useProviders } from "#/hooks/useAiCredentials";
 const SYSTEM_KEY_VALUE = "__system__";
 const MASK = "••••";
 
-/**
- * Which key generates the rewrite. One key only — unlike the wizard, where
- * several providers are compared, here there is a single suggestion list.
- *
- * The privacy line is not decoration: generating sends the CV and JD to a named
- * third party again (project-goals §7), so the user has to be told who, before
- * they press the button.
- */
 const RewriteRunWith = ({
   value,
   onChange
@@ -49,7 +41,6 @@ const RewriteRunWith = ({
       <p className="text-xs font-semibold tracking-wider text-faint uppercase">
         {t("credentials.runWith.title")}
       </p>
-
       <Select
         aria-label={t("credentials.runWith.title")}
         className="w-full md:max-w-md"
@@ -57,11 +48,9 @@ const RewriteRunWith = ({
         options={options}
         onChange={(next) => onChange(next === SYSTEM_KEY_VALUE ? null : next)}
       />
-
       {selected && selected.lastTestStatus !== "ok" && (
         <Tag color="warning">{t("credentials.runWith.untestedWarning")}</Tag>
       )}
-
       <p className="flex items-start gap-2 text-sm text-muted">
         <ShieldCheck size={14} className="mt-0.5 shrink-0" />
         {value === null

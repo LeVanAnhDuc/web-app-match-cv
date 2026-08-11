@@ -9,14 +9,6 @@ import { useWizardStore } from "#/stores";
 import GapDiffList from "../../components/GapDiffList";
 import ScoreDelta from "../../components/ScoreDelta";
 
-/**
- * The comparison itself: pick a JD, read the delta, read the gap diff.
- *
- * Strictly read-only. Nothing on this screen starts a match — a version with
- * no match on the selected JD gets an explicit call to action that hands the
- * user to the wizard, which already owns credential choice and the privacy
- * notice (design.md §2).
- */
 const ComparisonReport = ({
   documentId,
   jdDocumentId
@@ -176,7 +168,6 @@ const ComparisonReport = ({
                 }
               />
             )}
-
             {(!data.sameChatModel || !data.sameEmbedModel) && (
               <Alert
                 type="warning"
@@ -191,7 +182,6 @@ const ComparisonReport = ({
           </div>
         )}
       </SectionCard>
-
       {data.gapDiff && (
         <SectionCard
           title={t("compare.gaps.title")}
@@ -208,15 +198,6 @@ const ComparisonReport = ({
   );
 };
 
-/**
- * 404, "no previous version" and everything else are different problems and
- * get different sentences.
- *
- * The server localises its own messages, but only from Accept-Language, which
- * this client does not send — so the copy is resolved here instead. The two
- * 400s are told apart by whether a JD was pinned in the URL: a stale `?jd=`
- * that is no longer comparable is the only 400 reachable with one present.
- */
 function errorMessage(
   error: unknown,
   hadPinnedJd: boolean,

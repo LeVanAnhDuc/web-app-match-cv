@@ -5,11 +5,6 @@ import DocumentPreview from "#/components/DocumentPreview";
 import { documentFileUrl } from "#/requests/documents";
 import type { DocumentDto } from "#/types/Documents";
 
-/**
- * Preview dialog (shared molecule, presentational) wrapping the shared
- * DocumentPreview. The full document (with rawText + sourceFormat) is fetched
- * by the calling page hook and handed in via `doc`.
- */
 const DocumentPreviewModal = ({
   open,
   doc,

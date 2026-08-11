@@ -15,10 +15,6 @@ const MASK = "••••";
 const toValue = (id: string | null) => id ?? SYSTEM_KEY_VALUE;
 const toId = (value: string) => (value === SYSTEM_KEY_VALUE ? null : value);
 
-/**
- * Newest `lastUsedAt` wins. ISO timestamps sort lexicographically the same way
- * they sort chronologically, and a never-used credential ("") falls to the end.
- */
 function pickDefault(
   credentials: Array<AiCredentialDto>
 ): Array<string | null> {
@@ -29,18 +25,6 @@ function pickDefault(
   return [sorted[0].id];
 }
 
-/**
- * Wizard step 3 — which keys this run uses. Several may be picked: each one
- * becomes its own card in step 4.
- *
- * A checkbox list rather than a multi-select, because every row has to carry a
- * provider badge, a masked key and a test verdict — none of which survives
- * being crushed into a select tag. It also matches the mental model: one row
- * ticked here is one card there.
- *
- * An untested or failed credential stays selectable: a test that passed
- * yesterday says nothing about today's quota, so blocking would only look safe.
- */
 const RunWithSelector = ({
   value,
   onChange
@@ -96,7 +80,6 @@ const RunWithSelector = ({
       <p className="text-xs font-semibold tracking-wider text-faint uppercase">
         {t("credentials.runWith.title")}
       </p>
-
       <Checkbox.Group
         aria-label={t("credentials.runWith.title")}
         className="flex w-full flex-col gap-2"
@@ -128,7 +111,6 @@ const RunWithSelector = ({
           </span>
         </Checkbox>
       </Checkbox.Group>
-
       <Button
         size="small"
         icon={<Plus size={14} />}
@@ -136,14 +118,12 @@ const RunWithSelector = ({
       >
         {t("credentials.add")}
       </Button>
-
       {warned.length > 0 && (
         <p className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500">
           <TriangleAlert size={14} />
           {t("credentials.runWith.untestedCount", { count: warned.length })}
         </p>
       )}
-
       <p className="flex items-start gap-2 text-sm text-muted">
         <ShieldCheck size={14} className="mt-0.5 shrink-0" />
         {value.length === 0
@@ -152,7 +132,6 @@ const RunWithSelector = ({
               providers: providerNames.join(", ")
             })}
       </p>
-
       <CredentialFormModal
         open={addOpen}
         credential={null}

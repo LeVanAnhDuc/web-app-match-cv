@@ -13,7 +13,6 @@ import ChangeCard from "../../components/ChangeCard";
 import RewriteRunWith from "../../components/RewriteRunWith";
 import SaveRewriteModal from "../../components/SaveRewriteModal";
 
-/** Local preview of the CV with the ticked changes applied. */
 function previewText(
   rawText: string,
   proposal: CvRewriteProposalDto,
@@ -32,18 +31,6 @@ function previewText(
     );
 }
 
-/**
- * The whole rewrite flow: pick a key → generate → approve individual changes →
- * save as a NEW CV.
- *
- * Generation is never automatic. Each press spends a chat completion on the
- * user's key and sends the CV to a named third party, so it stays an explicit
- * action behind an explicit privacy notice.
- *
- * Nothing is ticked by default, and re-generating clears the previous ticks —
- * a tick refers to an anchor in the proposal it came from, and carrying it over
- * would silently approve a different edit.
- */
 const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -151,7 +138,6 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
   return (
     <>
       {contextHolder}
-
       <SectionCard
         // The document title is only known once its own query lands, so the
         // heading always has a defined value to interpolate — an undefined one
@@ -182,9 +168,7 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
               </ul>
             </div>
           )}
-
           <RewriteRunWith value={credentialId} onChange={setCredentialId} />
-
           <Button
             type="primary"
             size="large"
@@ -194,20 +178,15 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
           >
             {proposal ? t("rewrite.regenerate") : t("rewrite.generate")}
           </Button>
-
           {error && <Alert type="error" showIcon message={error} />}
         </div>
       </SectionCard>
-
-      {/* polite, not assertive: the suggestions arriving should be announced,
-          not interrupt whatever the user is reading. */}
       <div aria-live="polite" className="space-y-4">
         {generate.isPending && (
           <SectionCard aria-busy="true">
             <Skeleton active paragraph={{ rows: 6 }} />
           </SectionCard>
         )}
-
         {proposal && !generate.isPending && (
           <SectionCard
             title={t("rewrite.changes.title")}
@@ -268,7 +247,6 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
                 ))}
               </ul>
             )}
-
             {proposal.unaddressedGaps.length > 0 && (
               <Alert
                 className="mt-4"
@@ -291,7 +269,6 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
                 }
               />
             )}
-
             {proposal.changes.length > 0 && cvQuery.data && (
               <Collapse
                 ghost
@@ -312,7 +289,6 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
           </SectionCard>
         )}
       </div>
-
       <SaveRewriteModal
         open={saveOpen}
         defaultTitle={t("rewrite.save.defaultTitle", {

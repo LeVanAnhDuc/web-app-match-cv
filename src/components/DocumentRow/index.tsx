@@ -12,16 +12,6 @@ import { useTranslation } from "react-i18next";
 import { documentFileUrl } from "#/requests/documents";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
-/**
- * One saved-document row (shared molecule, presentational). Actions are
- * surfaced as icon buttons with aria-labels; delete is guarded by a
- * Popconfirm. All data and behaviour arrive via props from the calling list
- * organism (CvLibrary / JdLibrary today, any document list tomorrow).
- *
- * `onCompare` is optional: version comparison is a CV-only feature, so the
- * JD library simply leaves it out instead of offering an action the server
- * answers with 400 notCv.
- */
 const DocumentRow = ({
   doc,
   onPreview,
@@ -50,7 +40,6 @@ const DocumentRow = ({
       <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-subtle text-muted">
         <FileText size={18} />
       </span>
-
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate text-sm font-semibold text-body">
@@ -62,7 +51,6 @@ const DocumentRow = ({
         </div>
         <p className="truncate text-xs text-muted">{date}</p>
       </div>
-
       <div className="flex shrink-0 items-center gap-1">
         <Button
           type="text"
@@ -76,8 +64,6 @@ const DocumentRow = ({
           icon={<Pencil size={16} />}
           onClick={onRename}
         />
-        {/* Only a document that descends from another one has anything to
-            compare against, so the action simply does not exist otherwise. */}
         {doc.parentId !== null && onCompare && (
           <Button
             type="text"

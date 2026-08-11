@@ -1,14 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
 
-/**
- * The one card shape in the app (design: §4.2). Every panel — dashboard tile,
- * library list, wizard step — is a SectionCard so border / surface / padding /
- * heading scale cannot drift per view.
- *
- * `fill` opts into the desktop layout the wizard needs: the card locks to the
- * available height and the body scrolls inside it. `stickyFooter` keeps the
- * primary CTA reachable while the page scrolls below lg.
- */
 const SectionCard = ({
   children,
   title,
@@ -45,7 +36,6 @@ const SectionCard = ({
         {extra && <div className="shrink-0">{extra}</div>}
       </div>
     )}
-
     <div
       className={`${bodyClassName} ${
         fill ? "lg:min-h-0 lg:flex-1 lg:overflow-y-auto" : ""
@@ -53,7 +43,6 @@ const SectionCard = ({
     >
       {children}
     </div>
-
     {footer && (
       <div
         className={`flex shrink-0 items-center justify-between gap-4 border-t border-line bg-surface-subtle px-4 py-4 md:px-6 ${

@@ -40,7 +40,6 @@ const idleClassName = "text-muted hover:bg-surface-subtle hover:text-body";
 const activeClassName =
   "bg-primary/10 font-semibold text-accent before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-primary before:content-['']";
 
-/** Primary nav — shared by the `>=lg` fixed aside and the `<lg` Drawer (AppShell). */
 const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
   const { t } = useTranslation();
 

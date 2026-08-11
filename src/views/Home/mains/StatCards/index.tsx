@@ -5,7 +5,6 @@ import SectionCard from "#/components/SectionCard";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import { useMatchHistory } from "#/hooks/useMatch";
 
-/** One stat tile — private presentational helper for {@link StatCards}. */
 function StatTile({
   testId,
   icon,
@@ -23,7 +22,6 @@ function StatTile({
 }) {
   return (
     <SectionCard className="h-full">
-      {/* testId sits on an always-rendered node so locators survive loading. */}
       <div data-testid={testId}>
         {loading ? (
           <Skeleton active title={false} paragraph={{ rows: 2 }} />
@@ -48,11 +46,6 @@ function StatTile({
   );
 }
 
-/**
- * 4 stat cards — saved CVs/JDs counts, total matches, highest score (+avg).
- * Responsive: 1 col mobile / 2 col tablet / 4 col desktop.
- * Mock: docs/ui-designs/home-dashboard-library/home.html.
- */
 const StatCards = () => {
   const { t } = useTranslation();
   const savedCvs = useSavedDocuments("CV");

@@ -11,14 +11,6 @@ import SaveForReuseButton from "../SaveForReuseButton";
 import SavedDocRadioList from "../SavedDocRadioList";
 import UploadPasteTabs from "../UploadPasteTabs";
 
-/**
- * Shared step body for wizard step 1 (JD) and step 2 (CV): Upload/Paste tabs,
- * reuse radio list, an explicit "save for reuse" button (opens a named-save
- * modal), and a Back/Next footer. Saving is optional and decoupled from Next:
- * Next uses the chosen saved doc, the just-saved doc, or a transient
- * (save:false) doc created from the current input.
- * See docs/ui-designs/cv-jd-matching-wizard/wizard-step2-cv-redesign.html.
- */
 const DocumentInputStep = ({
   kind,
   onNext,
@@ -47,7 +39,6 @@ const DocumentInputStep = ({
     mode === "upload" ? file !== null : pastedText.trim().length > 0;
   const canSubmit = selectedSavedId !== null || hasNewInput;
 
-  /** Editing the input invalidates a prior save/selection from this session. */
   function resetDerived() {
     setSelectedSavedId(null);
     setSavedId(null);
@@ -89,7 +80,6 @@ const DocumentInputStep = ({
     setValidationError(null);
   }
 
-  /** Create a document from the current input (saved or transient). */
   function createFromInput(save: boolean, title?: string) {
     return mode === "upload" && file
       ? createDocument.mutateAsync({ mode: "file", kind, file, save, title })
@@ -178,7 +168,6 @@ const DocumentInputStep = ({
           onPastedTextChange={handlePastedTextChange}
           maxSizeLabel={FILE.MAX_SIZE_LABEL}
         />
-
         {hasNewInput && (
           <div className="mb-8">
             <SaveForReuseButton
@@ -188,7 +177,6 @@ const DocumentInputStep = ({
             />
           </div>
         )}
-
         <div>
           <h3 className="mb-4 text-xs font-semibold tracking-wider text-faint uppercase">
             {t(`reuse.${reuseKey}.title`)}
@@ -199,7 +187,6 @@ const DocumentInputStep = ({
             onSelect={handleSelectSaved}
           />
         </div>
-
         {validationError && (
           <p
             role="alert"

@@ -21,7 +21,6 @@ import CoverLetterModal from "../CoverLetterModal";
 const GAUGE_RADIUS = 70;
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
 
-/** Sub-score bar — private presentational helper. */
 function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-2">
@@ -41,7 +40,6 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-/** Titled report list (strengths / gaps) — private helper. */
 function ReportList({
   icon,
   title,
@@ -73,18 +71,6 @@ function ReportList({
   );
 }
 
-/**
- * One provider's result inside a run.
- *
- * The card owns its own request. That is what makes progressive reveal fall
- * out for free: each card resolves on its own schedule, so the first provider
- * to answer renders while the others are still skeletons — no queue, no
- * polling, no shared "how many are left" state (ADR #11).
- *
- * A failed result is NOT drawn as a 0% score. Zeroes are what the server
- * stores for a row that never produced a score, and showing them as a gauge
- * would read as "this provider thinks you are a terrible match".
- */
 const MatchResultCard = ({
   runId,
   cvDocumentId,
@@ -226,7 +212,6 @@ const MatchResultCard = ({
           }
         />
       </div>
-
       <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4 md:p-6 dark:border-indigo-500/20 dark:bg-indigo-500/5">
         <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-blue-900 dark:text-white">
           <Lightbulb size={18} /> {t("result.suggestions")}
@@ -275,15 +260,9 @@ const MatchResultCard = ({
           >
             {t("action.improveCv")}
           </Button>
-          {/* Only on a succeeded result: a letter is written FROM the report,
-              so a run that produced none has no material to ground it in —
-              the server rejects it for the same reason. */}
           <Button icon={<Mail size={16} />} onClick={() => setLetterOpen(true)}>
             {t("coverLetter.open")}
           </Button>
-          {/* Goal 9: only offered when this CV descends from an earlier one —
-              which is also why no existing spec needed changing, since every
-              fixture in the suite leaves parentId null. */}
           {cvQuery.data?.parentId && (
             <Button
               icon={<GitCompareArrows size={16} />}
@@ -334,7 +313,6 @@ const MatchResultCard = ({
             </span>
           </div>
         </div>
-
         <div className="w-full flex-1 space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <ScoreBar
@@ -345,7 +323,6 @@ const MatchResultCard = ({
           </div>
         </div>
       </div>
-
       <div className="p-4 md:p-6">
         {expanded ? (
           report
@@ -364,9 +341,6 @@ const MatchResultCard = ({
           />
         )}
       </div>
-
-      {/* Mounted only while open: the modal owns a query, and every result
-          card on screen would otherwise fetch a draft list nobody asked for. */}
       {letterOpen && (
         <CoverLetterModal
           open

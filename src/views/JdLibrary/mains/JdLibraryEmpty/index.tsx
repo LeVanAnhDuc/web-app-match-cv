@@ -3,10 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-/**
- * Empty state of the saved-JD library — a JD only gets saved through the
- * matching wizard, so the CTA points there.
- */
 const JdLibraryEmpty = () => {
   const { t } = useTranslation();
 

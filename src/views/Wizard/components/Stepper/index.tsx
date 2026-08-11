@@ -17,7 +17,6 @@ const STEPS: Array<StepDef> = [
   { step: 4, icon: CheckCircle, labelKey: "step.result" }
 ];
 
-/** Single stepper dot — private presentational helper for {@link Stepper}. */
 function Dot({
   step,
   Icon,
@@ -48,13 +47,6 @@ function Dot({
   );
 }
 
-/**
- * 4-step wizard stepper — dot + connecting line (mock §7). ONE markup, two
- * axes: horizontal on mobile/tablet, vertical rail from `lg` up. Deliberately
- * not two rendered variants toggled with `hidden` — that would duplicate the
- * `stepper-step-N` testids in the DOM (docs/specs/wizard-responsive/design.md
- * §4.2, §6.3).
- */
 const Stepper = ({ current }: { current: WizardStep }) => {
   const { t } = useTranslation();
 

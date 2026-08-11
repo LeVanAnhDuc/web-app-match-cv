@@ -10,18 +10,12 @@ import type { MatchSummaryDto } from "#/types/Matching";
 
 const RECENT_LIMIT = 5;
 
-/** Score → antd status color band, private helper for {@link RecentMatches}. */
 function scoreBand(score: number): "success" | "warning" | "error" {
   if (score >= 75) return "success";
   if (score >= 50) return "warning";
   return "error";
 }
 
-/**
- * Recent match history — up to 5 newest rows from GET /match. Row click
- * reopens the persisted result (jumps the wizard store to step 4).
- * Mock: docs/ui-designs/home-dashboard-library/home.html.
- */
 const RecentMatches = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();

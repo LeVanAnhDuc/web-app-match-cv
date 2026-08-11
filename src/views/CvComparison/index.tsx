@@ -2,10 +2,6 @@ import { useTranslation } from "react-i18next";
 import PageContainer from "#/components/PageContainer";
 import ComparisonReport from "./mains/ComparisonReport";
 
-/**
- * CV version comparison (Goal 9) — reached from the library row of a CV that
- * descends from another one, and from the result card of a match run on it.
- */
 const CvComparison = ({
   documentId,
   jdDocumentId

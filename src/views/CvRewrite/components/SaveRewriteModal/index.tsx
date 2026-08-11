@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 const MAX_TITLE_LENGTH = 200;
 
-/** Names the new CV. The rewrite is always saved as a NEW document (ADR #13). */
 const SaveRewriteModal = ({
   open,
   defaultTitle,
@@ -50,8 +49,6 @@ const SaveRewriteModal = ({
             { max: MAX_TITLE_LENGTH, message: t("rewrite.save.nameTooLong") }
           ]}
         >
-          {/* No autoFocus: antd already traps focus inside the dialog, and the
-              two existing modals in the app rely on that same behaviour. */}
           <Input maxLength={MAX_TITLE_LENGTH} />
         </Form.Item>
         <p className="text-sm text-muted">{t("rewrite.save.hint")}</p>

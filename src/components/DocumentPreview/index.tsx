@@ -12,7 +12,6 @@ import type {
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-/** Plain parsed-text renderer — SSR-safe, no client-only library involved. */
 function TextPreview({ rawText }: { rawText: string }) {
   return (
     <pre className="h-full overflow-auto p-4 text-sm break-words whitespace-pre-wrap text-body">
@@ -31,14 +30,6 @@ type PdfPreviewState =
       Page: typeof PdfPageComponent;
     };
 
-/**
- * PDF renderer via react-pdf — client-only: pdf.js touches `canvas`/
- * `DOMMatrix` at module-evaluation time and crashes SSR, so the library is
- * NEVER imported at top level. It's loaded with a dynamic `import()` inside
- * an effect (effects never run during SSR) gated behind a mount flag, which
- * also lets the server render a stable placeholder instead of the real
- * viewer (avoids a hydration mismatch).
- */
 function PdfPreview({ docId }: { docId: string }) {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -130,12 +121,6 @@ function PdfPreview({ docId }: { docId: string }) {
   );
 }
 
-/**
- * DOCX renderer via docx-preview — client-only: `renderAsync` reads a Blob
- * via zip/DOM APIs unavailable during SSR, so (same as {@link PdfPreview})
- * it's loaded with a dynamic `import()` inside a mount-gated effect rather
- * than imported at module top level.
- */
 function DocxPreview({ docId }: { docId: string }) {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -208,13 +193,6 @@ function DocxPreview({ docId }: { docId: string }) {
   );
 }
 
-/**
- * Renders the original file behind a saved document: `react-pdf` for
- * `pdf`, `docx-preview` for `docx` (both client-only, dynamically imported
- * to stay SSR-safe — see {@link PdfPreview}/{@link DocxPreview}), or the
- * plain parsed text otherwise. Shared between the wizard's StepReview and
- * the Document Library preview modal — no business logic.
- */
 const DocumentPreview = ({
   docId,
   sourceFormat,

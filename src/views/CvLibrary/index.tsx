@@ -9,12 +9,6 @@ import CvLibraryEmpty from "./mains/CvLibraryEmpty";
 import CvLibraryError from "./mains/CvLibraryError";
 import CvLibraryHeader from "./mains/CvLibraryHeader";
 
-/**
- * Saved-CV library page (`/cv`) — lists the current user's saved CVs with
- * preview / rename / compare / lineage / download / delete. State and actions
- * come from `useCvLibrary`; this shell only decides which state to show.
- * Mock: docs/ui-designs/home-dashboard-library/library-cv.html.
- */
 const CvLibrary = () => {
   const library = useCvLibrary();
   const settled = !library.isLoading && !library.isError;
@@ -22,13 +16,10 @@ const CvLibrary = () => {
   return (
     <PageContainer className="space-y-6">
       {library.contextHolder}
-
       <CvLibraryHeader count={settled ? library.docs.length : null} />
-
       {library.isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
       {library.isError && <CvLibraryError />}
       {settled && library.docs.length === 0 && <CvLibraryEmpty />}
-
       {library.docs.length > 0 && (
         <CvDocumentList
           docs={library.docs}
@@ -40,14 +31,12 @@ const CvLibrary = () => {
           onSetLineage={(doc) => library.openLineage(doc)}
         />
       )}
-
       <DocumentPreviewModal
         open={library.previewId !== null}
         doc={library.previewDoc}
         loading={library.previewLoading}
         onClose={library.closePreview}
       />
-
       <DocumentRenameModal
         open={library.renameTarget !== null}
         initialTitle={library.renameTarget?.title ?? ""}
@@ -55,7 +44,6 @@ const CvLibrary = () => {
         onCancel={library.closeRename}
         onConfirm={library.confirmRename}
       />
-
       <DocumentLineageModal
         open={library.lineageTarget !== null}
         doc={library.lineageTarget}

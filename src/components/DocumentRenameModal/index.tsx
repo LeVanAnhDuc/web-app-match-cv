@@ -2,11 +2,6 @@ import { Input, Modal } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-/**
- * Rename dialog (shared molecule, presentational). Holds the editable title
- * locally and hands the trimmed value back through `onConfirm`; the calling
- * page hook owns the mutation.
- */
 const DocumentRenameModal = ({
   open,
   initialTitle,

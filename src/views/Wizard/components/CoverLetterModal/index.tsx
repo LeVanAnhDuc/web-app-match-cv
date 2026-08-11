@@ -44,7 +44,6 @@ const MASK = "••••";
 const CONTENT_MAX_LENGTH = 20_000;
 const DRAFT_ROWS = 14;
 
-/** Trigger a plain-text download without leaving the modal. */
 function downloadText(filename: string, text: string): void {
   const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
   const anchor = document.createElement("a");
@@ -56,20 +55,6 @@ function downloadText(filename: string, text: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-/**
- * Write a cover letter from one match result.
- *
- * Every generation is persisted server-side, so the tone/length/language knobs
- * are worth turning: the earlier draft is still in the list when the next one
- * lands, and the two can be read side by side. A failed generation is a row
- * too, which is why this component renders an error state for a stored letter
- * rather than treating failure as a thrown request.
- *
- * The block under the draft lists what the model refused to claim
- * (`omittedRequirements`). That is the visible half of ADR #13: the letter is
- * grounded in the CV, and the things it could NOT support are stated instead
- * of quietly invented.
- */
 const CoverLetterModal = ({
   open,
   matchResultId,
@@ -266,7 +251,6 @@ const CoverLetterModal = ({
             />
           </div>
         </div>
-
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-56 flex-1">
             <p className="mb-1 text-xs font-semibold tracking-wider text-faint uppercase">
@@ -298,19 +282,15 @@ const CoverLetterModal = ({
             {t("coverLetter.generate")}
           </Button>
         </div>
-
         <p className="flex items-start gap-2 text-sm text-muted">
           <ShieldCheck size={14} className="mt-0.5 shrink-0" />
           {t("credentials.runWith.privacyList", { providers: privacyTarget })}
         </p>
-
         {actionError && (
           <Alert type="error" showIcon role="alert" message={actionError} />
         )}
-
         <div aria-live="polite" aria-busy={generating}>
           {generating && <Skeleton active paragraph={{ rows: 6 }} />}
-
           {!generating && active?.status === "failed" && (
             <Alert
               type="error"
@@ -328,7 +308,6 @@ const CoverLetterModal = ({
               }
             />
           )}
-
           {!generating && active?.status === "succeeded" && (
             <div className="space-y-3">
               <label
@@ -337,8 +316,6 @@ const CoverLetterModal = ({
               >
                 {t("coverLetter.draft")}
               </label>
-              {/* Plain text on purpose (no markdown renderer): its destination
-                  is an email box, and it removes the injection surface. */}
               <Input.TextArea
                 id="cover-letter-draft"
                 rows={DRAFT_ROWS}
@@ -346,7 +323,6 @@ const CoverLetterModal = ({
                 maxLength={CONTENT_MAX_LENGTH}
                 onChange={(event) => setDraft(event.target.value)}
               />
-
               <div className="flex flex-wrap gap-2">
                 <Button
                   icon={<Copy size={16} />}
@@ -373,7 +349,6 @@ const CoverLetterModal = ({
                   {t("coverLetter.save")}
                 </Button>
               </div>
-
               {active.omittedRequirements.length > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/5">
                   <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-400">
@@ -395,16 +370,13 @@ const CoverLetterModal = ({
             </div>
           )}
         </div>
-
         <div className="border-t border-line pt-4">
           <p className="mb-2 text-xs font-semibold tracking-wider text-faint uppercase">
             {t("coverLetter.drafts")}
           </p>
-
           {lettersQuery.isLoading && (
             <Skeleton active paragraph={{ rows: 2 }} />
           )}
-
           {lettersQuery.isError && (
             <Alert
               type="error"
@@ -413,7 +385,6 @@ const CoverLetterModal = ({
               message={t("coverLetter.err.list")}
             />
           )}
-
           {!lettersQuery.isLoading &&
             !lettersQuery.isError &&
             letters.length === 0 && (
@@ -422,7 +393,6 @@ const CoverLetterModal = ({
                 description={t("coverLetter.empty")}
               />
             )}
-
           <ul className="space-y-2">
             {letters.map((letter) => (
               <li

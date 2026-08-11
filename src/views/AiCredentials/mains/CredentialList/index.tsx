@@ -17,10 +17,6 @@ import CredentialRow from "../../components/CredentialRow";
 
 const NOT_CONFIGURED = 503;
 
-/**
- * Credentials page organism: lists the user's stored provider keys and wires
- * the per-row actions (test / edit / delete) to the credential hooks.
- */
 const CredentialList = () => {
   const { t } = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
@@ -69,14 +65,12 @@ const CredentialList = () => {
   return (
     <PageContainer className="space-y-6">
       {contextHolder}
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-body">
           {t("credentials.title")}
         </h1>
         <p className="mt-1 text-sm text-muted">{t("credentials.subtitle")}</p>
       </header>
-
       <SectionCard
         extra={
           <Button
@@ -94,7 +88,6 @@ const CredentialList = () => {
             <Skeleton active paragraph={{ rows: 4 }} />
           </div>
         )}
-
         {credentialsQuery.isError && (
           <div className="p-4 md:p-6">
             <Alert
@@ -105,7 +98,6 @@ const CredentialList = () => {
             />
           </div>
         )}
-
         {!credentialsQuery.isLoading &&
           !credentialsQuery.isError &&
           credentials.length === 0 && (
@@ -122,7 +114,6 @@ const CredentialList = () => {
               </Button>
             </div>
           )}
-
         {credentials.length > 0 && (
           <ul>
             {credentials.map((credential) => (
@@ -140,15 +131,12 @@ const CredentialList = () => {
           </ul>
         )}
       </SectionCard>
-
       <p className="text-sm text-muted">{t("credentials.fallbackNote")}</p>
-
       <CredentialFormModal
         open={addOpen}
         credential={null}
         onClose={() => setAddOpen(false)}
       />
-
       <CredentialFormModal
         open={editTarget !== null}
         credential={editTarget}

@@ -2,12 +2,6 @@ import { Checkbox, Tag } from "antd";
 import { useTranslation } from "react-i18next";
 import type { CvRewriteChange } from "#/types/CvRewrite";
 
-/**
- * One proposed edit, shown as the CV's real wording next to what would replace
- * it. Nothing is pre-ticked anywhere in this flow: the user has to approve each
- * change on its own, which is the only defence against the model quietly
- * inflating a line it was allowed to touch (ADR #13).
- */
 const ChangeCard = ({
   change,
   checked,
@@ -47,7 +41,6 @@ const ChangeCard = ({
               <Tag className="!me-0">{t("rewrite.change.removal")}</Tag>
             )}
           </div>
-
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted">
               {t("rewrite.change.original")}
@@ -56,7 +49,6 @@ const ChangeCard = ({
               {change.original}
             </p>
           </div>
-
           {!isRemoval && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted">
@@ -67,7 +59,6 @@ const ChangeCard = ({
               </p>
             </div>
           )}
-
           {change.rationale && (
             <p className="text-sm text-muted">{change.rationale}</p>
           )}

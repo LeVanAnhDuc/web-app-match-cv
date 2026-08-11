@@ -6,13 +6,6 @@ import type { AiCredentialDto, ProviderInfoDto } from "#/types/AiCredentials";
 
 const MASK = "••••";
 
-/**
- * One stored credential. Presentational: the list organism owns the mutations.
- * Tab order across the actions is Test → Edit → Delete, matching how often
- * each is used.
- *
- * Mock: docs/ui-designs/ai-credentials/credentials-page.html
- */
 const CredentialRow = ({
   credential,
   providerLabel,
@@ -58,7 +51,6 @@ const CredentialRow = ({
           />
         </div>
       </div>
-
       <div className="flex shrink-0 items-center gap-2">
         <Button
           size="small"

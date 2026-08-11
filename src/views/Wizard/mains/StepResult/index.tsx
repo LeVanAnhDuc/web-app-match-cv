@@ -7,24 +7,6 @@ import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
 import MatchResultCard from "../../components/MatchResultCard";
 
-/**
- * Wizard step 4 — one card per provider chosen in step 3.
- *
- * Two paths, deliberately distinct:
- *
- * - **Live run** — `pendingCredentialIds` is populated, so each card fires its
- *   own request and reveals itself as it lands.
- * - **After a reload** — the store is in-memory, so `pendingCredentialIds` is
- *   empty. The step then only READS the run. Re-firing would silently double
- *   the AI spend, and a run holding fewer results than the user selected is
- *   the correct picture of what actually completed (`erd.md`).
- *
- * A third, narrower path reopens a SINGLE stored result: Home's history widget
- * hands over a `matchId` and no run. Every result predating runs, and every row
- * reached from history, arrives this way.
- *
- * See docs/ui-designs/cv-jd-matching-wizard/wizard-step4-result.html.
- */
 const StepResult = () => {
   const { t } = useTranslation();
   const runId = useWizardStore((s) => s.runId);
@@ -157,8 +139,6 @@ const StepResult = () => {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      {/* polite, not assertive: a provider finishing should be announced, not
-          interrupt whatever the user is reading on an earlier card. */}
       <div aria-live="polite" className="flex flex-1 flex-col gap-4">
         {cards.length === 0 && (
           <SectionCard bodyClassName="p-8 md:p-16">
@@ -170,7 +150,6 @@ const StepResult = () => {
             />
           </SectionCard>
         )}
-
         {cards.map((card) => (
           <MatchResultCard
             key={card.key}
@@ -184,7 +163,6 @@ const StepResult = () => {
           />
         ))}
       </div>
-
       <div className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-4 py-3 md:px-6">
         {startOver}
         <Button type="primary" size="large">

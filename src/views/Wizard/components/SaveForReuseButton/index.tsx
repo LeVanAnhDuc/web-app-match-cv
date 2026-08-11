@@ -4,12 +4,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DocumentKind } from "#/types/Documents";
 
-/**
- * Explicit "save for reuse" affordance: shown after a file/text is imported.
- * A clearly-labelled button opens a modal that explains what saving does and
- * asks for a name — so the user understands the action and there's no
- * ambiguity. See .claude/uiux/standards.md §7. Replaces the old inline toggle.
- */
 const SaveForReuseButton = ({
   kind,
   savedTitle,
@@ -66,7 +60,6 @@ const SaveForReuseButton = ({
       <Button icon={<Icon size={16} />} onClick={() => setOpen(true)}>
         {t("save.button")}
       </Button>
-
       <Modal
         title={t("save.modal.title")}
         open={open}

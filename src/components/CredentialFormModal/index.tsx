@@ -33,7 +33,6 @@ interface FormValues {
   embedModel?: string;
 }
 
-/** One line of the post-save test strip: chat and embeddings report separately. */
 function CapabilityLine({
   name,
   status,
@@ -64,17 +63,6 @@ function CapabilityLine({
   );
 }
 
-/**
- * Add/edit dialog for an AI credential, shared by the credentials page and the
- * wizard's "Run with" block so both behave identically.
- *
- * After a successful save that changed the key or a model, the connection is
- * tested once immediately and the result is shown here before the dialog
- * closes — otherwise a brand-new credential would sit at "Not tested" for no
- * reason the user can see.
- *
- * Mock: docs/ui-designs/ai-credentials/credential-form-modal.html
- */
 const CredentialFormModal = ({
   open,
   credential,
@@ -212,7 +200,6 @@ const CredentialFormModal = ({
             options={providers.map((p) => ({ value: p.id, label: p.label }))}
           />
         </Form.Item>
-
         <Form.Item
           name="label"
           label={t("credentials.form.label")}
@@ -223,7 +210,6 @@ const CredentialFormModal = ({
         >
           <Input placeholder={t("credentials.form.labelPlaceholder")} />
         </Form.Item>
-
         <Form.Item
           name="apiKey"
           label={t("credentials.form.apiKey")}
@@ -244,7 +230,6 @@ const CredentialFormModal = ({
         >
           <Input.Password autoComplete="off" placeholder="sk-…" />
         </Form.Item>
-
         <Form.Item
           name="chatModel"
           label={t("credentials.form.chatModel")}
@@ -258,7 +243,6 @@ const CredentialFormModal = ({
         >
           <Input placeholder={descriptor?.defaultChatModel} />
         </Form.Item>
-
         <Form.Item
           name="embedModel"
           label={t("credentials.form.embedModel")}
@@ -274,16 +258,13 @@ const CredentialFormModal = ({
           <Input placeholder={descriptor?.defaultEmbedModel} />
         </Form.Item>
       </Form>
-
       {saveError && <Alert type="error" showIcon message={saveError} />}
-
       {testing && (
         <div className="flex items-center gap-2 text-sm text-muted">
           <Spin size="small" />
           {t("credentials.form.testing")}
         </div>
       )}
-
       {testResult && !testing && (
         <div className="mt-2 space-y-1 rounded-md border border-line p-3">
           <CapabilityLine

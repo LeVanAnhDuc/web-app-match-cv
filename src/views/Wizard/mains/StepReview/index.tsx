@@ -9,13 +9,6 @@ import { useCreateMatchRun } from "#/hooks/useMatch";
 import { useWizardStore } from "#/stores";
 import RunWithSelector from "../../components/RunWithSelector";
 
-/**
- * Wizard step 3 — Review. Renders the ORIGINAL CV and JD files read-only
- * (PDF/DOCX via DocumentPreview, or parsed text for pasted docs) so the user
- * confirms the right documents before matching. No inline editing: Run match
- * uses the already-selected document ids directly. Back returns to step 2.
- * See docs/ui-designs/home-dashboard-library/review-step.html.
- */
 const StepReview = () => {
   const { t } = useTranslation();
   const jdDocId = useWizardStore((s) => s.jdDocId);
@@ -118,7 +111,6 @@ const StepReview = () => {
       }
     >
       <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
-
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
         <section className="flex min-h-0 flex-col p-4 md:p-6">
           <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-faint uppercase">
@@ -145,7 +137,6 @@ const StepReview = () => {
           </div>
         </section>
       </div>
-
       {error && (
         <p
           role="alert"

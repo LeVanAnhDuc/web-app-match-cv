@@ -3,10 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-/**
- * Empty state of the saved-CV library — a CV only gets saved through the
- * matching wizard, so the CTA points there.
- */
 const CvLibraryEmpty = () => {
   const { t } = useTranslation();
 

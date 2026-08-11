@@ -6,12 +6,6 @@ import StepJD from "./mains/StepJD";
 import StepResult from "./mains/StepResult";
 import StepReview from "./mains/StepReview";
 
-/**
- * Wizard shell — rendered inside the app shell (which owns the sidebar/nav),
- * so this only holds the horizontal 4-step Stepper + the current step body.
- * Step 1 (JD) and 2 (CV) use DocumentInputStep; step 3 (Review) renders the
- * original files read-only; step 4 (Result) shows the match report.
- */
 const Wizard = () => {
   const step = useWizardStore((s) => s.step);
 

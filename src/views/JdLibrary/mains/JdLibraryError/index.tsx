@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 
-/** Load-failure state of the saved-JD library, announced to screen readers. */
 const JdLibraryError = () => {
   const { t } = useTranslation();
 

@@ -56,7 +56,7 @@ Thư mục `.claude/skills/` chứa các file hướng dẫn coding convention. 
 | `mocks`             | `src/mocks/**` — dummy data                                                       |
 | `locales`           | `src/locales/**` — i18next JSON `en/`+`vi/`                                       |
 | `imports`           | `src/**` — alias `#/`, TanStack Router nav, `import type`                         |
-| `jsx`               | `src/**/*.tsx` — ưu tiên antd cho interactive element                             |
+| `jsx`               | `src/**/*.tsx` — antd cho interactive element; markup không dòng trống/comment    |
 | `layout-primitives` | `src/**/*.tsx` — `PageContainer`/`SectionCard`, semantic token, thang chữ         |
 
 ## Commands

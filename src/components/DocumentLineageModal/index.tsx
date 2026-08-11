@@ -3,14 +3,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
-/**
- * "This document is a newer version of…" — the manual half of Goal 9's
- * lineage, for a CV edited by hand rather than produced by the rewrite
- * assistant.
- *
- * Shared and presentational: the calling page hook owns the mutation. Clearing
- * the selection sends null, which is how a wrong link is undone.
- */
 const DocumentLineageModal = ({
   open,
   doc,

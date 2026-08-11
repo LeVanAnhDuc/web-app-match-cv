@@ -7,7 +7,6 @@ import type { InputMode } from "#/types/Wizard";
 const { Dragger } = Upload;
 const { TextArea } = Input;
 
-/** Upload/Paste segmented switcher — dropzone or textarea (mock §7 Input tabs). */
 const UploadPasteTabs = ({
   mode,
   onModeChange,
@@ -54,7 +53,6 @@ const UploadPasteTabs = ({
         ]}
         className="mb-8"
       />
-
       {mode === "upload" ? (
         <Dragger
           {...draggerProps}

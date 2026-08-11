@@ -3,11 +3,6 @@ import { ConfigProvider, theme } from "antd";
 import { useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
 
-/**
- * Tracks `prefers-color-scheme` so antd's algorithm/token follow the same
- * light/dark switch Tailwind's `dark:` variant already reacts to (no class
- * toggle wired yet — see .claude/uiux/frontend-reference.md §6).
- */
 function usePrefersDark() {
   const [isDark, setIsDark] = useState(false);
 

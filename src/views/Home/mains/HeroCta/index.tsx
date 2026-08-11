@@ -4,11 +4,6 @@ import { FileSearch, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
 
-/**
- * Hero CTA — the single most eye-catching element on the Home dashboard;
- * primary entry point into the matching wizard.
- * Mock: docs/ui-designs/home-dashboard-library/home.html.
- */
 const HeroCta = () => {
   const { t } = useTranslation();
 

@@ -16,11 +16,6 @@ const MS_PER_MINUTE = 60_000;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 
-/**
- * Render a past timestamp as "3 minutes ago" in the active locale. Chosen over
- * a raw date so a stale verdict reads as stale at a glance; the exact instant
- * stays available in the tooltip.
- */
 function relativeTime(iso: string, locale: string): string {
   const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   const minutes = Math.round(
@@ -33,7 +28,6 @@ function relativeTime(iso: string, locale: string): string {
   return formatter.format(Math.round(hours / HOURS_PER_DAY), "day");
 }
 
-/** Last connection-test verdict for a credential, with a relative timestamp. */
 const TestStatusTag = ({
   status,
   testedAt

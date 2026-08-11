@@ -11,12 +11,6 @@ import type { PropsWithChildren } from "react";
 import { useUiStore } from "#/stores";
 import Sidebar from "./components/Sidebar";
 
-/**
- * App shell: `>=lg` a fixed sidebar that collapses to an icon rail; `<lg` a
- * header with a hamburger opening the same nav in an antd Drawer (the rail is
- * a desktop affordance — on a narrow viewport it buys nothing). `<main>` owns
- * its own scroll so the shell never scrolls horizontally on narrow viewports.
- */
 const AppShell = ({ children }: PropsWithChildren) => {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -67,10 +61,8 @@ const AppShell = ({ children }: PropsWithChildren) => {
             className="text-muted"
           />
         </div>
-
         <Sidebar collapsed={isCollapsed} />
       </aside>
-
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 border-b border-line bg-surface px-4 py-3 lg:hidden">
           <Button
@@ -84,10 +76,8 @@ const AppShell = ({ children }: PropsWithChildren) => {
             {t("appName")}
           </span>
         </header>
-
         <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       </div>
-
       <Drawer
         placement="left"
         closable
@@ -97,7 +87,6 @@ const AppShell = ({ children }: PropsWithChildren) => {
         width={256}
         styles={{ body: { padding: 0 } }}
       >
-        {/* Always expanded: the rail is a desktop-only affordance. */}
         <Sidebar />
       </Drawer>
     </div>

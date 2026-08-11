@@ -3,13 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import type { DocumentKind } from "#/types/Documents";
 
-/**
- * Reuse list for saved JD/CV documents — a radio group of single-line
- * list-rows (never wrapping): radio dot (shrink-0) · middle `min-w-0 flex-1`
- * (title + meta, truncated) · format badge (shrink-0). Native radio inputs
- * (not antd Radio) to avoid the inline-flex label wrapping that broke the
- * layout. Empty-state when nothing saved. See .claude/uiux/standards.md §7.
- */
 const SavedDocRadioList = ({
   kind,
   selectedId,
@@ -57,6 +50,8 @@ const SavedDocRadioList = ({
                 : "border-line hover:bg-surface-subtle"
             ].join(" ")}
           >
+            {/* Native radio, not antd Radio: the inline-flex label of antd
+                wraps and breaks this single-line row layout. */}
             <input
               type="radio"
               name={groupName}

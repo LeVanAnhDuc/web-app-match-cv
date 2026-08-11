@@ -17,17 +17,6 @@ const TONE = {
   }
 } as const;
 
-/**
- * One bucket of the gap diff.
- *
- * Always renders the VERBATIM gap text, never just the label. Matching gaps
- * across two LLM-written reports is an estimate with real failure modes
- * (design.md §3.4), so the user has to be able to see what the machine
- * classified and disagree with it.
- *
- * `persisted` shows BOTH wordings: how a gap was rephrased between versions is
- * itself the signal that it narrowed without closing.
- */
 const GapDiffList = ({
   kind,
   items
@@ -49,7 +38,6 @@ const GapDiffList = ({
         {heading}
         <span className="text-muted">({items.length})</span>
       </h3>
-
       {items.length === 0 ? (
         // An empty bucket is information, not a blank space.
         <p className="text-sm text-faint">{t("compare.gaps.none")}</p>
