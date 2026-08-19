@@ -17,8 +17,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write . && eslint --fix",
     "format:check": "prettier --check .",
-    "check": "prettier --check .",
-    "prepare": "husky"
+    "check": "prettier --check ."
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [

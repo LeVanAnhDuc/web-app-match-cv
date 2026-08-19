@@ -23,8 +23,7 @@
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json",
     "recompute-scores": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/recompute-keyword-scores.ts",
     "seed:mock": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/seed-mock.ts",
-    "seed:mock:clean": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/seed-mock.ts --clean",
-    "prepare": "husky"
+    "seed:mock:clean": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/seed-mock.ts --clean"
   },
   "resolutions": {
     "string-width": "4.2.3",
