@@ -1,0 +1,379 @@
+<!DOCTYPE html><html lang="en" class=""><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <style>
+    html, body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2563eb',
+              dark: '#6366f1'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- WRAPPER FOR BOTH THEMES -->
+  <div class="space-y-0" data-sd-id="1">
+    
+    <!-- LIGHT THEME SECTION -->
+    <div class="bg-slate-50 text-slate-900 min-h-screen relative flex" data-sd-id="2">
+      <!-- SIDEBAR RAIL -->
+      <aside class="w-[280px] h-screen border-r border-slate-200 bg-white flex flex-col p-6 shrink-0 sticky top-0" data-sd-id="3">
+        <div class="flex items-center gap-3 mb-10" data-sd-id="4">
+          <div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white" data-sd-id="5">
+            <iconify-icon icon="lucide:briefcase" class="text-2xl"></iconify-icon>
+          </div>
+          <span class="text-lg font-bold tracking-tight" data-sd-id="6">MatchCV</span>
+        </div>
+
+        <nav class="flex flex-col gap-2" data-sd-id="7">
+          <a id="nav-home" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="8">
+            <iconify-icon icon="lucide:layout-dashboard" class="text-lg"></iconify-icon>
+            Home
+          </a>
+          <a id="nav-match" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-primary bg-primary/5 rounded-md transition-colors" data-sd-id="9">
+            <iconify-icon icon="lucide:sparkles" class="text-lg"></iconify-icon>
+            Match CV-JD
+          </a>
+          <div class="h-px bg-slate-100 my-2" data-sd-id="10"></div>
+          <a id="nav-saved-cvs" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-white bg-primary rounded-md shadow-sm transition-colors" data-sd-id="11">
+            <iconify-icon icon="lucide:file-user" class="text-lg"></iconify-icon>
+            Saved CVs
+          </a>
+          <a id="nav-saved-jds" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="12">
+            <iconify-icon icon="lucide:file-text" class="text-lg"></iconify-icon>
+            Saved JDs
+          </a>
+        </nav>
+
+        <div class="mt-auto" data-sd-id="13">
+          <button onclick="document.querySelectorAll('.dark-mode-toggle').forEach(el => el.closest('.space-y-0').classList.toggle('dark'))" class="dark-mode-toggle w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="14">
+            <iconify-icon icon="lucide:moon"></iconify-icon>
+            Dark Mode
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 p-8 overflow-y-auto" data-sd-id="15">
+        <div class="max-w-5xl mx-auto" data-sd-id="16">
+          <header class="mb-8 flex justify-between items-end" data-sd-id="17">
+            <div data-sd-id="18">
+              <h1 class="text-2xl font-bold tracking-tight text-slate-900" data-sd-id="19">Saved CVs</h1>
+              <p class="text-sm text-slate-500 mt-1" data-sd-id="20">Manage 5 CV documents for your matching analysis.</p>
+            </div>
+            <button id="upload-new-cv" class="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2" data-sd-id="21">
+              <iconify-icon icon="lucide:plus"></iconify-icon>
+              Add New CV
+            </button>
+          </header>
+
+          <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" data-sd-id="22">
+            <div class="flex flex-col" data-sd-id="23">
+              <!-- Row 1 -->
+              <div class="flex items-center gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition-colors group" data-sd-id="24">
+                <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="25">
+                  <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500" data-sd-id="26">
+                    <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                  </div>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600" data-sd-id="27">PDF</span>
+                </div>
+                <div class="min-w-0 flex-1" data-sd-id="28">
+                  <h3 class="text-sm font-semibold truncate text-slate-900" data-sd-id="29">Senior_Frontend_Engineer_Alex_2024.pdf</h3>
+                  <p class="text-xs text-slate-500 mt-0.5" data-sd-id="30">Uploaded 3 days ago • 1.2 MB</p>
+                </div>
+                <div class="shrink-0 flex items-center gap-1" data-sd-id="31">
+                  <button aria-label="Preview" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" data-sd-id="32"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                  <button aria-label="Rename" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="33"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                  <button aria-label="Download" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="34"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                  <button aria-label="Delete" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-sd-id="35"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                </div>
+              </div>
+              <!-- Row 2 -->
+              <div class="flex items-center gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition-colors" data-sd-id="36">
+                <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="37">
+                  <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500" data-sd-id="38">
+                    <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                  </div>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700" data-sd-id="39">DOCX</span>
+                </div>
+                <div class="min-w-0 flex-1" data-sd-id="40">
+                  <h3 class="text-sm font-semibold truncate text-slate-900" data-sd-id="41">Product_Manager_Lead_Portfolio.docx</h3>
+                  <p class="text-xs text-slate-500 mt-0.5" data-sd-id="42">Uploaded 5 days ago • 840 KB</p>
+                </div>
+                <div class="shrink-0 flex items-center gap-1" data-sd-id="43">
+                  <button aria-label="Preview" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" data-sd-id="44"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                  <button aria-label="Rename" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="45"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                  <button aria-label="Download" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="46"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                  <button aria-label="Delete" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-sd-id="47"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                </div>
+              </div>
+              <!-- Row 3 -->
+              <div class="flex items-center gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition-colors" data-sd-id="48">
+                <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="49">
+                  <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500" data-sd-id="50">
+                    <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                  </div>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600" data-sd-id="51">PDF</span>
+                </div>
+                <div class="min-w-0 flex-1" data-sd-id="52">
+                  <h3 class="text-sm font-semibold truncate text-slate-900" data-sd-id="53">DevOps_Specialist_Cloud_Ops.pdf</h3>
+                  <p class="text-xs text-slate-500 mt-0.5" data-sd-id="54">Uploaded 1 week ago • 2.1 MB</p>
+                </div>
+                <div class="shrink-0 flex items-center gap-1" data-sd-id="55">
+                  <button aria-label="Preview" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" data-sd-id="56"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                  <button aria-label="Rename" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="57"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                  <button aria-label="Download" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="58"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                  <button aria-label="Delete" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-sd-id="59"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                </div>
+              </div>
+              <!-- Row 4 -->
+              <div class="flex items-center gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 transition-colors" data-sd-id="60">
+                <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="61">
+                  <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500" data-sd-id="62">
+                    <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                  </div>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600" data-sd-id="63">TEXT</span>
+                </div>
+                <div class="min-w-0 flex-1" data-sd-id="64">
+                  <h3 class="text-sm font-semibold truncate text-slate-900" data-sd-id="65">Raw_Resume_Data_Import_2023.txt</h3>
+                  <p class="text-xs text-slate-500 mt-0.5" data-sd-id="66">Uploaded 2 weeks ago • 12 KB</p>
+                </div>
+                <div class="shrink-0 flex items-center gap-1" data-sd-id="67">
+                  <button aria-label="Preview" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" data-sd-id="68"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                  <button aria-label="Rename" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="69"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                  <button aria-label="Download" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="70"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                  <button aria-label="Delete" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-sd-id="71"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                </div>
+              </div>
+              <!-- Row 5 -->
+              <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors" data-sd-id="72">
+                <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="73">
+                  <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500" data-sd-id="74">
+                    <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                  </div>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600" data-sd-id="75">PDF</span>
+                </div>
+                <div class="min-w-0 flex-1" data-sd-id="76">
+                  <h3 class="text-sm font-semibold truncate text-slate-900" data-sd-id="77">UX_Designer_Profile_Draft.pdf</h3>
+                  <p class="text-xs text-slate-500 mt-0.5" data-sd-id="78">Uploaded 1 month ago • 4.5 MB</p>
+                </div>
+                <div class="shrink-0 flex items-center gap-1" data-sd-id="79">
+                  <button aria-label="Preview" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" data-sd-id="80"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                  <button aria-label="Rename" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="81"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                  <button aria-label="Download" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" data-sd-id="82"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                  <button aria-label="Delete" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-sd-id="83"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- MODAL OVERLAY -->
+      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-8" data-sd-id="84">
+        <div class="bg-white w-full max-w-4xl max-h-full rounded-xl shadow-2xl flex flex-col" data-sd-id="85">
+          <!-- Modal Header -->
+          <header class="px-6 py-4 border-b border-slate-100 flex justify-between items-center" data-sd-id="86">
+            <div class="flex items-center gap-3" data-sd-id="87">
+              <iconify-icon icon="lucide:file-text" class="text-primary text-xl"></iconify-icon>
+              <h2 class="text-base font-semibold text-slate-900" data-sd-id="88">Senior_Frontend_Engineer_Alex_2024.pdf</h2>
+            </div>
+            <button class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors" data-sd-id="89">
+              <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+            </button>
+          </header>
+
+          <!-- Modal Body (PDF Preview Area) -->
+          <div class="flex-1 overflow-y-auto p-8 bg-slate-100/50 custom-scrollbar flex justify-center" data-sd-id="90">
+            <div class="w-full max-w-[650px] bg-white aspect-[1/1.414] rounded-xl border border-slate-200 shadow-sm p-12 flex flex-col gap-6" data-sd-id="91">
+              <!-- Header Simulation -->
+              <div class="space-y-2" data-sd-id="92">
+                <div class="h-6 w-3/4 bg-slate-100 rounded" data-sd-id="93"></div>
+                <div class="h-4 w-1/2 bg-slate-50 rounded" data-sd-id="94"></div>
+              </div>
+              <!-- Content Simulation -->
+              <div class="space-y-4" data-sd-id="95">
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="96"></div>
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="97"></div>
+                <div class="h-3 w-4/5 bg-slate-50 rounded" data-sd-id="98"></div>
+              </div>
+              <div class="space-y-3" data-sd-id="99">
+                <div class="h-5 w-1/4 bg-slate-100 rounded" data-sd-id="100"></div>
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="101"></div>
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="102"></div>
+                <div class="h-3 w-2/3 bg-slate-50 rounded" data-sd-id="103"></div>
+              </div>
+              <div class="mt-auto space-y-2" data-sd-id="104">
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="105"></div>
+                <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="106"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <footer class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3" data-sd-id="107">
+            <button class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-md transition-colors" data-sd-id="108">Close</button>
+            <button class="px-6 py-2 bg-primary text-white text-sm font-semibold rounded-md shadow-md hover:opacity-90 transition-opacity flex items-center gap-2" data-sd-id="109">
+              <iconify-icon icon="lucide:download"></iconify-icon>
+              Download PDF
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <!-- DARK THEME SECTION -->
+    <div class="dark" data-sd-id="110">
+      <div class="bg-slate-900 text-white min-h-screen relative flex" data-sd-id="111">
+        <!-- SIDEBAR RAIL -->
+        <aside class="w-[280px] h-screen border-r border-slate-800 bg-slate-900 flex flex-col p-6 shrink-0 sticky top-0" data-sd-id="112">
+          <div class="flex items-center gap-3 mb-10" data-sd-id="113">
+            <div class="size-10 bg-indigo-500 rounded-lg flex items-center justify-center text-white" data-sd-id="114">
+              <iconify-icon icon="lucide:briefcase" class="text-2xl"></iconify-icon>
+            </div>
+            <span class="text-lg font-bold tracking-tight" data-sd-id="115">MatchCV</span>
+          </div>
+
+          <nav class="flex flex-col gap-2" data-sd-id="116">
+            <a id="dark-nav-home" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 rounded-md transition-colors" data-sd-id="117">
+              <iconify-icon icon="lucide:layout-dashboard" class="text-lg"></iconify-icon>
+              Home
+            </a>
+            <a id="dark-nav-match" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-indigo-500 bg-indigo-500/10 rounded-md transition-colors" data-sd-id="118">
+              <iconify-icon icon="lucide:sparkles" class="text-lg"></iconify-icon>
+              Match CV-JD
+            </a>
+            <div class="h-px bg-slate-800 my-2" data-sd-id="119"></div>
+            <a id="dark-nav-saved-cvs" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-white bg-indigo-500 rounded-md shadow-sm transition-colors" data-sd-id="120">
+              <iconify-icon icon="lucide:file-user" class="text-lg"></iconify-icon>
+              Saved CVs
+            </a>
+            <a id="dark-nav-saved-jds" href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 rounded-md transition-colors" data-sd-id="121">
+              <iconify-icon icon="lucide:file-text" class="text-lg"></iconify-icon>
+              Saved JDs
+            </a>
+          </nav>
+
+          <div class="mt-auto" data-sd-id="122">
+            <button onclick="document.querySelectorAll('.dark-mode-toggle').forEach(el => el.closest('.space-y-0').classList.toggle('dark'))" class="dark-mode-toggle w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 rounded-md transition-colors" data-sd-id="123">
+              <iconify-icon icon="lucide:sun"></iconify-icon>
+              Light Mode
+            </button>
+          </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 p-8 overflow-y-auto bg-slate-900" data-sd-id="124">
+          <div class="max-w-5xl mx-auto" data-sd-id="125">
+            <header class="mb-8 flex justify-between items-end" data-sd-id="126">
+              <div data-sd-id="127">
+                <h1 class="text-2xl font-bold tracking-tight text-white" data-sd-id="128">Saved CVs</h1>
+                <p class="text-sm text-slate-400 mt-1" data-sd-id="129">Manage 5 CV documents for your matching analysis.</p>
+              </div>
+              <button id="dark-upload-new-cv" class="bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center gap-2" data-sd-id="130">
+                <iconify-icon icon="lucide:plus"></iconify-icon>
+                Add New CV
+              </button>
+            </header>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-sm overflow-hidden" data-sd-id="131">
+              <div class="flex flex-col" data-sd-id="132">
+                <!-- Row 1 -->
+                <div class="flex items-center gap-4 px-6 py-4 border-b border-slate-700 hover:bg-slate-700/50 transition-colors" data-sd-id="133">
+                  <div class="shrink-0 flex flex-col items-center gap-1" data-sd-id="134">
+                    <div class="size-10 bg-slate-900 rounded-lg flex items-center justify-center text-slate-400" data-sd-id="135">
+                      <iconify-icon icon="lucide:file-text" class="text-xl"></iconify-icon>
+                    </div>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300" data-sd-id="136">PDF</span>
+                  </div>
+                  <div class="min-w-0 flex-1" data-sd-id="137">
+                    <h3 class="text-sm font-semibold truncate text-white" data-sd-id="138">Senior_Frontend_Engineer_Alex_2024.pdf</h3>
+                    <p class="text-xs text-slate-400 mt-0.5" data-sd-id="139">Uploaded 3 days ago • 1.2 MB</p>
+                  </div>
+                  <div class="shrink-0 flex items-center gap-1" data-sd-id="140">
+                    <button aria-label="Preview" class="p-2 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-md transition-colors" data-sd-id="141"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+                    <button aria-label="Rename" class="p-2 text-slate-500 hover:text-white hover:bg-slate-700 rounded-md transition-colors" data-sd-id="142"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+                    <button aria-label="Download" class="p-2 text-slate-500 hover:text-white hover:bg-slate-700 rounded-md transition-colors" data-sd-id="143"><iconify-icon icon="lucide:download"></iconify-icon></button>
+                    <button aria-label="Delete" class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-900/20 rounded-md transition-colors" data-sd-id="144"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                  </div>
+                </div>
+                <!-- Additional rows implied for dark theme... omitted for brevity but identical in structure -->
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- MODAL OVERLAY DARK -->
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-8" data-sd-id="145">
+          <div class="bg-slate-800 w-full max-w-4xl max-h-full rounded-xl shadow-2xl flex flex-col border border-slate-700" data-sd-id="146">
+            <header class="px-6 py-4 border-b border-slate-700 flex justify-between items-center" data-sd-id="147">
+              <div class="flex items-center gap-3" data-sd-id="148">
+                <iconify-icon icon="lucide:file-text" class="text-indigo-400 text-xl"></iconify-icon>
+                <h2 class="text-base font-semibold text-white" data-sd-id="149">Senior_Frontend_Engineer_Alex_2024.pdf</h2>
+              </div>
+              <button class="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-700 transition-colors" data-sd-id="150">
+                <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+              </button>
+            </header>
+            <div class="flex-1 overflow-y-auto p-8 bg-slate-900/50 custom-scrollbar flex justify-center" data-sd-id="151">
+              <div class="w-full max-w-[650px] bg-white aspect-[1/1.414] rounded-xl border border-slate-700 shadow-sm p-12 flex flex-col gap-6" data-sd-id="152">
+                <!-- Header Simulation -->
+                <div class="space-y-2" data-sd-id="153">
+                  <div class="h-6 w-3/4 bg-slate-100 rounded" data-sd-id="154"></div>
+                  <div class="h-4 w-1/2 bg-slate-50 rounded" data-sd-id="155"></div>
+                </div>
+                <!-- Content Simulation -->
+                <div class="space-y-4" data-sd-id="156">
+                  <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="157"></div>
+                  <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="158"></div>
+                  <div class="h-3 w-4/5 bg-slate-50 rounded" data-sd-id="159"></div>
+                </div>
+                <div class="space-y-3" data-sd-id="160">
+                  <div class="h-5 w-1/4 bg-slate-100 rounded" data-sd-id="161"></div>
+                  <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="162"></div>
+                  <div class="h-3 w-full bg-slate-50 rounded" data-sd-id="163"></div>
+                </div>
+              </div>
+            </div>
+            <footer class="px-6 py-4 border-t border-slate-700 flex justify-end gap-3" data-sd-id="164">
+              <button class="px-4 py-2 text-sm font-medium text-slate-400 hover:bg-slate-700 rounded-md transition-colors" data-sd-id="165">Close</button>
+              <button class="px-6 py-2 bg-indigo-500 text-white text-sm font-semibold rounded-md shadow-md hover:opacity-90 transition-opacity flex items-center gap-2" data-sd-id="166">
+                <iconify-icon icon="lucide:download"></iconify-icon>
+                Download PDF
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body></html>

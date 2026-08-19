@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 4 - Result | MatchWizard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&f[]=clash-grotesk@600&display=swap" rel="stylesheet">
+    <meta name="view-transition" content="same-origin">
+    <link rel="prefetch" href="https://p.superdesign.dev/draft/41ff4404-676e-4a08-a30f-1a80873d61ae" as="document">
+    <link rel="prefetch" href="https://p.superdesign.dev/draft/2865fe88-c76a-4623-8047-3b4ca1246503" as="document">
+    <link rel="prefetch" href="https://p.superdesign.dev/draft/5750e158-753d-41f2-9586-cc7d8caf471d" as="document">
+    <style>
+        body { font-family: 'Switzer', sans-serif; scroll-behavior: smooth; }
+        h1, h2, h3, h4 { font-family: 'Clash Grotesk', sans-serif; }
+        @view-transition { navigation: auto; }
+        ::view-transition-old(main-content) {
+            animation: 0.25s ease-out both fade-out;
+        }
+        ::view-transition-new(main-content) {
+            animation: 0.25s ease-in 0.1s both fade-in;
+        }
+        @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .step-line { flex: 1; height: 2px; background: #e2e8f0; margin: 0 1rem; }
+        .dark .step-line { background: #334155; }
+        .step-line.active { background: #2563eb; }
+        .dark .step-line.active { background: #4f46e5; }
+        .gauge-container { position: relative; width: 160px; height: 160px; }
+        .gauge-svg { transform: rotate(-90deg); }
+        .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 8; }
+        .gauge-fill { fill: none; stroke: #2563eb; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 110; transition: stroke-dashoffset 1s ease-out; }
+        .dark .gauge-bg { stroke: #1e293b; }
+        .dark .gauge-fill { stroke: #6366f1; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-6 gap-20">
+        
+        <!-- Light Theme Version -->
+        <section class="w-full max-w-5xl" style="view-transition-name: main-content">
+            <div class="flex items-center justify-between mb-12">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <iconify-icon icon="lucide:wand-2" class="text-white text-2xl"></iconify-icon>
+                    </div>
+                    <h1 class="text-2xl font-semibold text-slate-900">MatchWizard <span class="text-slate-400 font-normal">/ Results Report</span></h1>
+                </div>
+                <div class="px-4 py-1.5 bg-green-50 text-green-700 text-sm font-medium rounded-full flex items-center gap-1">
+                    <iconify-icon icon="lucide:check-circle"></iconify-icon> Matching Complete
+                </div>
+            </div>
+
+            <!-- Stepper -->
+            <div class="flex items-center justify-between w-full mb-16">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600/10 border-2 border-blue-600/30 text-blue-600 flex items-center justify-center font-bold">
+                        <iconify-icon icon="lucide:check"></iconify-icon>
+                    </div>
+                    <span class="text-sm font-medium text-slate-500">Job Description</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600/10 border-2 border-blue-600/30 text-blue-600 flex items-center justify-center font-bold">
+                        <iconify-icon icon="lucide:check"></iconify-icon>
+                    </div>
+                    <span class="text-sm font-medium text-slate-500">CV / Resume</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600/10 border-2 border-blue-600/30 text-blue-600 flex items-center justify-center font-bold">
+                        <iconify-icon icon="lucide:check"></iconify-icon>
+                    </div>
+                    <span class="text-sm font-medium text-slate-500">Review</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-200">
+                        <iconify-icon icon="lucide:bar-chart-3"></iconify-icon>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-900">Result</span>
+                </div>
+            </div>
+
+            <!-- Report Content -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <!-- Header Section -->
+                <div class="p-10 flex flex-col md:flex-row items-center gap-12 border-b border-slate-100 bg-slate-50/50">
+                    <div class="gauge-container">
+                        <svg class="gauge-svg" viewBox="0 0 160 160">
+                            <circle class="gauge-bg" cx="80" cy="80" r="70" />
+                            <circle class="gauge-fill" cx="80" cy="80" r="70" style="stroke-dashoffset: 110;" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold text-slate-900">75%</span>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Match</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-slate-900 mb-1">Excellent Alignment</h2>
+                            <p class="text-slate-500 text-lg">The candidate shows strong technical proficiency for the <span class="font-medium text-slate-700">Senior Product Designer</span> role.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-slate-600">Semantic Match</span>
+                                    <span class="text-sm font-bold text-blue-600">88%</span>
+                                </div>
+                                <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-600 rounded-full" style="width: 88%"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-slate-600">Keyword Match</span>
+                                    <span class="text-sm font-bold text-blue-600">62%</span>
+                                </div>
+                                <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-400 rounded-full" style="width: 62%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Breakdown -->
+                <div class="p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <!-- Strengths -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                                <iconify-icon icon="lucide:thumbs-up"></iconify-icon>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-900">Matched Strengths</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3">
+                                <iconify-icon icon="lucide:check-circle-2" class="text-green-500 text-xl shrink-0 mt-0.5"></iconify-icon>
+                                <div>
+                                    <p class="font-medium text-slate-900">Figma Mastery</p>
+                                    <p class="text-sm text-slate-500">Candidate demonstrates expert-level use of prototyping and design systems.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <iconify-icon icon="lucide:check-circle-2" class="text-green-500 text-xl shrink-0 mt-0.5"></iconify-icon>
+                                <div>
+                                    <p class="font-medium text-slate-900">Cross-functional Collaboration</p>
+                                    <p class="text-sm text-slate-500">Previous experience working directly with engineering teams in agile environments.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <iconify-icon icon="lucide:check-circle-2" class="text-green-500 text-xl shrink-0 mt-0.5"></iconify-icon>
+                                <div>
+                                    <p class="font-medium text-slate-900">UX Research</p>
+                                    <p class="text-sm text-slate-500">Strong portfolio evidence of user testing and data-driven iterations.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Gaps -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center">
+                                <iconify-icon icon="lucide:alert-triangle"></iconify-icon>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-900">Missing Requirements</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3">
+                                <iconify-icon icon="lucide:x-circle" class="text-amber-500 text-xl shrink-0 mt-0.5"></iconify-icon>
+                                <div>
+                                    <p class="font-medium text-slate-900">Accessibility Standards (WCAG)</p>
+                                    <p class="text-sm text-slate-500">No explicit mention of designing for accessibility compliance in recent roles.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <iconify-icon icon="lucide:x-circle" class="text-amber-500 text-xl shrink-0 mt-0.5"></iconify-icon>
+                                <div>
+                                    <p class="font-medium text-slate-900">SaaS B2B Experience</p>
+                                    <p class="text-sm text-slate-500">Background is primarily B2C; might lack exposure to complex enterprise workflows.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Actionable Insights -->
+                <div class="m-10 p-8 bg-blue-50 rounded-2xl border border-blue-100">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                        <iconify-icon icon="lucide:lightbulb"></iconify-icon> How to improve this CV
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-sm border border-blue-100">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">1</div>
+                            <p class="text-sm text-slate-700">Quantify design impact with metrics like "Increased conversion by 15%."</p>
+                        </div>
+                        <div class="flex items-start gap-3 p-4 bg-white rounded-xl shadow-sm border border-blue-100">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">2</div>
+                            <p class="text-sm text-slate-700">Explicitly mention WCAG 2.1 compliance to bridge the accessibility gap.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                    <a href="https://p.superdesign.dev/draft/41ff4404-676e-4a08-a30f-1a80873d61ae" id="btn-restart-light" class="px-6 py-2.5 text-slate-600 hover:text-slate-900 font-medium transition-colors flex items-center gap-2">
+                        <iconify-icon icon="lucide:refresh-cw"></iconify-icon> Start Over
+                    </a>
+                    <div class="flex items-center gap-3">
+                        <button id="btn-save-light" class="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
+                            <iconify-icon icon="lucide:download"></iconify-icon> Save PDF
+                        </button>
+                        <button id="btn-finish-light" class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-200 transition-all">
+                            Save Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dark Theme Version -->
+        <section class="w-full max-w-5xl dark">
+            <div class="bg-slate-900 min-h-[900px] p-12 rounded-[2.5rem] border border-slate-800 shadow-2xl">
+                <div class="flex items-center justify-between mb-12">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            <iconify-icon icon="lucide:wand-2" class="text-white text-2xl"></iconify-icon>
+                        </div>
+                        <h1 class="text-2xl font-semibold text-white">MatchWizard <span class="text-slate-500 font-normal">/ Dark Theme Report</span></h1>
+                    </div>
+                    <div class="px-4 py-1.5 bg-indigo-500/10 text-indigo-400 text-sm font-medium rounded-full border border-indigo-500/20 flex items-center gap-1">
+                        <iconify-icon icon="lucide:check-circle"></iconify-icon> Analysis Complete
+                    </div>
+                </div>
+
+                <!-- Stepper -->
+                <div class="flex items-center justify-between w-full mb-16">
+                    <div class="flex flex-col items-center gap-3 relative">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600/20 border-2 border-indigo-600/50 text-indigo-400 flex items-center justify-center font-bold z-10 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+                            <iconify-icon icon="lucide:check"></iconify-icon>
+                        </div>
+                        <span class="text-sm font-medium text-slate-400">JD</span>
+                    </div>
+                    <div class="step-line active !bg-indigo-600"></div>
+                    <div class="flex flex-col items-center gap-3 relative">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600/20 border-2 border-indigo-600/50 text-indigo-400 flex items-center justify-center font-bold z-10">
+                            <iconify-icon icon="lucide:check"></iconify-icon>
+                        </div>
+                        <span class="text-sm font-medium text-slate-400">CV</span>
+                    </div>
+                    <div class="step-line active !bg-indigo-600"></div>
+                    <div class="flex flex-col items-center gap-3 relative">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600/20 border-2 border-indigo-600/50 text-indigo-400 flex items-center justify-center font-bold z-10">
+                            <iconify-icon icon="lucide:check"></iconify-icon>
+                        </div>
+                        <span class="text-sm font-medium text-slate-400">Review</span>
+                    </div>
+                    <div class="step-line active !bg-indigo-600"></div>
+                    <div class="flex flex-col items-center gap-3 relative">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold z-10 shadow-lg shadow-indigo-500/40">
+                            <iconify-icon icon="lucide:bar-chart-3"></iconify-icon>
+                        </div>
+                        <span class="text-sm font-semibold text-white">Result</span>
+                    </div>
+                </div>
+
+                <!-- Report Card -->
+                <div class="bg-slate-800/50 rounded-3xl border border-slate-700/50 overflow-hidden backdrop-blur-xl">
+                    <!-- Score Area -->
+                    <div class="p-10 flex flex-col md:flex-row items-center gap-12 border-b border-slate-700/50 bg-slate-900/30">
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 160 160">
+                                <circle class="gauge-bg" cx="80" cy="80" r="70" />
+                                <circle class="gauge-fill" cx="80" cy="80" r="70" style="stroke-dashoffset: 132;" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-4xl font-bold text-white">70%</span>
+                                <span class="text-xs font-semibold text-slate-500 uppercase">Match</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-6">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-white mb-1">Good Potential</h2>
+                                <p class="text-slate-400 text-lg">Matches 7 out of 10 key requirements for <span class="text-indigo-400">Senior Frontend Engineer</span>.</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                                        <span>Experience Level</span>
+                                        <span class="text-indigo-400">95%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-slate-900 rounded-full">
+                                        <div class="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" style="width: 95%"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                                        <span>Tech Stack Match</span>
+                                        <span class="text-indigo-400">55%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-slate-900 rounded-full">
+                                        <div class="h-full bg-indigo-400/60 rounded-full" style="width: 55%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strengths/Gaps -->
+                    <div class="p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div class="space-y-6">
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <iconify-icon icon="lucide:plus-circle" class="text-indigo-400"></iconify-icon> Top Strengths
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-900/40 border border-slate-700/50 rounded-2xl">
+                                    <h4 class="text-white font-medium mb-1">React & TypeScript</h4>
+                                    <p class="text-sm text-slate-400">8+ years of production experience in typed environments.</p>
+                                </div>
+                                <div class="p-4 bg-slate-900/40 border border-slate-700/50 rounded-2xl">
+                                    <h4 class="text-white font-medium mb-1">Team Leadership</h4>
+                                    <p class="text-sm text-slate-400">Demonstrated experience leading squads of 5+ developers.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <iconify-icon icon="lucide:minus-circle" class="text-rose-400"></iconify-icon> Areas for Growth
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+                                    <h4 class="text-white font-medium mb-1">Testing Frameworks</h4>
+                                    <p class="text-sm text-slate-400">Lacks mention of Playwright or Cypress (Required for this role).</p>
+                                </div>
+                                <div class="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+                                    <h4 class="text-white font-medium mb-1">Next.js 14</h4>
+                                    <p class="text-sm text-slate-400">Experience is limited to older versions of React/Next.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Recommendations -->
+                    <div class="m-10 p-8 bg-indigo-500/5 border border-indigo-500/20 rounded-3xl">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center">
+                                <iconify-icon icon="lucide:sparkles" class="text-xl"></iconify-icon>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white">AI Improvement Plan</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 text-slate-300 bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                                <iconify-icon icon="lucide:edit-3" class="text-indigo-400"></iconify-icon>
+                                <p class="text-sm">Add projects involving <span class="text-white font-medium">end-to-end testing</span> to your resume.</p>
+                            </div>
+                            <div class="flex items-center gap-4 text-slate-300 bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                                <iconify-icon icon="lucide:book-open" class="text-indigo-400"></iconify-icon>
+                                <p class="text-sm">Update skill section to highlight <span class="text-white font-medium">Server Components</span> experience.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-6 bg-slate-800/80 border-t border-slate-700/50 flex justify-between items-center">
+                        <a href="https://p.superdesign.dev/draft/41ff4404-676e-4a08-a30f-1a80873d61ae" id="btn-restart-dark" class="px-6 py-2.5 text-slate-400 hover:text-white font-medium transition-colors flex items-center gap-2">
+                            <iconify-icon icon="lucide:history"></iconify-icon> Start Over
+                        </a>
+                        <div class="flex items-center gap-3">
+                            <button id="btn-save-dark" class="px-6 py-2.5 bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:text-white hover:bg-slate-800 transition-all flex items-center gap-2">
+                                <iconify-icon icon="lucide:bookmark"></iconify-icon> Save Draft
+                            </button>
+                            <button id="btn-finish-dark" class="px-10 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all">
+                                Export Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
