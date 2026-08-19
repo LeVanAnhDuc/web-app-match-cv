@@ -1,0 +1,30 @@
+# compiled output
+/dist
+/node_modules
+
+# env
+.env
+
+# worktrees (isolation, see root CLAUDE.md §6)
+.worktrees/
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# coverage
+/coverage
+
+# OS
+.DS_Store
+
+# IDE
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

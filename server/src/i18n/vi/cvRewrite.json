@@ -1,0 +1,10 @@
+{
+  "errors": {
+    "matchNotFound": "Không tìm thấy kết quả ghép nối.",
+    "matchFailed": "Lần ghép nối này không tạo được báo cáo nên không có gì để viết lại.",
+    "changeNotGrounded": "Một thay đổi đã duyệt không còn khớp với CV gốc. Hãy sinh lại gợi ý.",
+    "changesOverlap": "Hai thay đổi đã duyệt cùng sửa một phần của CV.",
+    "changeTooLong": "Một đoạn thay thế dài hơn quá nhiều so với đoạn nó thay.",
+    "emptyResult": "Áp các thay đổi này sẽ khiến CV trống rỗng."
+  }
+}

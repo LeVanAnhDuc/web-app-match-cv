@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "matchNotFound": "Match result not found or does not belong to you.",
+    "matchNotSucceeded": "This match did not produce a report, so there is nothing to write a letter from.",
+    "notFound": "Cover letter not found.",
+    "notEditable": "This letter failed to generate, so there is nothing to edit."
+  }
+}

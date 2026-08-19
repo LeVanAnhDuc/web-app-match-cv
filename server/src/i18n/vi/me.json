@@ -1,0 +1,6 @@
+{
+  "errors": {
+    "exportFailed": "Không tạo được bản sao dữ liệu của bạn.",
+    "userNotFound": "Không tìm thấy người dùng."
+  }
+}

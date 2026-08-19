@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "matchNotFound": "Không tìm thấy kết quả match, hoặc kết quả này không thuộc về bạn.",
+    "matchNotSucceeded": "Lần match này không tạo được báo cáo nên không có gì để viết thư.",
+    "notFound": "Không tìm thấy thư ứng tuyển.",
+    "notEditable": "Thư này sinh không thành công nên không có nội dung để sửa."
+  }
+}

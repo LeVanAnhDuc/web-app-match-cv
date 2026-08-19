@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  candidate
+  recruiter
+  admin
+}
+
+enum DocumentKind {
+  CV
+  JD
+}
+
+enum SourceFormat {
+  pdf
+  docx
+  text
+}
+
+enum AiProvider {
+  openrouter
+  openai
+  gemini
+}
+
+enum MatchStatus {
+  succeeded
+  failed
+}
+
+enum AiTestStatus {
+  ok
+  invalid_key
+  no_quota
+  model_unavailable
+  /// The provider accepted the connection but did not answer in time.
+  /// Distinct from `unreachable` on purpose: "too slow" and "not there" call
+  /// for different things from the user, and the UI already words them apart.
+  timeout
+  unreachable
+}
+
+enum CoverLetterTone {
+  formal
+  friendly
+}
+
+enum CoverLetterLength {
+  short
+  standard
+}
+
+/// Language the letter is WRITTEN in — independent of the UI language.
+enum CoverLetterLanguage {
+  en
+  vi
+}
+
+enum CoverLetterStatus {
+  succeeded
+  failed
+}
+
+model User {
+  id          String   @id @default(uuid())
+  role        Role
+  externalSub String?
+  createdAt   DateTime @default(now())
+
+  documents     Document[]
+  matchResults  MatchResult[]
+  matchRuns     MatchRun[]
+  aiCredentials AiCredential[]
+  coverLetters  CoverLetter[]
+}
+
+model Document {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  kind          DocumentKind
+  title         String
+  sourceFormat  SourceFormat
+  rawText       String
+  parsedContent Json?
+  fileData      Bytes?
+  fileMime      String?
+  isSaved       Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+
+  /// Lineage (ADR #15): this row is a newer version of `parentId`. A rewritten
+  /// CV is always a NEW row — the original is never overwritten (ADR #13) — so
+  /// this is only a link, not in-place versioning. SET NULL, not CASCADE:
+  /// deleting the original must not take the improved version with it.
+  parentId String?
+  parent   Document?  @relation("DocumentLineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children Document[] @relation("DocumentLineage")
+
+  matchResultsAsCv MatchResult[] @relation("MatchResultCvDocument")
+  matchResultsAsJd MatchResult[] @relation("MatchResultJdDocument")
+  matchRunsAsCv    MatchRun[]    @relation("MatchRunCvDocument")
+  matchRunsAsJd    MatchRun[]    @relation("MatchRunJdDocument")
+
+  @@index([userId, kind])
+  @@index([parentId])
+}
+
+model MatchResult {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  cvDocumentId  String
+  cvDocument    Document @relation("MatchResultCvDocument", fields: [cvDocumentId], references: [id])
+  jdDocumentId  String
+  jdDocument    Document @relation("MatchResultJdDocument", fields: [jdDocumentId], references: [id])
+  overallScore  Int
+  semanticScore Int
+  keywordScore  Int
+  report        Json
+  createdAt     DateTime @default(now())
+
+  // Which AI ran this match. Snapshotted rather than derived from the
+  // credential, because the credential can later be re-pointed at another
+  // model or deleted outright — the historical result must stay readable.
+  // Which run this result belongs to. Nullable: every row created before
+  // multi-provider compare belongs to no run. CASCADE (not SET NULL like
+  // credentialId) because a run CONTAINS its results, whereas a credential is
+  // merely something a result was produced with.
+  runId        String?
+  run          MatchRun?     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  status       MatchStatus   @default(succeeded)
+  /// Closed set: invalid_key | no_quota | model_unavailable | timeout | unreachable.
+  /// NEVER a provider's raw message — those can echo the submitted API key.
+  errorCode    String?
+
+  credentialId String?
+  credential   AiCredential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  provider     AiProvider
+  chatModel    String
+  embedModel   String
+
+  coverLetters CoverLetter[]
+
+  @@index([userId])
+}
+
+/// One press of "Run match": groups the N MatchResults (one per provider) of
+/// the same CV/JD pair so they can be compared. Created BEFORE any AI call, so
+/// the client gets an id immediately and can render skeletons.
+model MatchRun {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cvDocumentId String
+  cvDocument   Document @relation("MatchRunCvDocument", fields: [cvDocumentId], references: [id])
+  jdDocumentId String
+  jdDocument   Document @relation("MatchRunJdDocument", fields: [jdDocumentId], references: [id])
+  createdAt    DateTime @default(now())
+
+  results MatchResult[]
+
+  @@index([userId])
+}
+
+/// A provider API key owned by a user. The key is stored as AES-256-GCM
+/// ciphertext; encryptedKey/keyIv/keyTag must never leave the service layer.
+model AiCredential {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       AiProvider
+  label          String
+  encryptedKey   Bytes
+  keyIv          Bytes
+  keyTag         Bytes
+  /// Last 4 characters, for display only — not enough to reuse the key.
+  keyLast4       String
+  chatModel      String?
+  embedModel     String?
+  lastTestStatus AiTestStatus?
+  lastTestedAt   DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  matchResults MatchResult[]
+  coverLetters CoverLetter[]
+
+  @@unique([userId, label])
+  @@index([userId])
+}
+
+/// A cover letter generated from ONE MatchResult (one CV x one JD).
+///
+/// Deliberately independent of `Document` and of the `parentId` lineage: a
+/// cover letter is a LEAF. Nothing downstream consumes it — no engine scores
+/// it, no library lists it, no version delta is measured against it. Storing
+/// it as a Document would force every `kind IN (CV, JD)` query and every
+/// library screen to learn about a third kind for no gain.
+///
+/// Every generation is persisted, including failures: a dead provider is this
+/// letter's outcome, not the request's error (same contract as MatchResult
+/// after multi-provider-compare). See docs/specs/cover-letter-generator/design.md.
+model CoverLetter {
+  id            String              @id @default(uuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchResultId String
+  matchResult   MatchResult         @relation(fields: [matchResultId], references: [id], onDelete: Cascade)
+  tone          CoverLetterTone
+  length        CoverLetterLength
+  language      CoverLetterLanguage
+  /// Plain text, never markdown/HTML — its destination is an email box.
+  /// Empty string when status = failed.
+  content       String
+  /// JD requirements the CV could not back up, self-declared by the model so
+  /// the grounding constraint of ADR #13 is something the USER can see.
+  omittedRequirements String[]
+  status        CoverLetterStatus
+  /// Closed set: invalid_key | no_quota | model_unavailable | timeout | unreachable.
+  /// NEVER a provider's raw message — those can echo the submitted API key.
+  errorCode     String?
+  /// True once the user edited the draft by hand.
+  edited        Boolean             @default(false)
+  credentialId  String?
+  credential    AiCredential?       @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  provider      AiProvider
+  chatModel     String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId, matchResultId])
+}

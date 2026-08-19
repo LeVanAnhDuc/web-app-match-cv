@@ -1,0 +1,6 @@
+{
+  "errors": {
+    "notConfigured": "Matching service is not configured. Please contact the administrator.",
+    "aiFailed": "Matching service failed. Please try again later."
+  }
+}

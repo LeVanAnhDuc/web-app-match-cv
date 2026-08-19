@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "documentNotFound": "CV not found.",
+    "notCv": "Only a CV can be compared against a previous version.",
+    "noParent": "This CV is not marked as a new version of another CV.",
+    "jdNotComparable": "Neither version has been matched against that job description."
+  }
+}

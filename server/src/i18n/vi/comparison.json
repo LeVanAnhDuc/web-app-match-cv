@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "documentNotFound": "Không tìm thấy CV.",
+    "notCv": "Chỉ CV mới so sánh được với phiên bản trước.",
+    "noParent": "CV này chưa được khai là phiên bản mới của CV nào.",
+    "jdNotComparable": "Chưa phiên bản nào được match với JD đó."
+  }
+}

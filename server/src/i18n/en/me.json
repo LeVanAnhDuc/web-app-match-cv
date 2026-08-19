@@ -1,0 +1,6 @@
+{
+  "errors": {
+    "exportFailed": "Could not build your data export.",
+    "userNotFound": "User not found."
+  }
+}
