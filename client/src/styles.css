@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/*
+ * Semantic color tokens (source of truth: .claude/uiux/frontend-reference.md §1).
+ * Plain `@theme` — NOT `@theme inline` — so utilities compile to `var(--color-*)`
+ * and the dark block below can flip them. `@theme inline` would bake the light
+ * value into every utility and break dark mode.
+ * Dark switch = `prefers-color-scheme`, the same signal Tailwind's `dark:` variant
+ * and AntdProvider's algorithm already use (no class-based theme toggle yet).
+ */
+@theme {
+  --color-app: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8fafc;
+  --color-line: #e2e8f0;
+  --color-body: #0f172a;
+  --color-muted: #64748b;
+  --color-faint: #94a3b8;
+  --color-primary: #2563eb;
+  --color-accent: #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-app: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-subtle: #111827;
+    --color-line: #334155;
+    --color-body: #ffffff;
+    --color-muted: #cbd5e1;
+    --color-faint: #64748b;
+    --color-primary: #4f46e5;
+    --color-accent: #818cf8;
+  }
+}
+
+/*
+ * antd + Tailwind coexistence:
+ * - Tailwind preflight stays ON (this stylesheet, linked in <head> at build time).
+ * - antd v5 renders its component CSS at runtime via @ant-design/cssinjs (see
+ *   src/contexts/AntdProvider/index.tsx), inserted into <head> AFTER this stylesheet.
+ * - `StyleProvider hashPriority="high"` raises antd's generated selector priority
+ *   so its component styles win over Tailwind's preflight/utility resets on the
+ *   same element, without disabling either system.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

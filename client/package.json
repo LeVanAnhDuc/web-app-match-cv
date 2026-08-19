@@ -1,0 +1,95 @@
+{
+  "name": "client",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "vite dev --port 5300",
+    "generate-routes": "tsr generate",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write . && eslint --fix",
+    "format:check": "prettier --check .",
+    "check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@ant-design/cssinjs": "^2.1.2",
+    "@ant-design/icons": "^6.3.2",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-devtools": "^0.10.8",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-query-devtools": "^5.101.2",
+    "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-router-devtools": "^1.167.0",
+    "@tanstack/react-router-ssr-query": "^1.167.1",
+    "@tanstack/react-start": "^1.168.28",
+    "@tanstack/router-plugin": "^1.132.0",
+    "antd": "^5.29.2",
+    "docx-preview": "^0.4.0",
+    "i18next": "^26.3.6",
+    "lucide-react": "^0.545.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-i18next": "^17.0.10",
+    "react-pdf": "^10.4.1",
+    "tailwindcss": "^4.1.18",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/devtools-vite": "^0.8.1",
+    "@tanstack/eslint-config": "^0.4.0",
+    "@tanstack/router-cli": "^1.132.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "dotenv": "^17.4.2",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-promise": "^7.3.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "husky": "^9.1.7",
+    "jsdom": "^28.1.0",
+    "lint-staged": "^16",
+    "pg": "^8.22.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss"
+    ]
+  }
+}

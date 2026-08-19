@@ -1,0 +1,440 @@
+{
+  "appName": "Ghép CV",
+  "start": "Bắt đầu",
+  "nav": {
+    "home": "Tổng quan",
+    "match": "Đối chiếu CV ↔ JD",
+    "savedCvs": "Sơ yếu lý lịch",
+    "savedJds": "Mô tả công việc",
+    "openMenu": "Mở menu",
+    "collapse": "Thu gọn thanh bên",
+    "expand": "Mở thanh bên",
+    "aiCredentials": "Credential AI",
+    "myData": "Dữ liệu của tôi"
+  },
+  "home": {
+    "hero": {
+      "title": "Ghép CV của bạn với JD",
+      "subtitle": "Tải file hoặc dán văn bản để nhận điểm khớp và gợi ý cải thiện tức thì từ AI.",
+      "cta": "Bắt đầu ghép ngay"
+    },
+    "stat": {
+      "savedCvs": "Sơ yếu lý lịch",
+      "savedJds": "Mô tả công việc",
+      "totalMatches": "Tổng số lần ghép",
+      "highest": "Điểm cao nhất",
+      "avg": "TB {{value}}%"
+    },
+    "recent": {
+      "title": "Ghép gần đây",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có lượt ghép nào",
+      "emptyCta": "Ghép ngay"
+    },
+    "cols": {
+      "cv": "CV",
+      "jd": "JD",
+      "score": "Điểm",
+      "date": "Ngày"
+    }
+  },
+  "step": {
+    "jd": "Mô tả công việc",
+    "cv": "CV / Hồ sơ",
+    "review": "Xem lại",
+    "result": "Kết quả"
+  },
+  "stepper": {
+    "progress": "Bước {{n}}/4"
+  },
+  "wizard": {
+    "stepJd": {
+      "title": "Nhập mô tả công việc",
+      "description": "Bắt đầu bằng cách cung cấp thông tin về vị trí bạn đang tuyển."
+    },
+    "stepCv": {
+      "title": "CV / Hồ sơ ứng viên",
+      "description": "Cung cấp thông tin kinh nghiệm của ứng viên bạn đang phân tích."
+    },
+    "stepReview": {
+      "title": "Xem lại tài liệu",
+      "description": "Kiểm tra CV và JD gốc bên dưới, rồi chạy so khớp."
+    },
+    "stepResult": {
+      "badge": "Đã hoàn tất so khớp"
+    },
+    "comingSoon": "Sẽ có ở Plan 2"
+  },
+  "review": {
+    "hint": "Dữ liệu có thể chỉnh sửa. Sửa lỗi trước khi chạy so khớp.",
+    "loading": "Đang tải tài liệu…",
+    "missingDocs": "Chưa chọn tài liệu. Quay lại để thêm CV và JD."
+  },
+  "input": {
+    "tab": {
+      "upload": "Tải file",
+      "paste": "Dán văn bản"
+    }
+  },
+  "dropzone": {
+    "title": "Kéo thả file vào đây hoặc <highlight>chọn file</highlight>",
+    "hint": "Hỗ trợ PDF, DOCX (tối đa {{max}})"
+  },
+  "paste": {
+    "placeholder": "Dán nội dung văn bản vào đây"
+  },
+  "format": {
+    "pdf": "PDF",
+    "docx": "Word",
+    "text": "Văn bản"
+  },
+  "preview": {
+    "loading": "Đang tải bản xem trước…",
+    "error": "Không tải được file này. Vui lòng thử lại.",
+    "close": "Đóng",
+    "download": "Tải xuống"
+  },
+  "library": {
+    "title": {
+      "cv": "Sơ yếu lý lịch",
+      "jd": "Mô tả công việc"
+    },
+    "subtitle": "{{count}} đã lưu",
+    "empty": {
+      "cv": "Chưa có CV nào được lưu",
+      "jd": "Chưa có JD nào được lưu"
+    },
+    "emptyHint": "Tài liệu bạn lưu khi match sẽ hiển thị ở đây.",
+    "emptyCta": "Bắt đầu match",
+    "loadError": "Không tải được danh sách tài liệu. Vui lòng thử lại.",
+    "action": {
+      "preview": "Xem trước",
+      "rename": "Đổi tên",
+      "download": "Tải xuống",
+      "delete": "Xóa",
+      "compare": "So sánh phiên bản",
+      "setLineage": "Khai báo là phiên bản mới của…"
+    },
+    "delete": {
+      "confirm": "Xóa tài liệu này?",
+      "inUse": "Không thể xóa: tài liệu đang được dùng trong lịch sử match.",
+      "success": "Đã xóa tài liệu",
+      "failed": "Không xóa được. Vui lòng thử lại."
+    },
+    "rename": {
+      "title": "Đổi tên tài liệu",
+      "label": "Tên tài liệu",
+      "confirm": "Lưu",
+      "success": "Đã đổi tên",
+      "required": "Vui lòng nhập tên",
+      "failed": "Không đổi tên được. Vui lòng thử lại."
+    },
+    "lineage": {
+      "title": "Lịch sử phiên bản",
+      "description": "Chọn tài liệu mà \"{{title}}\" là phiên bản mới hơn. Xoá lựa chọn để gỡ liên kết.",
+      "label": "Phiên bản trước",
+      "placeholder": "Không có phiên bản trước",
+      "confirm": "Lưu",
+      "success": "Đã cập nhật lịch sử phiên bản",
+      "rejected": "Liên kết này không hợp lệ — một tài liệu không thể là phiên bản của chính nó hoặc của bản mới hơn nó.",
+      "failed": "Không lưu được. Vui lòng thử lại."
+    }
+  },
+  "reuse": {
+    "jd": {
+      "title": "Hoặc chọn JD đã lưu"
+    },
+    "cv": {
+      "title": "Hoặc chọn CV đã lưu"
+    },
+    "empty": {
+      "jd": "Chưa có JD nào được lưu",
+      "cv": "Chưa có CV nào được lưu",
+      "hint": "Tài liệu bạn lưu sẽ hiện ở đây."
+    }
+  },
+  "save": {
+    "jd": "Lưu JD này để dùng lại",
+    "cv": "Lưu CV này để dùng lại",
+    "button": "Lưu để dùng lại",
+    "saved": "Đã lưu để dùng lại: {{title}}",
+    "nameRequired": "Vui lòng nhập tên",
+    "modal": {
+      "title": "Lưu tài liệu để dùng lại",
+      "description": "Tài liệu đã lưu sẽ xuất hiện ở danh sách chọn lại của bước này — lần sau bạn chỉ cần chọn, khỏi import lại. Đặt tên dễ hiểu để nhận ra sau này.",
+      "nameLabel": "Tên tài liệu",
+      "confirm": "Lưu"
+    },
+    "title": {
+      "placeholder": "Đặt tiêu đề cho tài liệu này"
+    }
+  },
+  "action": {
+    "next": "Tiếp",
+    "back": "Quay lại",
+    "cancel": "Huỷ",
+    "runMatch": "Chạy so khớp",
+    "startOver": "Làm lại",
+    "saveReport": "Lưu báo cáo",
+    "runMatchCount": "Chạy so khớp · {{count}} provider",
+    "tryAgain": "Thử lại",
+    "improveCv": "Cải thiện CV",
+    "compareVersions": "So sánh phiên bản"
+  },
+  "rewrite": {
+    "title": "Cải thiện CV này",
+    "subtitle": "Gợi ý chỉnh sửa chỉ dựa trên những gì CV của bạn đã có. Bạn duyệt từng thay đổi.",
+    "setup": {
+      "title": "Viết lại \"{{title}}\"",
+      "description": "Gợi ý dựa trên các điểm thiếu tìm được ở lần so khớp này.",
+      "thisCv": "CV này"
+    },
+    "gapsTitle": "Điểm thiếu từ lần so khớp này",
+    "noGaps": "Lần so khớp này không tìm thấy điểm thiếu nào. Bạn vẫn có thể xin gợi ý diễn đạt lại.",
+    "generate": "Sinh gợi ý",
+    "regenerate": "Sinh lại",
+    "saveAsNew": "Lưu thành CV mới",
+    "preview": "Xem trước kết quả",
+    "change": {
+      "original": "Hiện có trong CV",
+      "suggested": "Đề xuất viết lại",
+      "removal": "Xoá dòng này",
+      "untitled": "Thay đổi đề xuất"
+    },
+    "changes": {
+      "title": "Thay đổi đề xuất",
+      "description": "Chưa có gì được áp dụng cho tới khi bạn tích chọn và lưu.",
+      "selectAll": "Chọn tất cả",
+      "selectedCount_one": "Đã chọn {{count}} thay đổi",
+      "selectedCount_other": "Đã chọn {{count}} thay đổi",
+      "empty": "Không có thay đổi nào để đề xuất",
+      "emptyHint": "Không phần nào trong CV có thể diễn đạt lại để đóng các điểm thiếu này mà không bịa thêm."
+    },
+    "unaddressed": {
+      "title": "Những điểm thiếu này cần kinh nghiệm thật",
+      "hint": "Chúng được giữ nguyên có chủ ý — không có gì ở đây được bịa hộ bạn."
+    },
+    "save": {
+      "title": "Lưu thành CV mới",
+      "nameLabel": "Tên tài liệu",
+      "nameTooLong": "Tối đa 200 ký tự",
+      "confirm": "Lưu",
+      "hint": "CV gốc của bạn được giữ nguyên. Bản này lưu thành tài liệu mới liên kết với nó.",
+      "defaultTitle": "{{title}} (cải thiện)",
+      "success": "Đã lưu thành CV mới"
+    },
+    "err": {
+      "matchNotFound": "Kết quả so khớp này không còn tồn tại.",
+      "generateFailed": "Không sinh được gợi ý. Vui lòng thử lại.",
+      "notGrounded": "Một thay đổi đã duyệt không còn khớp với CV của bạn. Hãy sinh lại gợi ý.",
+      "saveFailed": "Không lưu được CV mới. Vui lòng thử lại."
+    }
+  },
+  "result": {
+    "overall": "Mức khớp tổng",
+    "semantic": "Khớp ngữ nghĩa",
+    "keyword": "Khớp từ khoá / kỹ năng",
+    "strengths": "Điểm mạnh khớp",
+    "gaps": "Điểm thiếu",
+    "suggestions": "Cách cải thiện CV",
+    "loading": "Đang chạy so khớp…",
+    "disclaimer": "Nội dung AI tạo. CV/JD được gửi tới OpenRouter để phân tích — hãy tự kiểm chứng kết quả.",
+    "missingRun": "Không có lần chạy nào để hiện. Hãy bắt đầu một lần so khớp mới.",
+    "emptyRun": "Chưa có kết quả nào",
+    "emptyRunHint": "Lần chạy này chưa có kết quả. Những provider còn đang chạy lúc bạn tải lại trang sẽ không được chạy tiếp.",
+    "card": {
+      "pendingTitle": "Đang chạy…",
+      "showReport": "Xem báo cáo đầy đủ"
+    },
+    "error": {
+      "invalid_key": "Nhà cung cấp từ chối API key này.",
+      "no_quota": "Key này đã hết hạn mức ở nhà cung cấp.",
+      "model_unavailable": "Nhà cung cấp không có model đó.",
+      "timeout": "Nhà cung cấp phản hồi quá lâu.",
+      "unreachable": "Không kết nối được tới nhà cung cấp."
+    }
+  },
+  "err": {
+    "saveFailed": "Không lưu được. Vui lòng thử lại.",
+    "fileType": "Chỉ chấp nhận file PDF hoặc DOCX",
+    "fileSize": "File vượt quá giới hạn {{max}}",
+    "empty": "Vui lòng nhập {{kind}} để tiếp tục",
+    "parseFailed": "Không đọc được file này. Thử file khác.",
+    "matchUnavailable": "Tính năng so khớp AI tạm thời không khả dụng. Vui lòng thử lại sau.",
+    "matchFailed": "Không thể chạy so khớp. Vui lòng thử lại."
+  },
+  "credentials": {
+    "title": "Credential AI",
+    "subtitle": "Key AI của riêng bạn. So khớp sẽ chạy bằng key bạn chọn.",
+    "add": "Thêm credential",
+    "empty": "Chưa có credential nào",
+    "emptyHint": "Hiện so khớp đang chạy bằng key hệ thống. Thêm key của bạn để dùng tài khoản nhà cung cấp của mình.",
+    "fallbackNote": "Khi không chọn credential nào, so khớp sẽ chạy bằng key hệ thống có sẵn.",
+    "systemKey": "Key hệ thống",
+    "systemKeyTag": "dự phòng",
+    "defaultModel": "Mặc định",
+    "never": "—",
+    "chatLabel": "Chat",
+    "embedLabel": "Embeddings",
+    "form": {
+      "addTitle": "Thêm credential",
+      "editTitle": "Sửa credential",
+      "provider": "Nhà cung cấp",
+      "providerLocked": "Không đổi được nhà cung cấp. Hãy tạo credential khác nếu muốn chuyển.",
+      "label": "Tên gọi",
+      "labelPlaceholder": "Key OpenRouter của tôi",
+      "apiKey": "API key",
+      "apiKeyKeepHint": "Để trống để giữ key hiện tại",
+      "apiKeyStoredHint": "Được mã hoá khi lưu và không bao giờ hiển thị lại.",
+      "chatModel": "Model chat",
+      "embedModel": "Model embedding",
+      "modelHint": "Để trống để dùng mặc định của nhà cung cấp",
+      "save": "Lưu",
+      "testing": "Đang kiểm tra kết nối…",
+      "required": "Trường này bắt buộc",
+      "labelTooLong": "Tối đa 60 ký tự",
+      "keyTooShort": "Key phải có ít nhất 20 ký tự",
+      "keyTooLong": "Key tối đa 400 ký tự",
+      "noWhitespace": "Không được chứa khoảng trắng"
+    },
+    "status": {
+      "untested": "Chưa kiểm tra",
+      "ok": "Kết nối tốt",
+      "invalid_key": "Key không hợp lệ",
+      "no_quota": "Hết hạn mức",
+      "model_unavailable": "Model không khả dụng",
+      "timeout": "Quá thời gian",
+      "unreachable": "Không kết nối được"
+    },
+    "actions": {
+      "test": "Kiểm tra",
+      "edit": "Sửa",
+      "delete": "Xoá"
+    },
+    "delete": {
+      "confirm": "Xoá credential này?",
+      "hint": "Các kết quả so khớp cũ vẫn giữ nhà cung cấp và model đã dùng.",
+      "success": "Đã xoá credential",
+      "failed": "Không xoá được credential"
+    },
+    "test": {
+      "success": "Đã kiểm tra kết nối",
+      "failed": "Không kiểm tra được credential"
+    },
+    "errors": {
+      "loadFailed": "Không tải được danh sách credential",
+      "notConfigured": "Máy chủ chưa cấu hình kho lưu credential.",
+      "labelTaken": "Bạn đã có credential trùng tên này",
+      "saveFailed": "Không lưu được credential"
+    },
+    "runWith": {
+      "title": "Chạy bằng",
+      "untestedWarning": "Credential này chưa được kiểm tra.",
+      "failedWarning": "Lần kiểm tra gần nhất của credential này không đạt.",
+      "testNow": "Kiểm tra ngay",
+      "privacy": "Nội dung CV và JD của bạn sẽ được gửi tới {{provider}}.",
+      "privacySystem": "Nội dung CV và JD của bạn sẽ được gửi tới OpenRouter bằng key hệ thống.",
+      "ranWith": "Chạy bằng",
+      "untestedCount_one": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
+      "untestedCount_other": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
+      "privacyNone": "Chọn ít nhất một key để chạy so khớp.",
+      "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}."
+    }
+  },
+  "coverLetter": {
+    "open": "Viết thư ứng tuyển",
+    "title": "Thư ứng tuyển",
+    "tone": "Giọng văn",
+    "length": "Độ dài",
+    "language": "Ngôn ngữ lá thư",
+    "toneValue": {
+      "formal": "Trang trọng",
+      "friendly": "Thân thiện"
+    },
+    "lengthValue": {
+      "short": "Ngắn",
+      "standard": "Chuẩn"
+    },
+    "languageValue": {
+      "en": "Tiếng Anh",
+      "vi": "Tiếng Việt"
+    },
+    "generate": "Sinh thư",
+    "draft": "Bản nháp",
+    "drafts": "Các bản đã sinh",
+    "empty": "Chưa có bản nào. Chọn giọng văn và độ dài rồi sinh thử.",
+    "copy": "Sao chép",
+    "download": "Tải .txt",
+    "save": "Lưu thay đổi",
+    "delete": "Xoá bản nháp",
+    "editedTag": "Đã sửa",
+    "failedTag": "Lỗi",
+    "omitted": {
+      "title": "Lá thư này KHÔNG khẳng định",
+      "hint": "CV của bạn không chống lưng được những điều sau nên thư đã bỏ qua. Hãy bổ sung thật nếu có thể."
+    },
+    "err": {
+      "generate": "Không sinh được lá thư. Vui lòng thử lại.",
+      "save": "Không lưu được thay đổi. Nội dung bạn gõ vẫn còn — hãy thử lại.",
+      "delete": "Không xoá được bản nháp này.",
+      "copy": "Không tự sao chép được. Hãy bôi đen và sao chép thủ công.",
+      "list": "Không tải được danh sách bản nháp."
+    }
+  },
+  "myData": {
+    "title": "Dữ liệu của tôi",
+    "description": "Tải về bản sao mọi thứ ứng dụng đang lưu về bạn.",
+    "contents": {
+      "heading": "Bản sao gồm có",
+      "documents": "Các file CV và mô tả công việc đúng như bạn đã tải lên, kèm phần văn bản đã trích xuất",
+      "matches": "Mọi lần chấm độ khớp, kèm điểm số và báo cáo đầy đủ",
+      "credentials": "Cấu hình khoá AI — nhà cung cấp, nhãn và bốn ký tự cuối, không bao giờ có khoá thật"
+    },
+    "download": "Tải dữ liệu của tôi",
+    "downloading": "Đang chuẩn bị bản sao…",
+    "done": "Đã tải bản sao dữ liệu về máy.",
+    "error": "Không chuẩn bị được bản sao. Vui lòng thử lại.",
+    "privacyNote": "Bản sao chứa dữ liệu cá nhân. Hãy lưu ở nơi an toàn."
+  },
+  "compare": {
+    "title": "So sánh phiên bản",
+    "subtitle": "CV này tốt hơn phiên bản trước bao nhiêu, trên cùng một JD.",
+    "version": "Phiên bản {{n}}",
+    "jdLabel": "Mô tả công việc",
+    "backToLibrary": "Về thư viện",
+    "delta": {
+      "up": "tốt hơn phiên bản trước",
+      "down": "kém hơn phiên bản trước",
+      "flat": "không đổi so với phiên bản trước"
+    },
+    "empty": {
+      "title": "Chưa phiên bản nào được match",
+      "hint": "Hãy chạy match cho cả hai phiên bản trên cùng một JD, rồi quay lại đây để xem chênh lệch.",
+      "cta": "Tới wizard"
+    },
+    "missing": {
+      "base": "Phiên bản cũ chưa được match với JD này.",
+      "revision": "Phiên bản này chưa được match với JD này.",
+      "hint": "Màn so sánh không bao giờ tự chạy match — CV chỉ được gửi tới provider khi bạn yêu cầu.",
+      "cta": "Match phiên bản này"
+    },
+    "modelWarning": {
+      "title": "Hai lần match dùng model AI khác nhau",
+      "hint": "Điểm và cách diễn đạt gap từ {{base}} và {{revision}} không so sánh sòng phẳng được. Hãy chạy lại cả hai phiên bản trên cùng một model."
+    },
+    "gaps": {
+      "title": "Điểm thiếu",
+      "caveat": "Gap được ghép theo độ trùng chủ đề, không phải theo từng chữ — hãy đọc nội dung bên dưới trước khi tin vào cách nhóm.",
+      "closed": "Đã đóng",
+      "persisted": "Còn tồn tại",
+      "introduced": "Mới phát sinh",
+      "none": "Không có"
+    },
+    "err": {
+      "notFound": "CV không tồn tại hoặc không thuộc về bạn.",
+      "noParent": "CV này chưa được khai là phiên bản mới của CV nào nên không có gì để so sánh.",
+      "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
+      "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
+    }
+  }
+}

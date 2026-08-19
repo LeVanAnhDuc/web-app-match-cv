@@ -1,0 +1,440 @@
+{
+  "appName": "Match CV",
+  "start": "Start",
+  "nav": {
+    "home": "Dashboard",
+    "match": "CV ↔ JD Matching",
+    "savedCvs": "Curriculum Vitae",
+    "savedJds": "Job Descriptions",
+    "openMenu": "Open menu",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "aiCredentials": "AI credentials",
+    "myData": "My data"
+  },
+  "home": {
+    "hero": {
+      "title": "Match your CV against a JD",
+      "subtitle": "Upload files or paste text to get an instant AI-powered compatibility score and improvement suggestions.",
+      "cta": "Start matching now"
+    },
+    "stat": {
+      "savedCvs": "Curriculum Vitae",
+      "savedJds": "Job Descriptions",
+      "totalMatches": "Total matches",
+      "highest": "Highest score",
+      "avg": "avg {{value}}%"
+    },
+    "recent": {
+      "title": "Recent matches",
+      "viewAll": "View all",
+      "empty": "No matches yet",
+      "emptyCta": "Match now"
+    },
+    "cols": {
+      "cv": "CV",
+      "jd": "JD",
+      "score": "Score",
+      "date": "Date"
+    }
+  },
+  "step": {
+    "jd": "Job Description",
+    "cv": "CV / Resume",
+    "review": "Review",
+    "result": "Result"
+  },
+  "stepper": {
+    "progress": "Step {{n}} of 4"
+  },
+  "wizard": {
+    "stepJd": {
+      "title": "Input Job Description",
+      "description": "Start by providing the details of the position you are hiring for."
+    },
+    "stepCv": {
+      "title": "Candidate CV / Resume",
+      "description": "Provide the experience details for the candidate you're analyzing."
+    },
+    "stepReview": {
+      "title": "Review documents",
+      "description": "Check the original CV and JD below, then run the match."
+    },
+    "stepResult": {
+      "badge": "Matching complete"
+    },
+    "comingSoon": "Coming in Plan 2"
+  },
+  "review": {
+    "hint": "Data is editable. Fix any mistakes before running the match.",
+    "loading": "Loading document…",
+    "missingDocs": "No document selected. Go back to add a CV and a JD."
+  },
+  "input": {
+    "tab": {
+      "upload": "Upload file",
+      "paste": "Paste text"
+    }
+  },
+  "dropzone": {
+    "title": "Drop your file here or <highlight>browse</highlight>",
+    "hint": "Supports PDF, DOCX (Max {{max}})"
+  },
+  "paste": {
+    "placeholder": "Paste the text content here"
+  },
+  "format": {
+    "pdf": "PDF",
+    "docx": "Word",
+    "text": "Text"
+  },
+  "preview": {
+    "loading": "Loading preview…",
+    "error": "Couldn't load this file. Please try again.",
+    "close": "Close",
+    "download": "Download"
+  },
+  "library": {
+    "title": {
+      "cv": "Curriculum Vitae",
+      "jd": "Job Descriptions"
+    },
+    "subtitle": "{{count}} saved",
+    "empty": {
+      "cv": "No saved CVs yet",
+      "jd": "No saved JDs yet"
+    },
+    "emptyHint": "Documents you save while matching will show up here.",
+    "emptyCta": "Start matching",
+    "loadError": "Couldn't load your documents. Please try again.",
+    "action": {
+      "preview": "Preview",
+      "rename": "Rename",
+      "download": "Download",
+      "delete": "Delete",
+      "compare": "Compare versions",
+      "setLineage": "Mark as a new version of…"
+    },
+    "delete": {
+      "confirm": "Delete this document?",
+      "inUse": "Can't delete: this document is used in a match history.",
+      "success": "Document deleted",
+      "failed": "Couldn't delete. Please try again."
+    },
+    "rename": {
+      "title": "Rename document",
+      "label": "Document name",
+      "confirm": "Save",
+      "success": "Renamed",
+      "required": "Please enter a name",
+      "failed": "Couldn't rename. Please try again."
+    },
+    "lineage": {
+      "title": "Version history",
+      "description": "Pick the document that \"{{title}}\" is a newer version of. Clear it to remove the link.",
+      "label": "Previous version",
+      "placeholder": "No previous version",
+      "confirm": "Save",
+      "success": "Version history updated",
+      "rejected": "That link isn't allowed — a document can't be a version of itself or of its own newer version.",
+      "failed": "Couldn't save. Please try again."
+    }
+  },
+  "reuse": {
+    "jd": {
+      "title": "Or reuse a saved job description"
+    },
+    "cv": {
+      "title": "Or reuse a saved CV"
+    },
+    "empty": {
+      "jd": "No saved job descriptions yet",
+      "cv": "No saved CVs yet",
+      "hint": "Items you save will appear here."
+    }
+  },
+  "save": {
+    "jd": "Save this JD for later reuse",
+    "cv": "Save this CV for later reuse",
+    "button": "Save for reuse",
+    "saved": "Saved for reuse: {{title}}",
+    "nameRequired": "Please enter a name",
+    "modal": {
+      "title": "Save this document for reuse",
+      "description": "Saved documents show up in the reuse list on this step — next time you can pick one instead of importing again. Give it a clear name so you recognise it later.",
+      "nameLabel": "Document name",
+      "confirm": "Save"
+    },
+    "title": {
+      "placeholder": "Enter a title for this document"
+    }
+  },
+  "action": {
+    "next": "Next",
+    "back": "Back",
+    "cancel": "Cancel",
+    "runMatch": "Run match",
+    "startOver": "Start over",
+    "saveReport": "Save report",
+    "runMatchCount": "Run match · {{count}} providers",
+    "tryAgain": "Try again",
+    "improveCv": "Improve my CV",
+    "compareVersions": "Compare versions"
+  },
+  "rewrite": {
+    "title": "Improve this CV",
+    "subtitle": "Suggested edits that use only what your CV already says. You approve each one.",
+    "setup": {
+      "title": "Rewrite \"{{title}}\"",
+      "description": "Suggestions are based on the gaps found in this match.",
+      "thisCv": "this CV"
+    },
+    "gapsTitle": "Gaps from this match",
+    "noGaps": "This match found no gaps. You can still ask for wording improvements.",
+    "generate": "Generate suggestions",
+    "regenerate": "Generate again",
+    "saveAsNew": "Save as new CV",
+    "preview": "Preview the result",
+    "change": {
+      "original": "Currently in your CV",
+      "suggested": "Suggested wording",
+      "removal": "Removes this line",
+      "untitled": "Suggested change"
+    },
+    "changes": {
+      "title": "Suggested changes",
+      "description": "Nothing is applied until you tick it and save.",
+      "selectAll": "Select all",
+      "selectedCount_one": "{{count}} change selected",
+      "selectedCount_other": "{{count}} changes selected",
+      "empty": "No changes to suggest",
+      "emptyHint": "Nothing in your CV could be reworded to close these gaps without inventing new facts."
+    },
+    "unaddressed": {
+      "title": "These gaps need real experience",
+      "hint": "They were left alone on purpose — nothing here was invented for you."
+    },
+    "save": {
+      "title": "Save as a new CV",
+      "nameLabel": "Document name",
+      "nameTooLong": "Use at most 200 characters",
+      "confirm": "Save",
+      "hint": "Your original CV is kept untouched. This is saved as a new document linked to it.",
+      "defaultTitle": "{{title}} (improved)",
+      "success": "Saved as a new CV"
+    },
+    "err": {
+      "matchNotFound": "That match no longer exists.",
+      "generateFailed": "Couldn't generate suggestions. Please try again.",
+      "notGrounded": "One of the approved changes no longer matches your CV. Generate the suggestions again.",
+      "saveFailed": "Couldn't save the new CV. Please try again."
+    }
+  },
+  "result": {
+    "overall": "Overall match",
+    "semantic": "Semantic match",
+    "keyword": "Keyword / Skills match",
+    "strengths": "Matched strengths",
+    "gaps": "Gaps / Missing",
+    "suggestions": "How to improve your CV",
+    "loading": "Running the match…",
+    "disclaimer": "AI-generated. CV/JD content is sent to OpenRouter for analysis — verify results independently.",
+    "missingRun": "No run to show. Start a new match.",
+    "emptyRun": "Nothing finished yet",
+    "emptyRunHint": "This run has no results. Providers that were still running when you reloaded are not resumed.",
+    "card": {
+      "pendingTitle": "Running…",
+      "showReport": "Show full report"
+    },
+    "error": {
+      "invalid_key": "That API key was rejected by the provider.",
+      "no_quota": "This key has no quota left with the provider.",
+      "model_unavailable": "The provider does not offer that model.",
+      "timeout": "The provider took too long to answer.",
+      "unreachable": "Could not reach the provider."
+    }
+  },
+  "err": {
+    "saveFailed": "Couldn't save. Please try again.",
+    "fileType": "Only PDF or DOCX files are allowed",
+    "fileSize": "File exceeds the {{max}} limit",
+    "empty": "Please provide a {{kind}} to continue",
+    "parseFailed": "We couldn't read this file. Try another.",
+    "matchUnavailable": "AI matching is temporarily unavailable. Please try again in a moment.",
+    "matchFailed": "We couldn't run the match. Please try again."
+  },
+  "credentials": {
+    "title": "AI credentials",
+    "subtitle": "Your own provider keys. Matching runs on the one you pick.",
+    "add": "Add credential",
+    "empty": "No credentials yet",
+    "emptyHint": "Matching currently runs on the system key. Add your own to use your provider account.",
+    "fallbackNote": "When no credential is selected, matching falls back to the built-in system key.",
+    "systemKey": "System key",
+    "systemKeyTag": "fallback",
+    "defaultModel": "Default",
+    "never": "—",
+    "chatLabel": "Chat",
+    "embedLabel": "Embeddings",
+    "form": {
+      "addTitle": "Add credential",
+      "editTitle": "Edit credential",
+      "provider": "Provider",
+      "providerLocked": "Provider cannot be changed. Create another credential to switch.",
+      "label": "Name",
+      "labelPlaceholder": "My OpenRouter key",
+      "apiKey": "API key",
+      "apiKeyKeepHint": "Leave blank to keep the current key",
+      "apiKeyStoredHint": "Encrypted at rest. It is never shown again.",
+      "chatModel": "Chat model",
+      "embedModel": "Embedding model",
+      "modelHint": "Leave blank to use the provider default",
+      "save": "Save",
+      "testing": "Testing connection…",
+      "required": "This field is required",
+      "labelTooLong": "Use at most 60 characters",
+      "keyTooShort": "The key must be at least 20 characters",
+      "keyTooLong": "The key must be at most 400 characters",
+      "noWhitespace": "No spaces allowed"
+    },
+    "status": {
+      "untested": "Not tested",
+      "ok": "Tested OK",
+      "invalid_key": "Invalid key",
+      "no_quota": "No quota",
+      "model_unavailable": "Model unavailable",
+      "timeout": "Timed out",
+      "unreachable": "Unreachable"
+    },
+    "actions": {
+      "test": "Test",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete": {
+      "confirm": "Delete this credential?",
+      "hint": "Past match results keep the provider and model they ran with.",
+      "success": "Credential deleted",
+      "failed": "Could not delete the credential"
+    },
+    "test": {
+      "success": "Connection tested",
+      "failed": "Could not test the credential"
+    },
+    "errors": {
+      "loadFailed": "Could not load your credentials",
+      "notConfigured": "Credential storage is not configured on the server.",
+      "labelTaken": "You already have a credential with this name",
+      "saveFailed": "Could not save the credential"
+    },
+    "runWith": {
+      "title": "Run with",
+      "untestedWarning": "This credential has not been tested yet.",
+      "failedWarning": "The last test for this credential did not pass.",
+      "testNow": "Test now",
+      "privacy": "Your CV and JD text will be sent to {{provider}}.",
+      "privacySystem": "Your CV and JD text will be sent to OpenRouter using the system key.",
+      "ranWith": "Run with",
+      "untestedCount_one": "{{count}} selected credential has not passed a connection test.",
+      "untestedCount_other": "{{count}} selected credentials have not passed a connection test.",
+      "privacyNone": "Select at least one key to run the match.",
+      "privacyList": "Your CV and JD text will be sent to: {{providers}}."
+    }
+  },
+  "coverLetter": {
+    "open": "Write cover letter",
+    "title": "Cover letter",
+    "tone": "Tone",
+    "length": "Length",
+    "language": "Letter language",
+    "toneValue": {
+      "formal": "Formal",
+      "friendly": "Friendly"
+    },
+    "lengthValue": {
+      "short": "Short",
+      "standard": "Standard"
+    },
+    "languageValue": {
+      "en": "English",
+      "vi": "Vietnamese"
+    },
+    "generate": "Generate",
+    "draft": "Draft",
+    "drafts": "Drafts you have generated",
+    "empty": "No drafts yet. Pick a tone and length, then generate one.",
+    "copy": "Copy",
+    "download": "Download .txt",
+    "save": "Save changes",
+    "delete": "Delete draft",
+    "editedTag": "Edited",
+    "failedTag": "Failed",
+    "omitted": {
+      "title": "This letter does not claim",
+      "hint": "Your CV does not back these up, so the letter leaves them out. Add them for real if you can."
+    },
+    "err": {
+      "generate": "Could not generate the letter. Please try again.",
+      "save": "Could not save your changes. Your text is still here — try again.",
+      "delete": "Could not delete that draft.",
+      "copy": "Could not copy automatically. Select the text and copy it manually.",
+      "list": "Could not load your drafts."
+    }
+  },
+  "myData": {
+    "title": "My data",
+    "description": "Download a copy of everything this app stores about you.",
+    "contents": {
+      "heading": "The archive contains",
+      "documents": "Your CV and job description files, exactly as you uploaded them, plus the text extracted from them",
+      "matches": "Every match you have run, with its scores and full report",
+      "credentials": "Your AI credential settings — provider, label and the last four characters only, never the key itself"
+    },
+    "download": "Download my data",
+    "downloading": "Preparing your archive…",
+    "done": "Your archive has been downloaded.",
+    "error": "Could not prepare your archive. Please try again.",
+    "privacyNote": "The archive contains personal data. Store it somewhere safe."
+  },
+  "compare": {
+    "title": "Version comparison",
+    "subtitle": "How much this CV improved over the version it came from, on one job description.",
+    "version": "Version {{n}}",
+    "jdLabel": "Job description",
+    "backToLibrary": "Back to the library",
+    "delta": {
+      "up": "better than the previous version",
+      "down": "worse than the previous version",
+      "flat": "unchanged from the previous version"
+    },
+    "empty": {
+      "title": "Neither version has been matched yet",
+      "hint": "Run a match for both versions against the same job description, then come back to see the difference.",
+      "cta": "Go to the wizard"
+    },
+    "missing": {
+      "base": "The earlier version has not been matched against this job description.",
+      "revision": "This version has not been matched against this job description yet.",
+      "hint": "Comparing never runs a match on its own — your CV is only sent to a provider when you ask for it.",
+      "cta": "Match this version"
+    },
+    "modelWarning": {
+      "title": "The two matches used different AI models",
+      "hint": "Scores and gap wording from {{base}} and {{revision}} are not strictly comparable. Re-run both versions on the same model for a clean comparison."
+    },
+    "gaps": {
+      "title": "Gaps",
+      "caveat": "Gaps are matched by topic overlap, not exact wording — read the text below before trusting the grouping.",
+      "closed": "Closed",
+      "persisted": "Still open",
+      "introduced": "New",
+      "none": "None"
+    },
+    "err": {
+      "notFound": "That CV doesn't exist, or it isn't yours.",
+      "noParent": "This CV is not marked as a new version of another CV, so there is nothing to compare it with.",
+      "jdNotComparable": "Neither version has been matched against that job description.",
+      "failed": "Couldn't load the comparison. Please try again."
+    }
+  }
+}
