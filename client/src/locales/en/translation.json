@@ -436,5 +436,10 @@
       "jdNotComparable": "Neither version has been matched against that job description.",
       "failed": "Couldn't load the comparison. Please try again."
     }
+  },
+  "readout": {
+    "notComparable": "Not comparable",
+    "scaleMin": "0",
+    "scaleMax": "100"
   }
 }

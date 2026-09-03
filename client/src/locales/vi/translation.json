@@ -436,5 +436,10 @@
       "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
       "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
     }
+  },
+  "readout": {
+    "notComparable": "Không so được",
+    "scaleMin": "0",
+    "scaleMax": "100"
   }
 }
