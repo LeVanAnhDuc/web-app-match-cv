@@ -14,10 +14,18 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
+**Thiết kế lại toàn bộ UI** (2026-09-03, branch `worktree-ui-redesign`) —
+[`specs/ui-redesign/`](../specs/ui-redesign/design.md). Bootstrap lại design token theo
+[ADR-0021](../decisions/0021-token-zinc-cyan-ba-typeface.md): zinc + cyan, ba typeface tự
+host, signature element đổi sang `readout`. Đây là feature **chỉ ở tầng trình bày** — không
+FR mới, không US mới, không đổi endpoint nào.
+
+Mockup đã duyệt (49 artboard, 11 màn × 375/768/1440 + dark + 6 modal). `MASTER.md` và
+ADR-0021 đã viết. Bước tiếp theo: `plan.md`, rồi build theo TDD.
+
 Chuyển dự án sang bộ tài liệu hai tầng của `scaffold-webapp-project` (2026-09-03):
 plugin và hook đã xong; `project-goals.md` + `unfinished-features.md` đã tách vào cây
-`docs/01-product` … `docs/04-state` + `docs/decisions/`. Không có feature sản phẩm nào
-đang dở.
+`docs/01-product` … `docs/04-state` + `docs/decisions/`. Xong.
 
 ## Việc tiếp theo
 
