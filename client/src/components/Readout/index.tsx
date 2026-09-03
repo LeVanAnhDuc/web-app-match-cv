@@ -38,7 +38,7 @@ function Delta({
   return (
     <span className={`inline-flex items-center gap-1 text-sm ${tone}`}>
       <Icon size={14} aria-hidden />
-      <span className="font-mono tabular-nums">
+      <span className="font-mono tabular-nums" data-testid="delta-value">
         {direction === "up" ? `+${value}` : String(value)}
       </span>
     </span>
@@ -95,7 +95,7 @@ const Readout = ({
           <span className="absolute top-[-2px] left-3/4 h-2.5 w-px bg-line-strong" />
         </div>
       )}
-      {scale && !delta && (
+      {scale && (
         <div className="flex justify-between font-mono text-[11px] text-faint">
           <span>{t("readout.scaleMin")}</span>
           <span>{t("readout.scaleMax")}</span>

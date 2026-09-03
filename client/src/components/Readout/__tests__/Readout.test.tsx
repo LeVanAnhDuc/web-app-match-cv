@@ -1,13 +1,17 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import i18n from "#/i18n/config";
 import Readout from "../index";
 
-beforeEach(async () => {
-  await i18n.changeLanguage("vi");
-});
-
 describe("Readout", () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("vi");
+  });
+
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
   it("biến thể plain KHÔNG vẽ thang — số đếm không có dải 0-100", () => {
     render(<Readout label="Sơ yếu lý lịch" value={12} />);
 
@@ -69,7 +73,7 @@ describe("Readout", () => {
       />
     );
 
-    const delta = screen.getByText("+8");
+    const delta = screen.getByTestId("delta-value");
     expect(delta.parentElement?.className).toContain("text-success");
   });
 
@@ -85,7 +89,7 @@ describe("Readout", () => {
       />
     );
 
-    const delta = screen.getByText("-4");
+    const delta = screen.getByTestId("delta-value");
     expect(delta.parentElement?.className).toContain("text-error");
   });
 
@@ -101,8 +105,7 @@ describe("Readout", () => {
       />
     );
 
-    expect(screen.getByText("0").parentElement?.className).toContain(
-      "text-muted"
-    );
+    const delta = screen.getByTestId("delta-value");
+    expect(delta.parentElement?.className).toContain("text-muted");
   });
 });
