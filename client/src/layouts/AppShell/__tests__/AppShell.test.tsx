@@ -61,4 +61,35 @@ describe("AppShell", () => {
       await screen.findByRole("button", { name: /expand sidebar/i })
     ).toBeDefined();
   });
+
+  it("không dùng h-screen; khoá viewport chỉ ở desktop", async () => {
+    renderShell();
+
+    const aside = await screen.findByRole("complementary", { hidden: true });
+    const shell = aside.parentElement;
+    const classStr = shell?.getAttribute("class") || "";
+    expect(classStr).not.toContain("h-screen");
+    expect(classStr).toContain("min-h-dvh");
+    expect(classStr).toContain("lg:h-dvh");
+    expect(classStr).toContain("lg:overflow-hidden");
+  });
+
+  it("render actionBar ghim đáy khi được truyền", async () => {
+    const rootRoute = createRootRoute({
+      component: () => (
+        <AppShell actionBar={<button>Lưu báo cáo</button>}>page body</AppShell>
+      )
+    });
+    const router = createRouter({
+      routeTree: rootRoute,
+      history: createMemoryHistory({ initialEntries: ["/"] })
+    });
+    render(<RouterProvider router={router} />);
+
+    const bar = (await screen.findByRole("button", { name: "Lưu báo cáo" }))
+      .parentElement;
+    expect(bar?.className).toContain("sticky");
+    expect(bar?.className).toContain("bottom-0");
+    expect(bar?.className).not.toContain("lg:static");
+  });
 });

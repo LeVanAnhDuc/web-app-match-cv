@@ -7,11 +7,14 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { useUiStore } from "#/stores";
 import Sidebar from "./components/Sidebar";
 
-const AppShell = ({ children }: PropsWithChildren) => {
+const AppShell = ({
+  children,
+  actionBar
+}: PropsWithChildren<{ actionBar?: ReactNode }>) => {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isCollapsed = useUiStore((s) => s.isSidebarCollapsed);
@@ -25,7 +28,7 @@ const AppShell = ({ children }: PropsWithChildren) => {
   }, [hydrateSidebar]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-app">
+    <div className="flex min-h-dvh bg-app lg:h-dvh lg:overflow-hidden">
       <aside
         id="app-sidebar"
         className={`hidden shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-200 lg:flex ${
@@ -77,6 +80,11 @@ const AppShell = ({ children }: PropsWithChildren) => {
           </span>
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+        {actionBar && (
+          <div className="sticky bottom-0 z-20 shrink-0 border-t border-line bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
+            {actionBar}
+          </div>
+        )}
       </div>
       <Drawer
         placement="left"
