@@ -6,7 +6,7 @@ NestJS REST API cho web-app-match-cv (job-board 2 chiều; MVP = CV↔JD matchin
 
 ## Tech Stack
 
-Chi tiết version xem root `.claude/techstack/backend.md`. Tóm tắt:
+Chi tiết version xem `server/package.json` (nguồn đúng) + `docs/03-design/architecture.md` §5. Tóm tắt:
 
 - **Framework**: NestJS 11 (DI, module-based) + Express platform
 - **Language**: TypeScript 5 (decorators; `tsc --noEmit` type-check)
@@ -26,7 +26,6 @@ Chi tiết version xem root `.claude/techstack/backend.md`. Tóm tắt:
 
 | Khi nào                                                           | Skill                                           |
 | ----------------------------------------------------------------- | ----------------------------------------------- |
-| Viết/review BẤT KỲ code — nguyên tắc chung                        | `standard-coding-universal/SKILL.md`            |
 | Viết/review `.ts` (type safety, decorators, async, imports)       | `standard-typescript/SKILL.md`                  |
 | Scaffold/review module (controller/service/module/dto/i18n)       | `module-struct/SKILL.md`                        |
 | NestJS: DI, provider, pipe, guard, interceptor, config, bootstrap | `standard-nestjs/SKILL.md`                      |

@@ -6,7 +6,7 @@ user-invocable: false
 
 # Prisma + PostgreSQL — Conventions
 
-ORM là **Prisma 6.19.3** (pin — v7 breaking) trên **PostgreSQL local** (không Docker, pgvector deferred). Xem `.claude/techstack/backend.md`.
+ORM là **Prisma 6.19.3** (pin — v7 breaking) trên **PostgreSQL local** (không Docker, pgvector deferred). Lý do pin: [ADR-0020](../../../../docs/decisions/0020-pin-prisma-6.md).
 
 ## `prisma/schema.prisma`
 

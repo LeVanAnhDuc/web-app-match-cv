@@ -9,7 +9,7 @@ interface StepDef {
   labelKey: string;
 }
 
-// Icon mapping per .claude/uiux/icon-map.md §1 (wizard/navigation).
+// Icon mapping per docs/design-system/match-cv/icon-map.md §1 (wizard/navigation).
 const STEPS: Array<StepDef> = [
   { step: 1, icon: FileText, labelKey: "step.jd" },
   { step: 2, icon: User, labelKey: "step.cv" },

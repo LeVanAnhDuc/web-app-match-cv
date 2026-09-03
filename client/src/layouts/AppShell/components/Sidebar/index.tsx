@@ -18,7 +18,7 @@ interface NavItem {
   exact?: boolean;
 }
 
-// Icon mapping per .claude/uiux/icon-map.md-style convention (nav/navigation).
+// Icon mapping per docs/design-system/match-cv/icon-map.md (nav/navigation).
 const NAV_ITEMS: Array<NavItem> = [
   { to: "/", icon: LayoutDashboard, labelKey: "nav.home", exact: true },
   { to: "/wizard", icon: Sparkles, labelKey: "nav.match" },

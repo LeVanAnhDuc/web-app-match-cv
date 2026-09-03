@@ -6,7 +6,7 @@ paths:
 
 # Layout Primitives & Semantic Tokens
 
-Luật giữ padding / font / border đồng nhất giữa sidebar và content. Nguồn gốc: `docs/specs/ui-consistency-shell/design.md`. Source-of-truth thị giác: root `.claude/uiux/frontend-reference.md` §1b, §2, §5, §7a, §7b.
+Luật giữ padding / font / border đồng nhất giữa sidebar và content. Nguồn gốc: `docs/specs/ui-consistency-shell/design.md`. Source-of-truth thị giác: `docs/design-system/match-cv/MASTER.md` §2b, §3, §4, §6, §8.
 
 ## 1. Semantic token — KHÔNG hard-code `slate-*`
 
@@ -26,7 +26,7 @@ Token khai báo ở `src/styles.css` bằng Tailwind 4 `@theme` (KHÔNG `@theme 
 
 **Ngoại lệ được phép**: màu semantic của báo cáo và trạng thái — `green-*` (strengths), `amber-*` (gaps), `red-*` (error), `blue-*`/`indigo-*` (suggestions, progress). Giữ nguyên class Tailwind gốc, KHÔNG token hoá.
 
-Thêm token mới → sửa `src/styles.css` **và** root `.claude/uiux/frontend-reference.md` §1b **và** `docs/.superdesign/design-system.md` trong cùng PR.
+Thêm token mới → sửa `src/styles.css` **và** `docs/design-system/match-cv/MASTER.md` §2 trong cùng PR. Nếu token là màu primary, sửa luôn `colorPrimary` của antd ở `src/contexts/AntdProvider` cho khớp — lệch hai chỗ này là hai màu khác nhau ở dark mode.
 
 ## 2. `PageContainer` — mỗi trang đúng 1 cái
 
@@ -65,4 +65,4 @@ import SectionCard from "#/components/SectionCard";
 
 ## 5. Sidebar nav item
 
-4 item dùng **chung một class string**; khác biệt duy nhất là trạng thái active (`bg-primary/10 text-accent font-semibold` + thanh dọc `::before` + `aria-current="page"`). KHÔNG tạo item "nổi bật vĩnh viễn" — fill màu cố định sẽ đè mất tín hiệu active. Chi tiết ở `.claude/uiux/frontend-reference.md` §7b.
+4 item dùng **chung một class string**; khác biệt duy nhất là trạng thái active (`bg-primary/10 text-accent font-semibold` + thanh dọc `::before` + `aria-current="page"`). KHÔNG tạo item "nổi bật vĩnh viễn" — fill màu cố định sẽ đè mất tín hiệu active. Chi tiết ở `docs/design-system/match-cv/MASTER.md` §8.

@@ -384,11 +384,11 @@ const cn = (...inputs) => twMerge(clsx(inputs))
 
 Colors come from the design system, **not** from Tailwind palette primitives typed inline.
 
-- **Source of truth**: the project design system in `.claude/uiux/` (`frontend-reference.md` — color/spacing/typography tokens) plus Ant Design's theme tokens set on `ConfigProvider` (`theme.token`, e.g. `colorPrimary`) in `src/providers/AntdProvider.tsx`. antd runs with `cssVar: true`, so its tokens are available as CSS variables and flip with `defaultAlgorithm`/`darkAlgorithm`.
-- **Where semantic Tailwind tokens live**: any project-defined semantic CSS variables belong in `src/styles.css` under `@theme` / `@theme inline` (see the token + dark-mode sections above), kept in sync with `.claude/uiux/frontend-reference.md`.
+- **Source of truth**: the project design system in `docs/design-system/match-cv/MASTER.md` (color/spacing/typography tokens) plus Ant Design's theme tokens set on `ConfigProvider` (`theme.token`, e.g. `colorPrimary`) in `src/providers/AntdProvider.tsx`. antd runs with `cssVar: true`, so its tokens are available as CSS variables and flip with `defaultAlgorithm`/`darkAlgorithm`.
+- **Where semantic Tailwind tokens live**: any project-defined semantic CSS variables belong in `src/styles.css` under `@theme` / `@theme inline` (see the token + dark-mode sections above), kept in sync with `docs/design-system/match-cv/MASTER.md` §2.
 - **NEVER** use Tailwind palette primitives (`slate`, `indigo`, `green`, `amber`, `red`, `pink`, `white`, `black`, …) directly in a component / view / mock. Use a semantic token (`bg-primary`, `text-muted-foreground`, …) or, for antd-driven surfaces, let antd's theme token handle it.
 
-> **Conflict rule**: when this generic skill disagrees with `.claude/uiux/` (the project design system), **`.claude/uiux/` wins** (project-specific > generic).
+> **Conflict rule**: when this generic skill disagrees with `docs/design-system/match-cv/MASTER.md` (the project design system), **MASTER.md wins** (project-specific > generic).
 
 ### Mapping palette family → semantic role
 
@@ -406,9 +406,9 @@ Translate the design _intent_ to a semantic role, then use the matching token �
 
 ### Workflow trước khi gõ className màu
 
-1. Đọc `.claude/uiux/frontend-reference.md` để biết token nào tồn tại + ý nghĩa; đọc `src/styles.css` để xem semantic CSS variables đã khai báo.
+1. Đọc `docs/design-system/match-cv/MASTER.md` §2 để biết token nào tồn tại + ý nghĩa; đọc `src/styles.css` để xem semantic CSS variables đã khai báo.
 2. Translate design intent → semantic role (design indigo cho "primary action" → `bg-primary` / antd `colorPrimary`, KHÔNG `bg-indigo-500`).
-3. Nếu token chưa tồn tại → thêm vào `src/styles.css` (`@theme`/`@theme inline`) và sync `.claude/uiux/frontend-reference.md`, không hardcode một lần.
+3. Nếu token chưa tồn tại → thêm vào `src/styles.css` (`@theme`/`@theme inline`) và sync `docs/design-system/match-cv/MASTER.md` §2, không hardcode một lần.
 4. Với antd component, đổi màu qua `theme.token` / `theme.components`, không qua Tailwind color class trên component đó.
 
 ### Audit khi review
@@ -421,4 +421,4 @@ Grep trong `src/views/**/*.tsx` + `src/components/**/*.tsx` + `src/mocks/**/*.ts
 
 Kết quả phải = **0** trước khi merge.
 
-**Lint/tsc/format pass ≠ color-rule pass** — không có lint rule catch palette usage. Manual audit theo regex trên + compare với `.claude/uiux/` token list = step ngang hàng a11y audit, không skip được.
+**Lint/tsc/format pass ≠ color-rule pass** — không có lint rule catch palette usage. Manual audit theo regex trên + compare với `docs/design-system/match-cv/MASTER.md` §2 = step ngang hàng a11y audit, không skip được.

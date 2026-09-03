@@ -6,7 +6,7 @@ user-invocable: false
 
 # NestJS Conventions
 
-Framework thật: **NestJS 11 + Express platform**. Version chi tiết ở `.claude/techstack/backend.md`. Skill này = cách dùng framework; layout module → `module-struct`.
+Framework thật: **NestJS 11 + Express platform**. Version chi tiết ở `server/package.json`. Skill này = cách dùng framework; layout module → `module-struct`.
 
 ## Dependency Injection
 

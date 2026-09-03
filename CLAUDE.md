@@ -34,4 +34,8 @@ README-only documentation commits use a `docs:` prefix.
 
 ## Commits
 
-Conventional Commits, English subject, scope = feature or area (`feat(compare):`, `docs(specs):`, `chore:`). Bodies are multi-paragraph and explain the reasoning, not the diff. `docs/` is the source of truth for scope: check `docs/project-goals.md` (§4 Goals, §5 Non-Goals, §10 Roadmap) and `docs/unfinished-features.md` before starting work, and update them in the same PR.
+Conventional Commits, English subject, scope = feature or area (`feat(compare):`, `docs(specs):`, `chore:`). Bodies are multi-paragraph and explain the reasoning, not the diff.
+
+`docs/` is the source of truth for scope. Before starting work, read `docs/README.md` — it maps the whole tree — then the files the task needs: `docs/01-product/overview.md` §4 Non-Goals, `docs/02-requirements/scope.md` (FR status), `docs/03-design/invariants.md` (before touching existing code), `docs/04-state/backlog.md` (what is in flight and what is owed). Update them in the same PR. Traceability runs on IDs (`US-xx`, `FR-xx`, `NFR-<AREA>-xx`, `ADR-NNNN`) — reference them in commit bodies instead of restating the docs.
+
+`docs/project-goals.md` and `docs/unfinished-features.md` were split into that tree on 2026-09-03 and are now redirect stubs only. Do not read from or write to them.

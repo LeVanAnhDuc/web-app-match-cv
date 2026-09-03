@@ -4,7 +4,7 @@ TanStack Start frontend cho web-app-match-cv (job-board 2 chiều; MVP = CV↔JD
 
 ## Tech Stack
 
-Chi tiết version/packages xem root `.claude/techstack/frontend.md`. Tóm tắt:
+Chi tiết version/packages xem `package.json` (nguồn đúng) + `docs/03-design/architecture.md` §5. Tóm tắt:
 
 - **Framework**: TanStack Start (Vite + React 19), file-based router (`src/routes/`)
 - **Language**: TypeScript 5 (`verbatimModuleSyntax`, `strict`, `noUnusedLocals`)
@@ -20,19 +20,16 @@ Chi tiết version/packages xem root `.claude/techstack/frontend.md`. Tóm tắt
 
 Thư mục `.claude/skills/` chứa các file hướng dẫn coding convention. Đọc skill tương ứng task hiện tại:
 
-| Khi nào                                                                | Skill                                                            |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Viết/review BẤT KỲ code — nguyên tắc chung                             | `standard-coding-universal/SKILL.md`                             |
-| Viết/review `.ts`/`.tsx` (type safety, tsconfig, TSX typing, imports)  | `standard-typescript/SKILL.md`                                   |
-| Viết/review React component, hook; performance, bundle size            | `standard-react/SKILL.md`                                        |
-| Viết/review route, loader, root shell, router context (TanStack Start) | `standard-tanstack-start/SKILL.md`                               |
-| Dùng Ant Design component, ConfigProvider/theme, Form                  | `standard-antd/SKILL.md`                                         |
-| Viết/review Tailwind classes, theme, responsive, dark mode             | `standard-tailwind/SKILL.md`                                     |
-| Viết/review a11y (form, modal, navigation, focus)                      | `standard-accessibility/SKILL.md`                                |
-| Đụng auth / input user / data nhạy cảm / render untrusted              | `standard-security/SKILL.md`                                     |
-| Thiết kế UI architecture, rendering, Core Web Vitals                   | `standard-frontend-engineering-mindset/SKILL.md`                 |
-| Thiết kế UI/UX, layout, typography, color, animation                   | `standard-uiux/SKILL.md` (conflict → root `.claude/uiux/` thắng) |
-| Tạo/chỉnh file, cần xác định convention của folder/path                | `project-rules/SKILL.md`                                         |
+| Khi nào                                                                | Skill                              |
+| ---------------------------------------------------------------------- | ---------------------------------- |
+| Viết/review `.ts`/`.tsx` (type safety, tsconfig, TSX typing, imports)  | `standard-typescript/SKILL.md`     |
+| Viết/review React component, hook; performance, bundle size            | `standard-react/SKILL.md`          |
+| Viết/review route, loader, root shell, router context (TanStack Start) | `standard-tanstack-start/SKILL.md` |
+| Dùng Ant Design component, ConfigProvider/theme, Form                  | `standard-antd/SKILL.md`           |
+| Viết/review Tailwind classes, theme, responsive, dark mode             | `standard-tailwind/SKILL.md`       |
+| Viết/review a11y (form, modal, navigation, focus)                      | `standard-accessibility/SKILL.md`  |
+| Đụng auth / input user / data nhạy cảm / render untrusted              | `standard-security/SKILL.md`       |
+| Tạo/chỉnh file, cần xác định convention của folder/path                | `project-rules/SKILL.md`           |
 
 ## Rules (path-scoped)
 
@@ -77,7 +74,7 @@ yarn test:e2e         # Playwright (e2e) — 3 viewport project: desktop / table
                       #   dev server ở port khác (worktree): E2E_BASE_URL=http://localhost:5302 yarn test:e2e
 ```
 
-**Lint/format config**: Prettier (`prettier.config.js`) dùng chung style với `server/` và app anh em `web-app-store-server-client` — double quote, có `;`, `trailingComma: none`, `printWidth 80`; kèm `prettier-plugin-tailwindcss` sort class Tailwind (`tailwindStylesheet: ./src/styles.css` vì Tailwind 4 không có file config JS). ESLint (`eslint.config.js`) = `tanstackConfig` + layer react / react-hooks / jsx-a11y / promise / unused-imports / prettier. `src/routeTree.gen.ts` bị **ignore ở cả prettier lẫn eslint** (file generated, tự yêu cầu vậy trong header).
+**Lint/format config**: Prettier (`prettier.config.js`) dùng chung style với `server/` và app anh em `web-app-ducker-id` — double quote, có `;`, `trailingComma: none`, `printWidth 80`; kèm `prettier-plugin-tailwindcss` sort class Tailwind (`tailwindStylesheet: ./src/styles.css` vì Tailwind 4 không có file config JS). ESLint (`eslint.config.js`) = `tanstackConfig` + layer react / react-hooks / jsx-a11y / promise / unused-imports / prettier. `src/routeTree.gen.ts` bị **ignore ở cả prettier lẫn eslint** (file generated, tự yêu cầu vậy trong header).
 
 ## Architecture
 

@@ -1,6 +1,6 @@
 # web-app-match-cv — Design System (STRICT — SuperDesign MUST obey)
 
-> Synced từ `.claude/uiux/{standards,frontend-reference}.md` (2026-07-24 — **đồng bộ chuẩn app anh em** `web-app-store-server-client`: system font, zinc/slate + accent xanh 60-30-10, radius md/xl, shadow nhẹ). Cơ chế strict-theme (root `.claude/CLAUDE.md` §3.3). Sync lại khi token `.claude/uiux/` đổi.
+> Synced từ `.claude/uiux/{standards,frontend-reference}.md` (2026-07-24 — **đồng bộ chuẩn app anh em** `web-app-ducker-id`: system font, zinc/slate + accent xanh 60-30-10, radius md/xl, shadow nhẹ). Cơ chế strict-theme (root `.claude/CLAUDE.md` §3.3). Sync lại khi token `.claude/uiux/` đổi.
 
 ## 0. MANDATORY BOILERPLATE — copy `<head>` này VERBATIM vào mọi HTML sinh ra
 
