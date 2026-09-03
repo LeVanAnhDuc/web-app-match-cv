@@ -2,6 +2,7 @@ import type { PropsWithChildren, ReactNode } from "react";
 
 const SectionCard = ({
   children,
+  eyebrow,
   title,
   description,
   extra,
@@ -11,6 +12,7 @@ const SectionCard = ({
   className = "",
   bodyClassName = "p-4 md:p-6"
 }: PropsWithChildren<{
+  eyebrow?: ReactNode;
   title?: ReactNode;
   description?: ReactNode;
   extra?: ReactNode;
@@ -25,15 +27,28 @@ const SectionCard = ({
       fill ? "lg:h-full lg:overflow-hidden" : ""
     } ${className}`}
   >
-    {(title || extra) && (
-      <div className="flex shrink-0 items-start justify-between gap-4 border-b border-line px-4 py-4 md:px-6 md:py-5">
+    {(title || eyebrow || extra) && (
+      <div className="flex shrink-0 flex-col gap-3.5 border-b border-line px-4 py-4 md:flex-row md:items-start md:justify-between md:gap-4 md:px-6 md:py-5">
         <div className="min-w-0">
-          {title && <h2 className="text-xl font-bold text-body">{title}</h2>}
+          {eyebrow && (
+            <p className="text-xs font-semibold tracking-wider text-muted uppercase">
+              {eyebrow}
+            </p>
+          )}
+          {title && (
+            <h2 className="font-head text-xl font-bold break-words text-body">
+              {title}
+            </h2>
+          )}
           {description && (
             <p className="mt-1 text-sm text-muted">{description}</p>
           )}
         </div>
-        {extra && <div className="shrink-0">{extra}</div>}
+        {extra && (
+          <div className="flex min-w-0 flex-wrap gap-2 md:justify-end">
+            {extra}
+          </div>
+        )}
       </div>
     )}
     <div
