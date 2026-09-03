@@ -9,3 +9,4 @@ const CONSTANTS = {
 
 export default CONSTANTS;
 export { ENDPOINTS, FILE };
+export { THEME } from "./theme";

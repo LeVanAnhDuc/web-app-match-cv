@@ -1,36 +1,56 @@
 @import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
 
 /*
- * Semantic color tokens (source of truth: .claude/uiux/frontend-reference.md §1).
- * Plain `@theme` — NOT `@theme inline` — so utilities compile to `var(--color-*)`
- * and the dark block below can flip them. `@theme inline` would bake the light
- * value into every utility and break dark mode.
- * Dark switch = `prefers-color-scheme`, the same signal Tailwind's `dark:` variant
- * and AntdProvider's algorithm already use (no class-based theme toggle yet).
+ * Token ngữ nghĩa. Nguồn đúng: docs/design-system/match-cv/MASTER.md §2a.
+ * Giá trị primary/line-strong được test src/constants/__tests__/theme.test.ts
+ * đối chiếu với THEME, vì antd đọc THEME còn Tailwind đọc file này — lệch hai
+ * chỗ là hai màu khác nhau trên cùng một màn.
  */
 @theme {
-  --color-app: #f8fafc;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-head: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-app: #fafafa;
   --color-surface: #ffffff;
-  --color-surface-subtle: #f8fafc;
-  --color-line: #e2e8f0;
-  --color-body: #0f172a;
-  --color-muted: #64748b;
-  --color-faint: #94a3b8;
-  --color-primary: #2563eb;
-  --color-accent: #2563eb;
+  --color-surface-subtle: #f4f4f5;
+  --color-line: #e4e4e7;
+  --color-line-strong: #71717a;
+  --color-body: #18181b;
+  --color-muted: #52525b;
+  --color-faint: #71717a;
+  --color-primary: #0e7490;
+  --color-primary-hover: #155e75;
+  --color-accent: #0e7490;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-error: #b91c1c;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-app: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-subtle: #111827;
-    --color-line: #334155;
-    --color-body: #ffffff;
-    --color-muted: #cbd5e1;
-    --color-faint: #64748b;
-    --color-primary: #4f46e5;
-    --color-accent: #818cf8;
+    --color-app: #09090b;
+    --color-surface: #18181b;
+    --color-surface-subtle: #09090b;
+    --color-line: #3f3f46;
+    --color-line-strong: #71717a;
+    --color-body: #fafafa;
+    --color-muted: #a1a1aa;
+    --color-faint: #71717a;
+    --color-primary: #0891b2;
+    --color-primary-hover: #06b6d4;
+    --color-accent: #22d3ee;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-error: #f87171;
   }
 }
 
@@ -56,4 +76,5 @@ body,
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
 }
