@@ -332,4 +332,38 @@ describe("StepResult", () => {
       screen.getByRole("button", { name: /Start over/i })
     ).toBeInTheDocument();
   });
+
+  it("no longer renders its own start-over / save-report bar on the multi-card path — that lives in the shell now", async () => {
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: succeeded });
+
+    render(<StepResult />);
+
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Start over" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save report" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("no longer renders its own start-over bar on the single-result path either", async () => {
+    setStore({
+      runId: null,
+      cvDocId: null,
+      jdDocId: null,
+      matchId: succeeded.id,
+      pendingCredentialIds: []
+    });
+    mockRunMatch({});
+    vi.mocked(useMatchResult).mockReturnValue(asQuery(succeeded));
+
+    render(<StepResult />);
+
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Start over" })
+    ).not.toBeInTheDocument();
+  });
 });

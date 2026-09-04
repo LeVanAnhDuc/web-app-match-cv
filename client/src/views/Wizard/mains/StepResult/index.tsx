@@ -65,22 +65,17 @@ const StepResult = () => {
   if (isSingle && singleQuery.data) {
     const stored = singleQuery.data;
     return (
-      <div className="flex h-full flex-col gap-4">
-        <MatchResultCard
-          runId={stored.runId ?? ""}
-          // Taken from the row, not the store: arriving from history there is
-          // no wizard selection behind this result.
-          cvDocumentId={stored.cvDocumentId}
-          jdDocumentId={stored.jdDocumentId}
-          credentialId={stored.credentialId}
-          autoRun={false}
-          initialResult={stored}
-          expanded
-        />
-        <div className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-4 py-3 md:px-6">
-          {startOver}
-        </div>
-      </div>
+      <MatchResultCard
+        runId={stored.runId ?? ""}
+        // Taken from the row, not the store: arriving from history there is
+        // no wizard selection behind this result.
+        cvDocumentId={stored.cvDocumentId}
+        jdDocumentId={stored.jdDocumentId}
+        credentialId={stored.credentialId}
+        autoRun={false}
+        initialResult={stored}
+        expanded
+      />
     );
   }
 
@@ -138,37 +133,29 @@ const StepResult = () => {
   const expanded = cards.length <= 1;
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div aria-live="polite" className="flex flex-1 flex-col gap-4">
-        {cards.length === 0 && (
-          <SectionCard bodyClassName="p-8 md:p-16">
-            <Alert
-              type="info"
-              showIcon
-              message={t("result.emptyRun")}
-              description={t("result.emptyRunHint")}
-            />
-          </SectionCard>
-        )}
-        {cards.map((card) => (
-          <MatchResultCard
-            key={card.key}
-            runId={runId}
-            cvDocumentId={cvDocId}
-            jdDocumentId={jdDocId}
-            credentialId={card.credentialId}
-            autoRun={isLive}
-            initialResult={card.initialResult}
-            expanded={expanded}
+    <div aria-live="polite" className="flex flex-1 flex-col gap-4">
+      {cards.length === 0 && (
+        <SectionCard bodyClassName="p-8 md:p-16">
+          <Alert
+            type="info"
+            showIcon
+            message={t("result.emptyRun")}
+            description={t("result.emptyRunHint")}
           />
-        ))}
-      </div>
-      <div className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-4 py-3 md:px-6">
-        {startOver}
-        <Button type="primary" size="large">
-          {t("action.saveReport")}
-        </Button>
-      </div>
+        </SectionCard>
+      )}
+      {cards.map((card) => (
+        <MatchResultCard
+          key={card.key}
+          runId={runId}
+          cvDocumentId={cvDocId}
+          jdDocumentId={jdDocId}
+          credentialId={card.credentialId}
+          autoRun={isLive}
+          initialResult={card.initialResult}
+          expanded={expanded}
+        />
+      ))}
     </div>
   );
 };
