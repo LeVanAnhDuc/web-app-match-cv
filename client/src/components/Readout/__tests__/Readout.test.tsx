@@ -108,4 +108,53 @@ describe("Readout", () => {
     const delta = screen.getByTestId("delta-value");
     expect(delta.parentElement?.className).toContain("text-muted");
   });
+
+  it("có deltaLabel thì thêm một cụm sr-only nói rõ chiều hướng, cạnh nội dung hiện có", () => {
+    render(
+      <Readout
+        label="L"
+        value={73}
+        unit="%"
+        scale
+        delta={{ direction: "up" }}
+        deltaValue={8}
+        deltaLabel="tốt hơn phiên bản trước"
+      />
+    );
+
+    expect(screen.getByText("tốt hơn phiên bản trước")).toHaveClass("sr-only");
+    expect(screen.getByTestId("delta-value")).toHaveTextContent("+8");
+  });
+
+  it("không có deltaLabel thì không render thêm node nào ngoài icon và con số", () => {
+    render(
+      <Readout
+        label="L"
+        value={73}
+        unit="%"
+        scale
+        delta={{ direction: "up" }}
+        deltaValue={8}
+      />
+    );
+
+    const delta = screen.getByTestId("delta-value");
+    expect(delta.parentElement?.childNodes.length).toBe(2);
+  });
+
+  it("deltaLabel bị bỏ qua khi direction là na — tránh lặp với 'không so được'", () => {
+    render(
+      <Readout
+        label="L"
+        value={59}
+        unit="%"
+        scale
+        delta={{ direction: "na" }}
+        deltaValue={7}
+        deltaLabel="tốt hơn phiên bản trước"
+      />
+    );
+
+    expect(screen.queryByText("tốt hơn phiên bản trước")).toBeNull();
+  });
 });

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Table } from "antd";
-import { ArrowRight, Inbox, Sparkles } from "lucide-react";
+import { Inbox, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TableColumnsType } from "antd";
 import SectionCard from "#/components/SectionCard";
@@ -57,10 +57,9 @@ const RecentMatches = () => {
       render: (score: number, record) => (
         <span
           data-testid={`home-score-${record.id}`}
-          className={`inline-flex items-center gap-1 font-mono text-sm font-semibold tabular-nums ${SCORE_TONE[scoreBand(score)]}`}
+          className={`font-mono text-sm font-semibold tabular-nums ${SCORE_TONE[scoreBand(score)]}`}
         >
           {score}%
-          <ArrowRight size={14} aria-hidden />
         </span>
       )
     },

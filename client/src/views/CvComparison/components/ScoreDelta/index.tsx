@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Readout from "#/components/Readout";
 
 const ScoreDelta = ({
@@ -14,6 +15,7 @@ const ScoreDelta = ({
    * again from the numbers alone. */
   comparable: boolean;
 }) => {
+  const { t } = useTranslation();
   const direction = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
 
   return (
@@ -24,6 +26,7 @@ const ScoreDelta = ({
       scale
       delta={{ direction: comparable ? direction : "na" }}
       deltaValue={delta}
+      deltaLabel={comparable ? t(`compare.delta.${direction}`) : undefined}
     />
   );
 };
