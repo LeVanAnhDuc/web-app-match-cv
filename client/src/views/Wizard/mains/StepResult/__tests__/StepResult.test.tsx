@@ -5,6 +5,7 @@ import "#/i18n/config";
 import { useMatchResult, useMatchRun, useRunMatch } from "#/hooks/useMatch";
 import { useProviders } from "#/hooks/useAiCredentials";
 import { useDocument } from "#/hooks/useDocuments";
+import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
 import type {
   CreateMatchInput,
@@ -364,6 +365,43 @@ describe("StepResult", () => {
     expect(await screen.findByText("82%")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Start over" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows exactly one start-over button (never zero, never doubled) on the missing-run guard, and no save-report button", () => {
+    setStore({ runId: null, pendingCredentialIds: [] });
+    mockRunMatch({});
+
+    render(<StepResult />);
+
+    expect(screen.getAllByRole("button", { name: "Start over" })).toHaveLength(
+      1
+    );
+    expect(
+      screen.queryByRole("button", { name: "Save report" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows exactly one start-over button (never zero, never doubled) when the run query fails, and no save-report button", async () => {
+    setStore({ pendingCredentialIds: [] });
+    mockRunMatch({});
+    vi.mocked(useMatchRun).mockReturnValue(
+      asQuery<MatchRunDetailDto>(undefined, {
+        isError: true,
+        error: new ApiError(500, "boom")
+      })
+    );
+
+    render(<StepResult />);
+
+    expect(
+      await screen.findByText("We couldn't run the match. Please try again.")
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Start over" })).toHaveLength(
+      1
+    );
+    expect(
+      screen.queryByRole("button", { name: "Save report" })
     ).not.toBeInTheDocument();
   });
 });

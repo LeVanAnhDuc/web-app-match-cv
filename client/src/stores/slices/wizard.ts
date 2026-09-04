@@ -11,6 +11,12 @@ interface WizardState {
   runId: string | null;
   /** Which providers still need firing this session. Empty after a reload. */
   pendingCredentialIds: Array<string | null>;
+  /**
+   * Step 4 only StepResult knows whether its query landed on a report or on a
+   * loading/error/guard screen — the shell reads this to decide whether its
+   * pinned action bar (which offers "Save report") may render at all.
+   */
+  resultReady: boolean;
   setStep: (step: WizardStep) => void;
   setJdDocId: (id: string) => void;
   setCvDocId: (id: string) => void;
@@ -21,6 +27,7 @@ interface WizardState {
   goBack: () => void;
   /** Backward-only: jumping ahead to a step without its data would show a blank/stale screen. */
   jumpTo: (step: WizardStep) => void;
+  setResultReady: (ready: boolean) => void;
   reset: () => void;
 }
 
@@ -31,7 +38,8 @@ const initialState = {
   matchId: null as string | null,
   credentialIds: [] as Array<string | null>,
   runId: null as string | null,
-  pendingCredentialIds: [] as Array<string | null>
+  pendingCredentialIds: [] as Array<string | null>,
+  resultReady: false
 };
 
 export const useWizardStore = create<WizardState>((set) => ({
@@ -59,5 +67,6 @@ export const useWizardStore = create<WizardState>((set) => ({
   goNext: () => set((s) => ({ step: Math.min(4, s.step + 1) as WizardStep })),
   goBack: () => set((s) => ({ step: Math.max(1, s.step - 1) as WizardStep })),
   jumpTo: (step) => set((s) => (step < s.step ? { step } : s)),
+  setResultReady: (ready) => set({ resultReady: ready }),
   reset: () => set({ ...initialState })
 }));
