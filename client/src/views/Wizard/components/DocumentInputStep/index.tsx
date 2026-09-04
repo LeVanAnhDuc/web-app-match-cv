@@ -129,7 +129,7 @@ const DocumentInputStep = ({
     <SectionCard
       fill
       stickyFooter
-      className="h-full"
+      className="lg:h-full"
       title={t(`${stepCopyKey}.title`)}
       description={t(`${stepCopyKey}.description`)}
       footer={
@@ -178,7 +178,7 @@ const DocumentInputStep = ({
           </div>
         )}
         <div>
-          <h3 className="mb-4 text-xs font-semibold tracking-wider text-faint uppercase">
+          <h3 className="mb-4 text-xs font-semibold tracking-wider text-muted uppercase">
             {t(`reuse.${reuseKey}.title`)}
           </h3>
           <SavedDocRadioList
