@@ -11,34 +11,13 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
 import { useProviders } from "#/hooks/useAiCredentials";
 import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
 import type { MatchResultDto } from "#/types/Matching";
 import CoverLetterModal from "../CoverLetterModal";
-
-const GAUGE_RADIUS = 70;
-const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
-
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-body">{label}</span>
-        <span className="text-sm font-bold text-blue-600 dark:text-indigo-400">
-          {value}%
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-line">
-        <div
-          className="h-full rounded-full bg-blue-600 dark:bg-indigo-500"
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 function ReportList({
   icon,
@@ -177,8 +156,6 @@ const MatchResultCard = ({
 
   if (!result) return null;
 
-  const dashOffset = GAUGE_CIRCUMFERENCE * (1 - result.overallScore / 100);
-
   const report = (
     <>
       <div className="grid grid-cols-1 gap-6 md:gap-10 lg:grid-cols-2">
@@ -281,47 +258,27 @@ const MatchResultCard = ({
         </Space>
       }
     >
-      <div className="flex flex-col items-center gap-6 border-b border-line bg-surface-subtle p-4 md:flex-row md:gap-12 md:p-6">
-        <div className="relative size-32 shrink-0 md:size-40">
-          <svg className="-rotate-90" viewBox="0 0 160 160">
-            <circle
-              cx="80"
-              cy="80"
-              r={GAUGE_RADIUS}
-              fill="none"
-              className="stroke-line"
-              strokeWidth="8"
-            />
-            <circle
-              cx="80"
-              cy="80"
-              r={GAUGE_RADIUS}
-              fill="none"
-              className="stroke-blue-600 transition-[stroke-dashoffset] duration-1000 ease-out dark:stroke-indigo-500"
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={GAUGE_CIRCUMFERENCE}
-              strokeDashoffset={dashOffset}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-body">
-              {result.overallScore}%
-            </span>
-            <span className="text-xs font-semibold tracking-wider text-faint uppercase">
-              {t("result.overall")}
-            </span>
-          </div>
-        </div>
-        <div className="w-full flex-1 space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <ScoreBar
-              label={t("result.semantic")}
-              value={result.semanticScore}
-            />
-            <ScoreBar label={t("result.keyword")} value={result.keywordScore} />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 border-b border-line bg-surface-subtle p-4 md:grid-cols-3 md:gap-6 md:p-6">
+        <Readout
+          label={t("result.overall")}
+          value={result.overallScore}
+          unit="%"
+          scale
+        />
+        <Readout
+          label={t("result.semantic")}
+          value={result.semanticScore}
+          unit="%"
+          scale
+          tone="success"
+        />
+        <Readout
+          label={t("result.keyword")}
+          value={result.keywordScore}
+          unit="%"
+          scale
+          tone="warning"
+        />
       </div>
       <div className="p-4 md:p-6">
         {expanded ? (

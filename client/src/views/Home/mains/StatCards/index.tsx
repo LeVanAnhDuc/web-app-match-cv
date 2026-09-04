@@ -1,6 +1,7 @@
-import { Skeleton, Statistic } from "antd";
+import { Skeleton } from "antd";
 import { Award, FileText, FileUser, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import { useMatchHistory } from "#/hooks/useMatch";
@@ -11,14 +12,20 @@ function StatTile({
   value,
   label,
   subtext,
-  loading
+  loading,
+  scale = false,
+  tone
 }: {
   testId: string;
   icon: React.ReactNode;
-  value: string | number;
+  /** null = no data yet (e.g. no matches run) — shown as a dash, not a fake 0. */
+  value: number | null;
   label: string;
   subtext?: string;
   loading: boolean;
+  /** Only a real percentage may draw a 0-100 axis — a count has no such range. */
+  scale?: boolean;
+  tone?: "primary" | "success" | "warning";
 }) {
   return (
     <SectionCard className="h-full">
@@ -30,15 +37,27 @@ function StatTile({
             <div className="mb-4 w-fit rounded-lg bg-surface-subtle p-2 text-muted">
               {icon}
             </div>
-            <Statistic value={value} />
-            <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-xs font-semibold tracking-wider text-faint uppercase">
-                {label}
-              </span>
-              {subtext && (
-                <span className="text-xs text-faint italic">{subtext}</span>
-              )}
-            </div>
+            {value === null ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-semibold tracking-wider text-muted uppercase">
+                  {label}
+                </p>
+                <span className="font-mono text-3xl leading-none font-medium text-body tabular-nums md:text-4xl">
+                  —
+                </span>
+              </div>
+            ) : (
+              <Readout
+                label={label}
+                value={value}
+                unit={scale ? "%" : ""}
+                scale={scale}
+                tone={tone}
+              />
+            )}
+            {subtext && (
+              <p className="mt-1 text-xs text-faint italic">{subtext}</p>
+            )}
           </>
         )}
       </div>
@@ -87,10 +106,12 @@ const StatCards = () => {
       <StatTile
         testId="home-stat-highest"
         icon={<Award size={20} />}
-        value={highest === null ? "—" : `${highest}%`}
+        value={highest}
         label={t("home.stat.highest")}
         subtext={avg === null ? undefined : t("home.stat.avg", { value: avg })}
         loading={history.isLoading}
+        scale
+        tone="success"
       />
     </div>
   );

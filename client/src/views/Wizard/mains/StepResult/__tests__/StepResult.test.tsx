@@ -174,9 +174,15 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
-    expect(screen.getByText("90%")).toBeInTheDocument();
-    expect(screen.getByText("74%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toHaveAttribute("aria-valuenow", "82");
+    expect(
+      screen.getByRole("meter", { name: "Semantic match" })
+    ).toHaveAttribute("aria-valuenow", "90");
+    expect(
+      screen.getByRole("meter", { name: "Keyword / Skills match" })
+    ).toHaveAttribute("aria-valuenow", "74");
     // Sole card → the report is expanded rather than hidden behind a toggle.
     expect(screen.getByText("Strong backend background")).toBeInTheDocument();
     expect(screen.queryByText("Show full report")).not.toBeInTheDocument();
@@ -234,7 +240,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     // Re-firing would silently double the AI spend.
     expect(mutate).not.toHaveBeenCalled();
   });
@@ -271,7 +279,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Strong backend background")).toBeInTheDocument();
     expect(mutate).not.toHaveBeenCalled();
   });
@@ -303,7 +313,9 @@ describe("StepResult", () => {
     mockRunMatch({ result: succeeded });
 
     const { unmount } = render(<StepResult />);
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     // An original CV has no previous version, so the action does not exist.
     expect(
       screen.queryByRole("button", { name: "Compare versions" })
@@ -340,7 +352,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Start over" })
     ).not.toBeInTheDocument();
@@ -362,7 +376,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Start over" })
     ).not.toBeInTheDocument();
@@ -466,7 +482,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     expect(useWizardStore.getState().resultReady).toBe(true);
   });
 
@@ -513,7 +531,9 @@ describe("StepResult", () => {
 
     render(<StepResult />);
 
-    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("meter", { name: "Overall match" })
+    ).toBeInTheDocument();
     expect(useWizardStore.getState().resultReady).toBe(true);
   });
 });

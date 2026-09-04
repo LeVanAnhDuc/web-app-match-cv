@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Table, Tag } from "antd";
-import { Inbox, Sparkles } from "lucide-react";
+import { Button, Table } from "antd";
+import { ArrowRight, Inbox, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TableColumnsType } from "antd";
 import SectionCard from "#/components/SectionCard";
@@ -10,7 +10,13 @@ import type { MatchSummaryDto } from "#/types/Matching";
 
 const RECENT_LIMIT = 5;
 
-function scoreBand(score: number): "success" | "warning" | "error" {
+const SCORE_TONE = {
+  success: "text-success",
+  warning: "text-warning",
+  error: "text-error"
+} as const;
+
+function scoreBand(score: number): keyof typeof SCORE_TONE {
   if (score >= 75) return "success";
   if (score >= 50) return "warning";
   return "error";
@@ -49,9 +55,13 @@ const RecentMatches = () => {
       dataIndex: "overallScore",
       key: "overallScore",
       render: (score: number, record) => (
-        <Tag color={scoreBand(score)} data-testid={`home-score-${record.id}`}>
-          {`${score}%`}
-        </Tag>
+        <span
+          data-testid={`home-score-${record.id}`}
+          className={`inline-flex items-center gap-1 font-mono text-sm font-semibold tabular-nums ${SCORE_TONE[scoreBand(score)]}`}
+        >
+          {score}%
+          <ArrowRight size={14} aria-hidden />
+        </span>
       )
     },
     {

@@ -131,8 +131,26 @@ describe("Home", () => {
       within(screen.getByTestId("home-stat-total-matches")).getByText("3")
     ).toBeDefined();
     const highestCard = screen.getByTestId("home-stat-highest");
-    expect(within(highestCard).getByText("80%")).toBeDefined();
+    expect(
+      within(highestCard).getByRole("meter", { name: "Highest score" })
+    ).toHaveAttribute("aria-valuenow", "80");
     expect(within(highestCard).getByText(/avg 60%/i)).toBeDefined();
+  });
+
+  it("shows scale (a 0-100 meter) only on the highest-score percentage, plain for the three counts", async () => {
+    mockHooks();
+    renderHome();
+
+    expect(
+      await screen.findByRole("meter", { name: "Highest score" })
+    ).toBeDefined();
+    expect(
+      screen.queryByRole("meter", { name: "Curriculum Vitae" })
+    ).toBeNull();
+    expect(
+      screen.queryByRole("meter", { name: "Job Descriptions" })
+    ).toBeNull();
+    expect(screen.queryByRole("meter", { name: "Total matches" })).toBeNull();
   });
 
   it("shows 0 saved counts and a — highest score when there is no data", async () => {
@@ -163,15 +181,15 @@ describe("Home", () => {
 
     const highTag = screen.getByTestId("home-score-match-1");
     expect(highTag).toHaveTextContent("80%");
-    expect(highTag).toHaveClass("ant-tag-success");
+    expect(highTag).toHaveClass("text-success");
 
     const midTag = screen.getByTestId("home-score-match-2");
     expect(midTag).toHaveTextContent("60%");
-    expect(midTag).toHaveClass("ant-tag-warning");
+    expect(midTag).toHaveClass("text-warning");
 
     const lowTag = screen.getByTestId("home-score-match-3");
     expect(lowTag).toHaveTextContent("40%");
-    expect(lowTag).toHaveClass("ant-tag-error");
+    expect(lowTag).toHaveClass("text-error");
   });
 
   it("shows the empty state with a Match now CTA when there is no match history", async () => {
