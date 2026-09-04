@@ -88,6 +88,17 @@ function row(page: Page, title: string) {
   return page.getByRole("listitem").filter({ hasText: title });
 }
 
+/**
+ * Task 12 collapsed the six row actions into one antd Dropdown per row
+ * ("Actions"). Its menu is portaled to the document body, not nested inside
+ * the row's <li> — so open it scoped to the row, then locate the item at
+ * the page level (safe as long as only one row's menu is open at a time,
+ * true for every call site in this file).
+ */
+async function openRowMenu(page: Page, title: string): Promise<void> {
+  await row(page, title).getByRole("button", { name: "Actions" }).click();
+}
+
 /** Confirm an open antd Popconfirm (its confirm button lives in the overlay). */
 async function confirmPopconfirm(page: Page): Promise<void> {
   await page
@@ -176,9 +187,8 @@ test.describe("saved CV library", () => {
   test("[happy] previews parsed content", async ({ page }) => {
     await page.goto("/cv");
     await waitHydrated(page);
-    await row(page, MATCHED_CV)
-      .getByRole("button", { name: "Preview" })
-      .click();
+    await openRowMenu(page, MATCHED_CV);
+    await page.getByRole("menuitem", { name: "Preview" }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText(/Alice Nguyen/);
@@ -187,7 +197,8 @@ test.describe("saved CV library", () => {
   test("[mutation] renames a saved CV", async ({ page }) => {
     await page.goto("/cv");
     await waitHydrated(page);
-    await row(page, RENAME_CV).getByRole("button", { name: "Rename" }).click();
+    await openRowMenu(page, RENAME_CV);
+    await page.getByRole("menuitem", { name: "Rename" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("textbox").fill("E2E Renamed CV");
     await dialog.getByRole("button", { name: "Save" }).click();
@@ -199,7 +210,10 @@ test.describe("saved CV library", () => {
   }) => {
     await page.goto("/cv");
     await waitHydrated(page);
-    await row(page, MATCHED_CV).getByRole("button", { name: "Delete" }).click();
+    await openRowMenu(page, MATCHED_CV);
+    // Delete's menu-item label IS the Popconfirm's trigger — click its text
+    // to open the confirm, same interaction the unit tests exercise.
+    await page.getByText("Delete").click();
     await confirmPopconfirm(page);
     await expect(page.getByText(/used in a match history/i)).toBeVisible();
     await expect(page.getByText(MATCHED_CV)).toBeVisible();
@@ -208,7 +222,8 @@ test.describe("saved CV library", () => {
   test("[mutation] deletes an unreferenced CV", async ({ page }) => {
     await page.goto("/cv");
     await waitHydrated(page);
-    await row(page, DELETE_CV).getByRole("button", { name: "Delete" }).click();
+    await openRowMenu(page, DELETE_CV);
+    await page.getByText("Delete").click();
     await confirmPopconfirm(page);
     await expect(page.getByText(DELETE_CV)).toHaveCount(0);
   });

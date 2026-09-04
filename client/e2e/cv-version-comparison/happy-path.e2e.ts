@@ -9,6 +9,7 @@ import {
   SAVED_CVS,
   V2_ID,
   gotoCompare,
+  openActionsMenu,
   openSelect,
   stubComparison,
   stubSavedDocs
@@ -28,8 +29,11 @@ test.describe("cv-version-comparison — happy path", () => {
       page.getByRole("heading", { name: "Curriculum Vitae" })
     ).toBeVisible();
 
-    // Exactly one row descends from another, so exactly one row offers it.
-    const compare = page.getByRole("button", { name: "Compare versions" });
+    // Exactly one row descends from another, so exactly one row offers it —
+    // open both rows' menus to check both at once.
+    await openActionsMenu(page, 0);
+    await openActionsMenu(page, 1);
+    const compare = page.getByRole("menuitem", { name: "Compare versions" });
     await expect(compare).toHaveCount(1);
     await compare.click();
 
@@ -129,8 +133,9 @@ test.describe("cv-version-comparison — happy path", () => {
 
     await page.goto("/cv");
     await expect(page.getByText("Backend Resume")).toBeVisible();
+    await openActionsMenu(page, 0);
     await expect(
-      page.getByRole("button", { name: "Compare versions" })
+      page.getByRole("menuitem", { name: "Compare versions" })
     ).toHaveCount(0);
   });
 });
