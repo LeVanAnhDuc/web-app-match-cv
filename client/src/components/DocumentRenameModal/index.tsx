@@ -37,7 +37,7 @@ const DocumentRenameModal = ({
     >
       <label
         htmlFor="rename-doc-title"
-        className="mb-1 block text-sm text-slate-600 dark:text-slate-300"
+        className="mb-1 block text-sm text-muted"
       >
         {t("library.rename.label")}
       </label>

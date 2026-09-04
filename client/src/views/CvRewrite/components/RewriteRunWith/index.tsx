@@ -38,7 +38,7 @@ const RewriteRunWith = ({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold tracking-wider text-faint uppercase">
+      <p className="text-xs font-semibold tracking-wider text-muted uppercase">
         {t("credentials.runWith.title")}
       </p>
       <Select

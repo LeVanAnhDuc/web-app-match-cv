@@ -56,7 +56,7 @@ function StatTile({
               />
             )}
             {subtext && (
-              <p className="mt-1 text-xs text-faint italic">{subtext}</p>
+              <p className="mt-1 text-xs text-muted italic">{subtext}</p>
             )}
           </>
         )}

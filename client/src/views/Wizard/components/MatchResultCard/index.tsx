@@ -160,49 +160,33 @@ const MatchResultCard = ({
     <>
       <div className="grid grid-cols-1 gap-6 md:gap-10 lg:grid-cols-2">
         <ReportList
-          icon={
-            <CircleCheck
-              className="text-green-600 dark:text-green-500"
-              size={18}
-            />
-          }
+          icon={<CircleCheck className="text-success" size={18} />}
           title={t("result.strengths")}
           items={result.report.strengths}
           itemIcon={
-            <CircleCheck className="mt-0.5 shrink-0 text-green-500" size={18} />
+            <CircleCheck className="mt-0.5 shrink-0 text-success" size={18} />
           }
         />
         <ReportList
-          icon={
-            <AlertTriangle
-              className="text-amber-600 dark:text-amber-500"
-              size={18}
-            />
-          }
+          icon={<AlertTriangle className="text-warning" size={18} />}
           title={t("result.gaps")}
           items={result.report.gaps}
           itemIcon={
-            <AlertTriangle
-              className="mt-0.5 shrink-0 text-amber-500"
-              size={18}
-            />
+            <AlertTriangle className="mt-0.5 shrink-0 text-warning" size={18} />
           }
         />
       </div>
-      <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4 md:p-6 dark:border-indigo-500/20 dark:bg-indigo-500/5">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-blue-900 dark:text-white">
+      <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4 md:p-6">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-body">
           <Lightbulb size={18} /> {t("result.suggestions")}
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {result.report.suggestions.map((suggestion, index) => (
             <div
               key={index}
-              className="flex items-start gap-3 rounded-xl border border-blue-100 bg-surface p-4 shadow-sm dark:border-indigo-500/20"
+              className="flex items-start gap-3 rounded-xl border border-primary/20 bg-surface p-4 shadow-sm"
             >
-              <Lightbulb
-                className="mt-0.5 shrink-0 text-blue-600 dark:text-indigo-400"
-                size={16}
-              />
+              <Lightbulb className="mt-0.5 shrink-0 text-accent" size={16} />
               <p className="text-sm text-body">{suggestion}</p>
             </div>
           ))}

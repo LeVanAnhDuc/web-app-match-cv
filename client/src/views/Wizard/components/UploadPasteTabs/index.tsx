@@ -59,7 +59,7 @@ const UploadPasteTabs = ({
           className="mb-6 !rounded-xl !border-dashed md:mb-10"
         >
           <div className="flex flex-col items-center justify-center py-4 md:py-6">
-            <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 md:size-16 dark:bg-indigo-500/10 dark:text-indigo-400">
+            <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-accent md:size-16">
               <UploadCloud size={28} />
             </div>
             <p className="mb-1 text-base font-medium text-body md:text-lg">
@@ -69,9 +69,7 @@ const UploadPasteTabs = ({
                 <Trans
                   i18nKey="dropzone.title"
                   components={{
-                    highlight: (
-                      <span className="text-blue-600 dark:text-indigo-400" />
-                    )
+                    highlight: <span className="text-accent" />
                   }}
                 />
               )}

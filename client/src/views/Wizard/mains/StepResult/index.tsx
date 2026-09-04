@@ -79,7 +79,7 @@ const StepResult = () => {
         bodyClassName="flex h-full items-center justify-center gap-3 p-8 md:p-16"
       >
         <Loader2 className="animate-spin text-faint" size={20} />
-        <p className="font-medium text-faint">{t("result.loading")}</p>
+        <p className="font-medium text-muted">{t("result.loading")}</p>
       </SectionCard>
     );
   }

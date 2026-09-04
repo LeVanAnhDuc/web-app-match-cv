@@ -81,7 +81,7 @@ const RecentMatches = () => {
           // task, same kind of intentional follow-up gap as library
           // pagination) — rendered as muted, non-interactive text so it does
           // not read as a broken link.
-          <span className="text-sm font-medium text-faint">
+          <span className="text-sm font-medium text-muted">
             {t("home.recent.viewAll")}
           </span>
         ) : null

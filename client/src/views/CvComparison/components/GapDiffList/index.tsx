@@ -5,15 +5,15 @@ import type { GapPair } from "#/types/Comparison";
 const TONE = {
   closed: {
     icon: CircleCheck,
-    color: "text-green-600 dark:text-green-500"
+    color: "text-success"
   },
   persisted: {
     icon: TriangleAlert,
-    color: "text-amber-600 dark:text-amber-500"
+    color: "text-warning"
   },
   introduced: {
     icon: CirclePlus,
-    color: "text-red-600 dark:text-red-500"
+    color: "text-error"
   }
 } as const;
 
@@ -40,7 +40,7 @@ const GapDiffList = ({
       </h3>
       {items.length === 0 ? (
         // An empty bucket is information, not a blank space.
-        <p className="text-sm text-faint">{t("compare.gaps.none")}</p>
+        <p className="text-sm text-muted">{t("compare.gaps.none")}</p>
       ) : (
         <ul aria-label={heading} className="space-y-2">
           {items.map((item, index) => (
