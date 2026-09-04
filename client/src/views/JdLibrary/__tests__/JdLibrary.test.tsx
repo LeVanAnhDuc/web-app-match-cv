@@ -23,6 +23,12 @@ vi.mock("#/components/DocumentPreview", () => ({
   default: () => <div data-testid="doc-preview" />
 }));
 
+// Actions collapsed into one antd Dropdown per row (Task 12) — open the
+// row's trigger before a menu item becomes queryable.
+function openActionsMenu(index = 0) {
+  fireEvent.click(screen.getAllByRole("button", { name: "Actions" })[index]);
+}
+
 async function renderLibrary() {
   const rootRoute = createRootRoute({
     component: () => <JdLibrary />
@@ -110,8 +116,11 @@ describe("JdLibrary", () => {
   it("renders a row per saved JD, without a download for pasted text", async () => {
     await renderLibrary();
     expect(screen.getByText("Senior Node Engineer")).toBeDefined();
-    expect(screen.getAllByRole("button", { name: "Preview" })).toHaveLength(1);
-    expect(screen.getAllByRole("button", { name: "Rename" })).toHaveLength(1);
+    openActionsMenu(0);
+    expect(screen.getAllByRole("menuitem", { name: "Preview" })).toHaveLength(
+      1
+    );
+    expect(screen.getAllByRole("menuitem", { name: "Rename" })).toHaveLength(1);
     // sourceFormat "text" has no original file to download
     expect(screen.queryByRole("link", { name: "Download" })).toBeNull();
   });
@@ -123,8 +132,9 @@ describe("JdLibrary", () => {
       asQuery([{ ...docs[0], parentId: "jd-0" }])
     );
     await renderLibrary();
+    openActionsMenu(0);
     expect(
-      screen.queryByRole("button", { name: "Compare versions" })
+      screen.queryByRole("menuitem", { name: "Compare versions" })
     ).toBeNull();
   });
 
@@ -148,9 +158,12 @@ describe("JdLibrary", () => {
 
   it("deletes a JD after confirming the popconfirm", async () => {
     await renderLibrary();
-    fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[0]);
+    openActionsMenu(0);
+    // Delete lives behind a Popconfirm nested in the menu item — clicking its
+    // label text opens the confirm, it does not delete yet.
+    fireEvent.click(screen.getByText("Delete"));
     // Popconfirm confirm button carries visible text "Delete" (icon button has none)
-    const confirm = await screen.findByText("Delete");
+    const confirm = await screen.findByRole("button", { name: "Delete" });
     fireEvent.click(confirm);
     await waitFor(() =>
       expect(deleteSpy).toHaveBeenCalledWith("jd-1", expect.anything())

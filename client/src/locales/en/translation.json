@@ -114,6 +114,7 @@
     "emptyCta": "Start matching",
     "loadError": "Couldn't load your documents. Please try again.",
     "action": {
+      "menu": "Actions",
       "preview": "Preview",
       "rename": "Rename",
       "download": "Download",

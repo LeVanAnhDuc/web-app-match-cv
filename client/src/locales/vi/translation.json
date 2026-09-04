@@ -114,6 +114,7 @@
     "emptyCta": "Bắt đầu match",
     "loadError": "Không tải được danh sách tài liệu. Vui lòng thử lại.",
     "action": {
+      "menu": "Hành động",
       "preview": "Xem trước",
       "rename": "Đổi tên",
       "download": "Tải xuống",
