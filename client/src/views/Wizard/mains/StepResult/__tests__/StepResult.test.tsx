@@ -404,4 +404,116 @@ describe("StepResult", () => {
       screen.queryByRole("button", { name: "Save report" })
     ).not.toBeInTheDocument();
   });
+
+  // resultReady is the flag the shell reads to decide whether its pinned bar
+  // may render at all — each of these poisons the flag to the OPPOSITE of
+  // what the branch should produce before rendering, so the assertion only
+  // passes if StepResult itself wrote the correct value, not because nobody
+  // touched it.
+  it("keeps resultReady false while the single-result query is loading", () => {
+    setStore({
+      runId: null,
+      cvDocId: null,
+      jdDocId: null,
+      matchId: succeeded.id,
+      pendingCredentialIds: [],
+      resultReady: true
+    });
+    mockRunMatch({});
+    vi.mocked(useMatchResult).mockReturnValue(
+      asQuery<MatchResultDto>(undefined, { isLoading: true })
+    );
+
+    render(<StepResult />);
+
+    expect(useWizardStore.getState().resultReady).toBe(false);
+  });
+
+  it("keeps resultReady false when the single-result query errors", () => {
+    setStore({
+      runId: null,
+      cvDocId: null,
+      jdDocId: null,
+      matchId: succeeded.id,
+      pendingCredentialIds: [],
+      resultReady: true
+    });
+    mockRunMatch({});
+    vi.mocked(useMatchResult).mockReturnValue(
+      asQuery<MatchResultDto>(undefined, {
+        isError: true,
+        error: new ApiError(500, "boom")
+      })
+    );
+
+    render(<StepResult />);
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(useWizardStore.getState().resultReady).toBe(false);
+  });
+
+  it("sets resultReady true once the single stored result loads", async () => {
+    setStore({
+      runId: null,
+      cvDocId: null,
+      jdDocId: null,
+      matchId: succeeded.id,
+      pendingCredentialIds: [],
+      resultReady: false
+    });
+    mockRunMatch({});
+    vi.mocked(useMatchResult).mockReturnValue(asQuery(succeeded));
+
+    render(<StepResult />);
+
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(useWizardStore.getState().resultReady).toBe(true);
+  });
+
+  it("keeps resultReady false on the missing-run guard", () => {
+    setStore({ runId: null, pendingCredentialIds: [], resultReady: true });
+    mockRunMatch({});
+
+    render(<StepResult />);
+
+    expect(useWizardStore.getState().resultReady).toBe(false);
+  });
+
+  it("keeps resultReady false while the run query is loading", () => {
+    setStore({ pendingCredentialIds: [], resultReady: true });
+    mockRunMatch({});
+    vi.mocked(useMatchRun).mockReturnValue(
+      asQuery<MatchRunDetailDto>(undefined, { isLoading: true })
+    );
+
+    render(<StepResult />);
+
+    expect(useWizardStore.getState().resultReady).toBe(false);
+  });
+
+  it("keeps resultReady false when the run query errors", () => {
+    setStore({ pendingCredentialIds: [], resultReady: true });
+    mockRunMatch({});
+    vi.mocked(useMatchRun).mockReturnValue(
+      asQuery<MatchRunDetailDto>(undefined, {
+        isError: true,
+        error: new ApiError(500, "boom")
+      })
+    );
+
+    render(<StepResult />);
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(useWizardStore.getState().resultReady).toBe(false);
+  });
+
+  it("sets resultReady true once the run's cards are ready", async () => {
+    setStore({ pendingCredentialIds: ["cred-a"], resultReady: false });
+    mockRunMatch({ result: succeeded });
+
+    render(<StepResult />);
+
+    expect(await screen.findByText("82%")).toBeInTheDocument();
+    expect(useWizardStore.getState().resultReady).toBe(true);
+  });
 });
