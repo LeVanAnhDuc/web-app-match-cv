@@ -106,8 +106,11 @@ describe("wizard flow: JD -> CV -> Back", () => {
     await waitFor(() => expect(useWizardStore.getState().step).toBe(2));
 
     // Step 2: CV title from mock, Back button enabled this time.
+    // Exact name (not /back/i): step 1 is now "done" in the stepper, which
+    // renders its own "Back to Job Description" button — a loose regex would
+    // match both and throw on multiple elements.
     await screen.findByText(/candidate cv/i);
-    const backButton = screen.getByRole("button", { name: /back/i });
+    const backButton = screen.getByRole("button", { name: "Back" });
     expect(backButton).not.toBeDisabled();
 
     fireEvent.click(backButton);

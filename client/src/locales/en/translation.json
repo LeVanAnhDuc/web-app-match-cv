@@ -42,7 +42,13 @@
     "jd": "Job Description",
     "cv": "CV / Resume",
     "review": "Review",
-    "result": "Result"
+    "result": "Result",
+    "jumpTo": "Back to {{label}}",
+    "blocked": {
+      "2": "Pick a job description first",
+      "3": "Pick a CV and a JD first",
+      "4": "Run a match first"
+    }
   },
   "stepper": {
     "progress": "Step {{n}} of 4"

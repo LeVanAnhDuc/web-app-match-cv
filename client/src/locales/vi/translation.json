@@ -42,7 +42,13 @@
     "jd": "Mô tả công việc",
     "cv": "CV / Hồ sơ",
     "review": "Xem lại",
-    "result": "Kết quả"
+    "result": "Kết quả",
+    "jumpTo": "Về bước {{label}}",
+    "blocked": {
+      "2": "Cần chọn mô tả công việc trước",
+      "3": "Cần chọn CV và JD trước",
+      "4": "Cần chạy match trước"
+    }
   },
   "stepper": {
     "progress": "Bước {{n}}/4"

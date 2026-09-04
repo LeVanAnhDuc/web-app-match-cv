@@ -19,6 +19,8 @@ interface WizardState {
   startRun: (runId: string, credentialIds: Array<string | null>) => void;
   goNext: () => void;
   goBack: () => void;
+  /** Backward-only: jumping ahead to a step without its data would show a blank/stale screen. */
+  jumpTo: (step: WizardStep) => void;
   reset: () => void;
 }
 
@@ -35,13 +37,27 @@ const initialState = {
 export const useWizardStore = create<WizardState>((set) => ({
   ...initialState,
   setStep: (step) => set({ step }),
-  setJdDocId: (id) => set({ jdDocId: id }),
-  setCvDocId: (id) => set({ cvDocId: id }),
+  // Changing the document invalidates any run/match already tied to the
+  // previous pair — otherwise step 4 keeps showing a stale result computed
+  // for a different CV/JD combination. No-op when re-picking the same id.
+  setJdDocId: (id) =>
+    set((s) =>
+      s.jdDocId === id
+        ? s
+        : { jdDocId: id, runId: null, matchId: null, pendingCredentialIds: [] }
+    ),
+  setCvDocId: (id) =>
+    set((s) =>
+      s.cvDocId === id
+        ? s
+        : { cvDocId: id, runId: null, matchId: null, pendingCredentialIds: [] }
+    ),
   setMatchId: (id) => set({ matchId: id }),
   setCredentialIds: (ids) => set({ credentialIds: ids }),
   startRun: (runId, credentialIds) =>
     set({ runId, pendingCredentialIds: credentialIds }),
   goNext: () => set((s) => ({ step: Math.min(4, s.step + 1) as WizardStep })),
   goBack: () => set((s) => ({ step: Math.max(1, s.step - 1) as WizardStep })),
+  jumpTo: (step) => set((s) => (step < s.step ? { step } : s)),
   reset: () => set({ ...initialState })
 }));
