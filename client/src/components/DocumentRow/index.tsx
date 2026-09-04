@@ -37,6 +37,10 @@ const DocumentRow = ({
     new Date(doc.createdAt)
   );
   const canDownload = doc.sourceFormat !== "text";
+  // The delete item's label wraps Popconfirm's trigger in a <span> that stops
+  // the click from bubbling to antd's Dropdown overlay, which closes the menu
+  // on any inner click — that would dismiss the Popconfirm before the user
+  // can confirm the destructive action.
   const items: MenuProps["items"] = [
     {
       key: "preview",
@@ -96,9 +100,6 @@ const DocumentRow = ({
           okButtonProps={{ danger: true }}
           onConfirm={onDelete}
         >
-          {/* Stops the click from bubbling to antd's Dropdown overlay, which
-              closes the menu on any inner click — that would dismiss this
-              Popconfirm before the user can confirm the destructive action. */}
           <span onClick={(event) => event.stopPropagation()}>
             {t("library.action.delete")}
           </span>
