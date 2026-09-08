@@ -152,4 +152,43 @@ describe("StepReview", () => {
     expect(screen.getByRole("button", { name: /run match/i })).toBeDisabled();
     expect(mutateAsync).not.toHaveBeenCalled();
   });
+
+  it("card locks height at desktop and footer sticky on mobile", async () => {
+    mockDocs();
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    const { container } = renderStep();
+    await screen.findAllByTestId("review-pane");
+
+    const card = container.querySelector(".rounded-xl");
+    expect(card?.className).toContain("lg:h-full");
+    expect(card?.className).toContain("lg:overflow-hidden");
+
+    const footer = screen.getByRole("button", { name: /run match/i });
+    const footerContainer = footer.parentElement;
+    expect(footerContainer?.className).toContain("sticky");
+    expect(footerContainer?.className).toContain("bottom-0");
+  });
+
+  it("eyebrow headings use text-muted", async () => {
+    mockDocs();
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    const { container } = renderStep();
+    await screen.findAllByTestId("review-pane");
+
+    const h3Elements = container.querySelectorAll("section h3");
+    expect(h3Elements.length).toBeGreaterThanOrEqual(2);
+
+    h3Elements.forEach((heading) => {
+      expect(heading.className).toContain("text-muted");
+      expect(heading.className).not.toContain("text-faint");
+    });
+  });
 });

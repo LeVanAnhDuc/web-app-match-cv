@@ -9,6 +9,7 @@ import {
   SAVED_CVS,
   V2_ID,
   gotoCompare,
+  openActionsMenu,
   openSelect,
   stubComparison,
   stubSavedDocs
@@ -29,8 +30,21 @@ test.describe("cv-version-comparison — happy path", () => {
     ).toBeVisible();
 
     // Exactly one row descends from another, so exactly one row offers it.
-    const compare = page.getByRole("button", { name: "Compare versions" });
-    await expect(compare).toHaveCount(1);
+    // The menus have to be checked ONE AT A TIME: since the row actions became
+    // a single antd Dropdown, opening row 0's menu puts an overlay over the
+    // page, and clicking row 1's trigger underneath it never lands. Close each
+    // menu with Escape before opening the next.
+    const compare = page.getByRole("menuitem", { name: "Compare versions" });
+    let offered = 0;
+    for (const index of [0, 1]) {
+      await openActionsMenu(page, index);
+      offered += await compare.count();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("menu")).toHaveCount(0);
+    }
+    expect(offered).toBe(1);
+
+    await openActionsMenu(page, 1);
     await compare.click();
 
     await expect(page).toHaveURL(new RegExp(`/compare/${V2_ID}`));
@@ -38,17 +52,27 @@ test.describe("cv-version-comparison — happy path", () => {
     await expect(page.getByText("Version 2")).toBeVisible();
   });
 
-  test("[EP] the delta leads, with both scores and a signed change", async ({
+  // The screen shows the NEW version's score plus a signed delta, and no
+  // longer the "61% -> 75%" pair the old ScoreBar drew: `readout` carries one
+  // number by design (MASTER.md §7), and the delta is what answers "how much
+  // did it improve". Confirmed as intended 2026-09-07. The base score stays
+  // reachable — it is the revision's own previous match — but it is not on
+  // this screen.
+  test("[EP] each score is the new version's, led by a signed delta", async ({
     page
   }) => {
     await stubComparison(page);
     await gotoCompare(page);
 
-    await expect(page.getByText("61%")).toBeVisible();
     await expect(page.getByText("75%")).toBeVisible();
+    await expect(page.getByText("78%")).toBeVisible();
+    await expect(page.getByText("71%")).toBeVisible();
     await expect(page.getByText("+14")).toBeVisible();
     await expect(page.getByText("+8")).toBeVisible();
     await expect(page.getByText("+23")).toBeVisible();
+    // The base score is deliberately absent — assert it, so restoring it
+    // becomes a conscious change rather than a silent one.
+    await expect(page.getByText("61%")).toHaveCount(0);
   });
 
   test("[EP] every gap is shown verbatim, in the right bucket", async ({
@@ -129,8 +153,9 @@ test.describe("cv-version-comparison — happy path", () => {
 
     await page.goto("/cv");
     await expect(page.getByText("Backend Resume")).toBeVisible();
+    await openActionsMenu(page, 0);
     await expect(
-      page.getByRole("button", { name: "Compare versions" })
+      page.getByRole("menuitem", { name: "Compare versions" })
     ).toHaveCount(0);
   });
 });

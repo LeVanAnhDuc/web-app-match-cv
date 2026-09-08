@@ -86,10 +86,10 @@ function PdfPreview({ docId }: { docId: string }) {
     return (
       <div
         data-testid="pdf-preview"
-        className="flex h-full items-center justify-center gap-2 p-8 text-faint"
+        className="flex h-full items-center justify-center gap-2 p-8"
       >
-        <Loader2 className="animate-spin" size={18} />
-        <span className="text-sm">{t("preview.loading")}</span>
+        <Loader2 className="animate-spin text-faint" size={18} />
+        <span className="text-sm text-muted">{t("preview.loading")}</span>
       </div>
     );
   }
@@ -183,9 +183,9 @@ function DocxPreview({ docId }: { docId: string }) {
   return (
     <div data-testid="docx-preview" className="h-full overflow-auto p-4">
       {(!mounted || status === "loading") && (
-        <div className="flex items-center justify-center gap-2 p-8 text-faint">
-          <Loader2 className="animate-spin" size={18} />
-          <span className="text-sm">{t("preview.loading")}</span>
+        <div className="flex items-center justify-center gap-2 p-8">
+          <Loader2 className="animate-spin text-faint" size={18} />
+          <span className="text-sm text-muted">{t("preview.loading")}</span>
         </div>
       )}
       <div ref={containerRef} />

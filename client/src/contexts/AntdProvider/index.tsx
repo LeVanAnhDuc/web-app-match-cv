@@ -3,6 +3,8 @@ import { ConfigProvider, theme } from "antd";
 import { useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
 
+import { THEME } from "#/constants";
+
 function usePrefersDark() {
   const [isDark, setIsDark] = useState(false);
 
@@ -28,13 +30,16 @@ export function AntdProvider({ children }: PropsWithChildren) {
           cssVar: true,
           algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
-            // Must equal --color-primary in styles.css for the same theme, or an antd
-            // primary button and a Tailwind bg-primary element render two different
-            // colours in dark mode. #6366f1 is primary-hover, not primary.
-            colorPrimary: isDark ? "#4f46e5" : "#2563eb",
+            // Phải bằng --color-primary của cùng theme, và colorBorder phải bằng
+            // --color-line-strong (không phải --color-line): antd dùng colorBorder cho
+            // viền input, và viền input là thứ duy nhất chỉ ra ranh giới control nên
+            // phải đạt ≥3:1. Test src/constants/__tests__/theme.test.ts canh cả hai.
+            colorPrimary: isDark ? THEME.dark.primary : THEME.light.primary,
+            colorBorder: isDark
+              ? THEME.dark.lineStrong
+              : THEME.light.lineStrong,
             borderRadius: 8,
-            fontFamily:
-              'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+            fontFamily: THEME.fontFamily
           }
         }}
       >

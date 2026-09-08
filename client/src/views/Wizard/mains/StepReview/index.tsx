@@ -51,7 +51,7 @@ const StepReview = () => {
   if (!jdDocId || !cvDocId) {
     return (
       <SectionCard
-        className="h-full"
+        className="lg:h-full"
         bodyClassName="flex h-full flex-col items-center justify-center gap-4 p-8 md:p-16"
       >
         <p role="alert" className="font-medium text-muted">
@@ -70,11 +70,11 @@ const StepReview = () => {
   if (isLoadingDocs) {
     return (
       <SectionCard
-        className="h-full"
+        className="lg:h-full"
         bodyClassName="flex h-full items-center justify-center gap-3 p-8 md:p-16"
       >
         <Loader2 className="animate-spin text-faint" size={20} />
-        <p className="font-medium text-faint">{t("review.loading")}</p>
+        <p className="font-medium text-muted">{t("review.loading")}</p>
       </SectionCard>
     );
   }
@@ -82,7 +82,8 @@ const StepReview = () => {
   return (
     <SectionCard
       fill
-      className="h-full"
+      stickyFooter
+      className="lg:h-full"
       title={t("wizard.stepReview.title")}
       description={t("wizard.stepReview.description")}
       bodyClassName="flex min-h-0 flex-1 flex-col p-0"
@@ -113,7 +114,7 @@ const StepReview = () => {
       <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
         <section className="flex min-h-0 flex-col p-4 md:p-6">
-          <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-faint uppercase">
+          <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-muted uppercase">
             {t("step.cv")}
           </h3>
           <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-line">
@@ -125,7 +126,7 @@ const StepReview = () => {
           </div>
         </section>
         <section className="flex min-h-0 flex-col p-4 md:p-6">
-          <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-faint uppercase">
+          <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-muted uppercase">
             {t("step.jd")}
           </h3>
           <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-line">

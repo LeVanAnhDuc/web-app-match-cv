@@ -14,10 +14,26 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-Chuyển dự án sang bộ tài liệu hai tầng của `scaffold-webapp-project` (2026-09-03):
-plugin và hook đã xong; `project-goals.md` + `unfinished-features.md` đã tách vào cây
-`docs/01-product` … `docs/04-state` + `docs/decisions/`. Không có feature sản phẩm nào
-đang dở.
+Không có việc nào đang dở.
+
+**Thiết kế lại toàn bộ UI — xong 2026-09-07** (branch `worktree-ui-redesign`,
+[`specs/ui-redesign/`](../specs/ui-redesign/design.md)). Bootstrap lại token theo
+[ADR-0021](../decisions/0021-token-zinc-cyan-ba-typeface.md): zinc + cyan, ba typeface tự
+host, signature element đổi sang `readout`. Feature **chỉ ở tầng trình bày** — không FR mới,
+không US mới, không đổi endpoint nào, nên `scope.md` và `journeys.md` không đổi.
+
+Verify đã chạy trên app thật (Task 13): 4 bề rộng × 2 theme đều không tràn ngang và
+`Quay lại`/`Tiếp tục` luôn trong viewport; **0 cảnh báo hydration trên bản build**
+(cảnh báo thấy ở dev là artifact của Vite, không phải thứ người dùng gặp); subset
+vietnamese của Inter tải đúng khi có chữ có dấu, không rơi fallback.
+
+Ba thứ tìm ra khi nhìn app thật và đã sửa trong cùng PR: nhãn thang của `Readout`
+dùng `text-faint` (3.67:1 ở dark — Task 11 sót); ba nút header step 4 cao 32px thay vì
+full-width 44px như design.md §7 khẳng định; và `MASTER.md` §4 ghi ngưỡng hit-area
+**40px** lệch với NFR-A11Y-03 (**44px**) — chính chỗ lệch đó là gốc của hai lỗi trên.
+Phần hit-area còn lại của app là nợ **#7**.
+
+Chuyển dự án sang bộ tài liệu hai tầng của `scaffold-webapp-project` (2026-09-03): xong.
 
 ## Việc tiếp theo
 
@@ -40,6 +56,9 @@ plugin và hook đã xong; `project-goals.md` + `unfinished-features.md` đã t�
 | **#3** `Document.parsedContent` (jsonb) | Cột có trong schema nhưng **luôn ghi `null`**; FE không đọc | Cả FR-12 lẫn FR-14 đã ship mà không cần nó: rewrite neo vào **đoạn nguyên văn** (thứ máy kiểm được), so sánh phiên bản cần `parentId`. Step Review là read-only nên cũng không có UI sửa tay | Khi làm skill-level overlap (#4). Không chặn gì khác |
 | **#4** `keywordScore` chạy ở cấp token, không phải cấp skill | Breakdown chỉ hiện một số %, không nói **khớp cái gì / thiếu cái gì** ở cấp kỹ năng | Nice-to-have, không phải nợ thật — LLM đã trả lời "thiếu gì". Cần #3 xong trước | Không có mốc bắt buộc. Ưu tiên thấp nhất |
 | **#5** Gate B (MCP walk) của E2E chưa chạy cho `ai-credentials`, `cv-rewrite-assistant`, `cv-version-comparison`, `cover-letter-generator`, `multi-provider-compare` | Chỉ có gate A (suite Playwright committed) xanh | Quy trình dual-gate đã bỏ khi chuyển sang flow mới 2026-09-03 | Không còn là nợ theo quy trình mới. Giữ lại đây một kỳ để ai đọc `docs/specs/*/e2e.md` không tưởng là đã walk |
+| **#6** `client/src/routes/__root.tsx` — không có preload cho woff2 | Ba webfont tự host không được preload, nên chúng chỉ được phát hiện sau khi CSS parse xong ⇒ nguy cơ nhấp nháy chữ khi SSR hydrate | Vite content-hash tên file woff2 (quan sát được ví dụ `inter-latin-400-normal-C38fXH4l.woff2` dưới `/assets/`), nên đường dẫn tĩnh `/fonts/inter-latin-400.woff2` không tồn tại. Một preload trỏ sai còn tệ hơn không preload — trình duyệt tải một file rồi bỏ đi. `font-display: swap` đang gánh phần này | Khi đo được nhấp nháy thật trên app đang chạy, hoặc khi thêm một plugin/manifest cho phép lấy tên file đã hash lúc build |
+| **#7** Hit-area của control trên mobile dưới 44px ở nhiều trang | Đo trên app thật ở 390px: `Open menu` (hamburger) **32×32**, `Start matching` **129×32**, `Add credential` **152×32**; `Back`/`Next`/`Download my data`/`Match now` **40px**. NFR-A11Y-03 đòi **≥44×44** | Không phải nợ do feature này sinh ra — nó có trước, và phạm vi a11y của `ui-redesign` là **tương phản ở tầng token** (design.md §6), không phải hit-area. Sửa hết là đụng ~7 component trên 6 trang và cần một quyết định riêng: nâng toàn cục bằng `ConfigProvider.componentSize` hay sửa từng nút | Khi làm một feature a11y riêng. **Ba nút header step 4 đã sửa** trong PR này (324×44 ở mobile) vì design.md §7 tự khẳng định chúng đạt NFR-A11Y-03. Gốc của cả loạt: `MASTER.md` §4 từng ghi ngưỡng **40px** trong khi NFR ghi **44px** — đã gộp về 44px 2026-09-07 |
+| **#8** `client/src/views/Wizard/components/ResultActionBar/index.tsx` — nút `Save report` **không có `onClick`** | Một nút `type="primary" size="large"` bấm vào không xảy ra gì | Đã inert từ trước feature này (trên `main` nó nằm trong `StepResult` và cũng không có handler), nên **không phải regression**. Nhưng Task 8 ghim thanh hành động ở cấp shell nên nó giờ **luôn trên màn**, khiến một nút primary vô tác dụng nổi bật hơn nhiều. Nối dây nó cần một quyết định sản phẩm trước: "save report" là gì khi `MatchResult` **đã** được lưu tự động? | Ngay khi chốt được nghĩa của nó — hoặc bỏ nút, hoặc đổi thành export/tải báo cáo. Đã ghi ở `README.md` §Not built yet 2026-09-07 |
 
 ## Câu hỏi còn treo
 

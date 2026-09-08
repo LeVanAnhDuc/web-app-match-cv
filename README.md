@@ -13,9 +13,12 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
   - Pick a document you already saved instead of uploading again, or save the one you just added for reuse.
   - Step 3 Review: read back the extracted text of both documents before spending an AI call. Read-only — if the parse is wrong, go back and upload again.
   - Step 4 Result: the match report.
+  - Back / Next stay on screen — you never have to scroll to the end of a step to reach them; on step 4 the action bar is pinned to the bottom of the window instead.
+  - Jump back by clicking a step you already finished. A step you have no data for yet is not clickable and says what is missing.
+  - Changing the CV or the JD after jumping back drops the result of the previous pair, so step 4 never shows a report for documents you replaced.
 
 - **Match score with a breakdown**
-  - One overall percentage in a circular gauge, plus two bars: semantic match and keyword/skills match (overall = 60% semantic + 40% keyword; the LLM does not score, it only explains).
+  - Three readouts — overall, semantic match and keyword/skills match — each a large number against a 0–100 scale (overall = 60% semantic + 40% keyword; the LLM does not score, it only explains).
   - Report sections: matched strengths, gaps / missing, and how to improve your CV.
   - A visible disclaimer that the text was sent to an AI provider and results should be verified.
 
@@ -31,6 +34,7 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 - **Document library** (`/cv`, `/jd`)
   - Saved CVs and job descriptions listed per kind, with previews for PDF, DOCX and pasted text.
+  - Every row action lives in one *Actions* menu on that row, at any window width.
   - Rename, download the original file, or delete — deletion is refused when a match still references the document.
   - Mark a document as "a new version of" another one, which is what unlocks version comparison.
 
@@ -51,9 +55,9 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 - **CV version comparison** (`/compare/$documentId`)
   - Compare a CV against the version it came from, on one job description you pick, labelled `Version 1 → Version 2`.
-  - Signed deltas for overall, semantic and keyword score, plus gaps grouped into closed / still open / new.
+  - The new version's overall, semantic and keyword score, each with a signed delta against the older version, plus gaps grouped into closed / still open / new.
   - Opening this screen never runs a match and never sends your CV anywhere; if a version was never matched against that JD, it says so and links to the wizard.
-  - Warns when the two matches ran on different AI models, because the scores are then not strictly comparable.
+  - Warns when the two matches ran on different AI models, and each delta then reads *Not comparable* instead of a direction, because the scores are not strictly comparable.
 
 - **Export your data** (`/my-data`)
   - One button downloads a zip containing `data.json` (documents, matches with full reports, AI credential settings) plus every original file you uploaded.
@@ -67,16 +71,17 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 - **No sign-in.** Auth/SSO is deferred; the whole app runs as one fixed stub user, so every visitor shares the same documents and credentials. Do not deploy it publicly.
 - **No match history page.** The API can list and reopen matches, but the client only has the *Recent matches* widget on the dashboard — the "View all" label is inert text. No `/history` route, no filtering or sorting, and no way to delete a match.
+- **"Save report" does nothing.** The button sits on the step 4 action bar but has no handler wired to it; the match itself is persisted by the API regardless, and reachable again from *Recent matches*. *Start over* next to it works.
 - **No UI language switcher.** Vietnamese translations exist for the client but the interface is fixed to English (`VITE_DEFAULT_LOCALE` is not wired up yet).
 - **Data sovereignty is only half done.** Export works; deleting all your data and the data-disclosure log (which document went to which provider, when) are not implemented.
-- **Keyword scores are not comparable across languages.** Because Vietnamese is tokenized per syllable, any two Vietnamese documents share a noise floor of roughly 30–43%, versus roughly 5% for English. The UI shows both as plain percentages. See `docs/unfinished-features.md` #5.
+- **Keyword scores are not comparable across languages.** Because Vietnamese is tokenized per syllable, any two Vietnamese documents share a noise floor of roughly 30–43%, versus roughly 5% for English. The UI shows both as plain percentages. See `docs/04-state/backlog.md`, technical debt #1.
 - **No structured CV/JD parsing.** `Document.parsedContent` is always empty: there is no per-section (skills / experience / education) breakdown and no skill-level overlap — the keyword leg works on tokens.
 - **No batch ranking** of many CVs against one JD.
 
 ## Tech Stack
 
 - **Server** (`server/`) — Node + TypeScript, NestJS 11, Prisma 6 + PostgreSQL (installed locally, no Docker; pgvector deliberately not used — cosine similarity is computed in-app), `class-validator`, Swagger, `nestjs-i18n`, `pdf-parse` + `mammoth` for document parsing, `archiver` for the data export, AES-256-GCM credential encryption via `node:crypto`, Jest (unit + supertest e2e).
-- **Client** (`client/`) — TanStack Start (React 19 + Vite), TanStack Router + Query, Zustand, Ant Design 5 + Tailwind 4, `i18next`, `react-pdf` + `docx-preview` for previews, Vitest (unit) + Playwright (e2e across desktop / tablet / mobile viewports).
+- **Client** (`client/`) — TanStack Start (React 19 + Vite), TanStack Router + Query, Zustand, Ant Design 5 + Tailwind 4, the three typefaces self-hosted through `@fontsource` (Inter, Space Grotesk, JetBrains Mono — no request leaves for a font CDN), `i18next`, `react-pdf` + `docx-preview` for previews, Vitest (unit) + Playwright (e2e across desktop / tablet / mobile viewports).
 - **AI** — the `openai` SDK pointed at any OpenAI-compatible provider: OpenRouter, OpenAI or Google Gemini. A provider must offer both chat completions and embeddings, which is why Anthropic is not on the list.
 
 ## Running
@@ -117,8 +122,9 @@ yarn dev                      # http://localhost:5300
 cd server && yarn test        # Jest unit tests
 cd server && yarn test:e2e    # Jest + supertest, needs the database
 cd client && yarn test        # Vitest unit tests (run serially)
-cd client && yarn test:e2e    # Playwright; both servers must be running,
-                              # and E2E_DATABASE_URL must be set
+cd client && yarn test:e2e    # Playwright; both servers must be running, and
+                              # E2E_DATABASE_URL + CREDENTIAL_ENCRYPTION_KEY set
+                              # (first run: npx playwright install chromium)
 ```
 
 ## Project structure
@@ -156,10 +162,17 @@ cd client && yarn test:e2e    # Playwright; both servers must be running,
 │   │   └── modules/me/         Data export (zip stream)
 │   └── test/                   Jest + supertest e2e specs
 ├── docs/                       Shared project docs (source of truth for scope)
-│   ├── project-goals.md        Goals, non-goals, ADRs, roadmap
+│   ├── README.md               Map of the whole docs tree — read this first
+│   ├── 01-product/             Positioning, non-goals, user journeys, glossary
+│   ├── 02-requirements/        Functional scope (FR-xx) + measurable NFRs
+│   ├── 03-design/              Architecture and the invariants to read before edits
+│   ├── 04-state/backlog.md     In flight, next up, technical debt
+│   ├── decisions/              One ADR per decision, append-only
+│   ├── design-system/match-cv/ UI tokens, design intent, icon map, UX copy
 │   ├── erd.md                  Data model, kept in sync with schema.prisma
-│   ├── unfinished-features.md  Known half-done work, honestly tracked
 │   ├── specs/                  Per-feature design / plan / e2e / security notes
-│   └── ui-designs/             Static HTML mockups per feature
+│   ├── ui-designs/             Static HTML mockups (frozen 2026-09-03)
+│   └── project-goals.md, unfinished-features.md
+│                               Redirect stubs since 2026-09-03 — do not read from them
 └── .husky/pre-commit           Runs lint-staged in client/ then server/
 ```

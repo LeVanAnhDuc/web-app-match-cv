@@ -29,7 +29,7 @@ const ChangeCard = ({
         />
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold tracking-wider text-faint uppercase">
+            <span className="text-xs font-semibold tracking-wider text-muted uppercase">
               {label}
             </span>
             {change.addressesGap && (
@@ -45,7 +45,7 @@ const ChangeCard = ({
             <p className="text-xs font-semibold text-muted">
               {t("rewrite.change.original")}
             </p>
-            <p className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm whitespace-pre-wrap text-body line-through dark:border-red-500/20 dark:bg-red-500/5">
+            <p className="rounded-lg border border-error/25 bg-error/5 p-3 text-sm whitespace-pre-wrap text-body line-through">
               {change.original}
             </p>
           </div>
@@ -54,7 +54,7 @@ const ChangeCard = ({
               <p className="text-xs font-semibold text-muted">
                 {t("rewrite.change.suggested")}
               </p>
-              <p className="rounded-lg border border-green-100 bg-green-50 p-3 text-sm whitespace-pre-wrap text-body dark:border-green-500/20 dark:bg-green-500/5">
+              <p className="rounded-lg border border-success/25 bg-success/5 p-3 text-sm whitespace-pre-wrap text-body">
                 {change.replacement}
               </p>
             </div>

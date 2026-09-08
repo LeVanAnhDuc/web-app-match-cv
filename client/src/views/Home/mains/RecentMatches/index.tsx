@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Table, Tag } from "antd";
+import { Button, Table } from "antd";
 import { Inbox, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TableColumnsType } from "antd";
@@ -10,7 +10,13 @@ import type { MatchSummaryDto } from "#/types/Matching";
 
 const RECENT_LIMIT = 5;
 
-function scoreBand(score: number): "success" | "warning" | "error" {
+const SCORE_TONE = {
+  success: "text-success",
+  warning: "text-warning",
+  error: "text-error"
+} as const;
+
+function scoreBand(score: number): keyof typeof SCORE_TONE {
   if (score >= 75) return "success";
   if (score >= 50) return "warning";
   return "error";
@@ -49,9 +55,12 @@ const RecentMatches = () => {
       dataIndex: "overallScore",
       key: "overallScore",
       render: (score: number, record) => (
-        <Tag color={scoreBand(score)} data-testid={`home-score-${record.id}`}>
-          {`${score}%`}
-        </Tag>
+        <span
+          data-testid={`home-score-${record.id}`}
+          className={`font-mono text-sm font-semibold tabular-nums ${SCORE_TONE[scoreBand(score)]}`}
+        >
+          {score}%
+        </span>
       )
     },
     {
@@ -72,7 +81,7 @@ const RecentMatches = () => {
           // task, same kind of intentional follow-up gap as library
           // pagination) — rendered as muted, non-interactive text so it does
           // not read as a broken link.
-          <span className="text-sm font-medium text-faint">
+          <span className="text-sm font-medium text-muted">
             {t("home.recent.viewAll")}
           </span>
         ) : null

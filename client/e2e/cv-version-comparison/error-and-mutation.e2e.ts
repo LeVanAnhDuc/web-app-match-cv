@@ -6,6 +6,7 @@ import {
   STUB_COMPARISON,
   V2_ID,
   gotoCompare,
+  openActionsMenu,
   openSelect,
   stubComparison,
   stubSavedDocs,
@@ -74,9 +75,9 @@ test.describe("cv-version-comparison — errors and mutations", () => {
     const bodies = await stubSetParent(page);
 
     await page.goto("/cv");
+    await openActionsMenu(page, 0);
     await page
-      .getByRole("button", { name: "Mark as a new version of…" })
-      .first()
+      .getByRole("menuitem", { name: "Mark as a new version of…" })
       .click();
 
     const select = page.getByRole("combobox", { name: "Previous version" });
@@ -97,9 +98,9 @@ test.describe("cv-version-comparison — errors and mutations", () => {
     await stubSetParent(page, 400);
 
     await page.goto("/cv");
+    await openActionsMenu(page, 0);
     await page
-      .getByRole("button", { name: "Mark as a new version of…" })
-      .first()
+      .getByRole("menuitem", { name: "Mark as a new version of…" })
       .click();
 
     const select = page.getByRole("combobox", { name: "Previous version" });
@@ -119,9 +120,9 @@ test.describe("cv-version-comparison — errors and mutations", () => {
     const bodies = await stubSetParent(page);
 
     await page.goto("/cv");
+    await openActionsMenu(page, 0);
     await page
-      .getByRole("button", { name: "Mark as a new version of…" })
-      .first()
+      .getByRole("menuitem", { name: "Mark as a new version of…" })
       .click();
 
     // Nothing picked yet → nothing to save, and no request is sent.
@@ -139,9 +140,9 @@ test.describe("cv-version-comparison — errors and mutations", () => {
 
     await page.goto("/cv");
     // The second row already has a parent, so pick the first one to change.
+    await openActionsMenu(page, 0);
     await page
-      .getByRole("button", { name: "Mark as a new version of…" })
-      .first()
+      .getByRole("menuitem", { name: "Mark as a new version of…" })
       .click();
     await openSelect(page, "Previous version");
     await page.getByTitle("Backend Resume (improved)").click();

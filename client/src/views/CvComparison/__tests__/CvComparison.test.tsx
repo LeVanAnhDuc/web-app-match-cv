@@ -122,7 +122,9 @@ describe("CvComparison", () => {
 
     expect(screen.getByText("Version 1")).toBeDefined();
     expect(screen.getByText("Version 2")).toBeDefined();
-    expect(screen.getByText("75%")).toBeDefined();
+    expect(
+      screen.getByRole("meter", { name: "Overall match" })
+    ).toHaveAttribute("aria-valuenow", "75");
     expect(screen.getByText("+14")).toBeDefined();
     expect(screen.getByText("+8")).toBeDefined();
     expect(screen.getByText("+23")).toBeDefined();
@@ -134,11 +136,12 @@ describe("CvComparison", () => {
     );
     await renderPage();
 
-    expect(screen.getByText("-6")).toBeDefined();
+    // Scoped to delta-value: the readout's 0-100 axis also prints a "0"
+    // label on every card, so a plain getByText("0") is ambiguous here.
+    const values = screen.getAllByTestId("delta-value");
+    expect(values.map((el) => el.textContent)).toEqual(["-6", "0", "+1"]);
     // A rewrite that changed nothing must not read as an improvement.
-    expect(screen.getByText("0")).toBeDefined();
     expect(screen.queryByText("+0")).toBeNull();
-    expect(screen.getByText("+1")).toBeDefined();
   });
 
   it("shows every gap verbatim, including both wordings of a persisting one", async () => {
@@ -188,6 +191,18 @@ describe("CvComparison", () => {
     expect(
       screen.getByText("The two matches used different AI models")
     ).toBeDefined();
+  });
+
+  it("reports 'not comparable' instead of drawing a delta arrow when the two runs used different models", async () => {
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(comparison({ sameChatModel: false }))
+    );
+    await renderPage();
+
+    expect(screen.getAllByText("Not comparable")).toHaveLength(3);
+    expect(screen.queryByText("+14")).toBeNull();
+    expect(screen.queryByText("+8")).toBeNull();
+    expect(screen.queryByText("+23")).toBeNull();
   });
 
   it("offers the wizard when neither version has ever been matched", async () => {

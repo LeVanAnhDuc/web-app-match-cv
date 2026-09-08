@@ -203,7 +203,7 @@ const CoverLetterModal = ({
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div role="group" aria-label={t("coverLetter.tone")}>
-            <p className="mb-1 text-xs font-semibold tracking-wider text-faint uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-wider text-muted uppercase">
               {t("coverLetter.tone")}
             </p>
             <Segmented<CoverLetterTone>
@@ -220,7 +220,7 @@ const CoverLetterModal = ({
             />
           </div>
           <div role="group" aria-label={t("coverLetter.length")}>
-            <p className="mb-1 text-xs font-semibold tracking-wider text-faint uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-wider text-muted uppercase">
               {t("coverLetter.length")}
             </p>
             <Segmented<CoverLetterLength>
@@ -237,7 +237,7 @@ const CoverLetterModal = ({
             />
           </div>
           <div role="group" aria-label={t("coverLetter.language")}>
-            <p className="mb-1 text-xs font-semibold tracking-wider text-faint uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-wider text-muted uppercase">
               {t("coverLetter.language")}
             </p>
             <Segmented<CoverLetterLanguage>
@@ -253,7 +253,7 @@ const CoverLetterModal = ({
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-56 flex-1">
-            <p className="mb-1 text-xs font-semibold tracking-wider text-faint uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-wider text-muted uppercase">
               {t("credentials.runWith.title")}
             </p>
             <Select
@@ -311,7 +311,7 @@ const CoverLetterModal = ({
           {!generating && active?.status === "succeeded" && (
             <div className="space-y-3">
               <label
-                className="block text-xs font-semibold tracking-wider text-faint uppercase"
+                className="block text-xs font-semibold tracking-wider text-muted uppercase"
                 htmlFor="cover-letter-draft"
               >
                 {t("coverLetter.draft")}
@@ -371,7 +371,7 @@ const CoverLetterModal = ({
           )}
         </div>
         <div className="border-t border-line pt-4">
-          <p className="mb-2 text-xs font-semibold tracking-wider text-faint uppercase">
+          <p className="mb-2 text-xs font-semibold tracking-wider text-muted uppercase">
             {t("coverLetter.drafts")}
           </p>
           {lettersQuery.isLoading && (

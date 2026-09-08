@@ -27,7 +27,7 @@ const SavedDocRadioList = ({
           <SearchX size={22} />
         </div>
         <p className="text-sm font-medium text-body">{t(emptyKey)}</p>
-        <p className="mt-1 max-w-[220px] text-center text-xs text-faint">
+        <p className="mt-1 max-w-[220px] text-center text-xs text-muted">
           {t("reuse.empty.hint")}
         </p>
       </div>
@@ -46,7 +46,7 @@ const SavedDocRadioList = ({
             className={[
               "flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors",
               selected
-                ? "border-blue-500 bg-blue-50/60 dark:border-indigo-500 dark:bg-indigo-500/10"
+                ? "border-primary bg-primary/10"
                 : "border-line hover:bg-surface-subtle"
             ].join(" ")}
           >
@@ -58,13 +58,13 @@ const SavedDocRadioList = ({
               value={doc.id}
               checked={selected}
               onChange={() => onSelect(doc.id)}
-              className="size-4 shrink-0 accent-blue-600 dark:accent-indigo-500"
+              className="size-4 shrink-0 accent-(--color-primary)"
             />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-sm font-semibold text-body">
                 {doc.title}
               </span>
-              <span className="truncate text-xs text-faint">
+              <span className="truncate text-xs text-muted">
                 {new Date(doc.createdAt).toLocaleDateString(i18n.language)}
               </span>
             </span>

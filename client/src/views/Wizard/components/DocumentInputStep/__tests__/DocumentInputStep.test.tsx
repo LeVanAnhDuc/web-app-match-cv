@@ -151,4 +151,32 @@ describe("DocumentInputStep", () => {
       await screen.findByRole("button", { name: /back/i })
     ).not.toBeDisabled();
   });
+
+  it("card locks height at desktop and footer sticky on mobile", async () => {
+    stubSavedDocs([]);
+    const { container } = render(
+      <DocumentInputStep kind="JD" onNext={vi.fn()} />,
+      { wrapper: Wrapper }
+    );
+
+    const card = container.querySelector(".rounded-xl");
+    expect(card?.className).toContain("lg:h-full");
+    expect(card?.className).toContain("lg:overflow-hidden");
+
+    const footer = await screen.findByRole("button", { name: /next/i });
+    const footerContainer = footer.parentElement;
+    expect(footerContainer?.className).toContain("sticky");
+    expect(footerContainer?.className).toContain("bottom-0");
+  });
+
+  it("eyebrow of saved list uses text-muted", async () => {
+    stubSavedDocs([]);
+    render(<DocumentInputStep kind="JD" onNext={vi.fn()} />, {
+      wrapper: Wrapper
+    });
+
+    const heading = await screen.findByRole("heading", { name: /saved/i });
+    expect(heading.className).toContain("text-muted");
+    expect(heading.className).not.toContain("text-faint");
+  });
 });

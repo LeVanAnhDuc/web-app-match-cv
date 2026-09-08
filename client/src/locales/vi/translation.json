@@ -42,7 +42,13 @@
     "jd": "Mô tả công việc",
     "cv": "CV / Hồ sơ",
     "review": "Xem lại",
-    "result": "Kết quả"
+    "result": "Kết quả",
+    "jumpTo": "Về bước {{label}}",
+    "blocked": {
+      "2": "Cần chọn mô tả công việc trước",
+      "3": "Cần chọn CV và JD trước",
+      "4": "Cần chạy match trước"
+    }
   },
   "stepper": {
     "progress": "Bước {{n}}/4"
@@ -108,6 +114,7 @@
     "emptyCta": "Bắt đầu match",
     "loadError": "Không tải được danh sách tài liệu. Vui lòng thử lại.",
     "action": {
+      "menu": "Hành động",
       "preview": "Xem trước",
       "rename": "Đổi tên",
       "download": "Tải xuống",
@@ -436,5 +443,10 @@
       "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
       "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
     }
+  },
+  "readout": {
+    "notComparable": "Không so được",
+    "scaleMin": "0",
+    "scaleMax": "100"
   }
 }

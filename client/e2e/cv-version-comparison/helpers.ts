@@ -180,6 +180,18 @@ export async function gotoCompare(
 }
 
 /**
+ * Task 12 collapsed a saved document's row actions into one antd Dropdown
+ * ("Actions") per row. Its menu is portaled to the document body, so a menu
+ * item is only queryable once its row's trigger has been opened. `index`
+ * follows DOM/row order (== `SAVED_CVS` order for this fixture) — title-text
+ * scoping is not safe here because "Backend Resume (improved)" contains
+ * "Backend Resume" as a substring.
+ */
+export async function openActionsMenu(page: Page, index = 0): Promise<void> {
+  await page.getByRole("button", { name: "Actions" }).nth(index).click();
+}
+
+/**
  * Open an antd `Select` by name.
  *
  * Clicking the combobox itself is flaky: antd puts the `combobox` role on a

@@ -125,21 +125,21 @@ const ComparisonReport = ({
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <ScoreDelta
                   label={t("result.overall")}
-                  before={data.baseResult?.overallScore ?? 0}
                   after={data.revisionResult?.overallScore ?? 0}
                   delta={data.delta.overall}
+                  comparable={data.sameChatModel && data.sameEmbedModel}
                 />
                 <ScoreDelta
                   label={t("result.semantic")}
-                  before={data.baseResult?.semanticScore ?? 0}
                   after={data.revisionResult?.semanticScore ?? 0}
                   delta={data.delta.semantic}
+                  comparable={data.sameChatModel && data.sameEmbedModel}
                 />
                 <ScoreDelta
                   label={t("result.keyword")}
-                  before={data.baseResult?.keywordScore ?? 0}
                   after={data.revisionResult?.keywordScore ?? 0}
                   delta={data.delta.keyword}
+                  comparable={data.sameChatModel && data.sameEmbedModel}
                 />
               </div>
             ) : (

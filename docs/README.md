@@ -17,7 +17,7 @@
 | [`design-system/match-cv/icon-map.md`](design-system/match-cv/icon-map.md) | Khái niệm hoặc hành động này dùng icon nào? | 🟢 đủ | xuất hiện một khái niệm/action mới trên UI |
 | [`design-system/match-cv/MASTER.md`](design-system/match-cv/MASTER.md) | Màu, chữ, bo góc, mật độ nào được dùng — và cái nào bị cấm… | 🟢 đủ | thêm/bỏ một token · đổi bảng màu · đổi layout primitive · … |
 | [`design-system/match-cv/ux-copy.md`](design-system/match-cv/ux-copy.md) | Câu chữ trên UI viết thế nào, EN và VI? | 🟢 đủ | thêm màn hình mới · đổi tone · thêm chuỗi i18n |
-| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 20 ADR | mỗi quyết định kỹ thuật |
+| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 21 ADR | mỗi quyết định kỹ thuật |
 | [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ (2026-09-03) | code đọc một biến mới (process.env.X / import.meta.env.X) |
 <!-- END:auto -->
 

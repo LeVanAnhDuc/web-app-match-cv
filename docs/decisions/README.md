@@ -28,6 +28,7 @@
 | [ADR-0018](0018-mot-git-repo-cho-ca-san-pham.md) | Cả sản phẩm là một git repo; `.claude/` là ngoại lệ duy nhất | 2026-09-03 | accepted |
 | [ADR-0019](0019-preview-tai-lieu-chay-client-side.md) | Xem trước tài liệu render client-side, không qua dịch vụ ngoài | 2026-08-08 (ghi lại thành ADR 2026-09-03; trước đó chỉ nằm trong `.claude/techstack/frontend.md`) | accepted |
 | [ADR-0020](0020-pin-prisma-6.md) | Pin Prisma ở 6.x, chưa lên 7 | 2026-08-08 (ghi lại thành ADR 2026-09-03; trước đó chỉ nằm trong `.claude/techstack/backend.md`) | accepted |
+| [ADR-0021](0021-token-zinc-cyan-ba-typeface.md) | Bootstrap lại design token: zinc + cyan, ba typeface tự host | 2026-09-03 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

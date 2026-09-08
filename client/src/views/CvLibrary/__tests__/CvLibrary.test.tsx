@@ -24,6 +24,12 @@ vi.mock("#/components/DocumentPreview", () => ({
   default: () => <div data-testid="doc-preview" />
 }));
 
+// Actions collapsed into one antd Dropdown per row (Task 12) — open the
+// row's trigger before a menu item becomes queryable.
+function openActionsMenu(index = 0) {
+  fireEvent.click(screen.getAllByRole("button", { name: "Actions" })[index]);
+}
+
 async function renderLibrary() {
   const rootRoute = createRootRoute({
     component: () => <CvLibrary />
@@ -119,21 +125,28 @@ describe("CvLibrary", () => {
     await renderLibrary();
     expect(screen.getByText("Backend Resume")).toBeDefined();
     expect(screen.getByText("Frontend Resume")).toBeDefined();
-    // pdf doc → download present, docx too; text would hide it
-    expect(screen.getAllByRole("button", { name: "Preview" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Rename" })).toHaveLength(2);
+    // pdf doc → download present, docx too; text would hide it. Both rows'
+    // menus can be open at once — each Dropdown is independent.
+    openActionsMenu(0);
+    openActionsMenu(1);
+    expect(screen.getAllByRole("menuitem", { name: "Preview" })).toHaveLength(
+      2
+    );
+    expect(screen.getAllByRole("menuitem", { name: "Rename" })).toHaveLength(2);
     expect(
-      screen.getAllByRole("button", { name: "Mark as a new version of…" })
+      screen.getAllByRole("menuitem", { name: "Mark as a new version of…" })
     ).toHaveLength(2);
-    // antd Button with href renders an <a> → role "link", not "button"
+    // Download stays a real <a href download> inside the menu item → role "link"
     expect(screen.getAllByRole("link", { name: "Download" })).toHaveLength(2);
   });
 
   it("only offers the comparison on a document that has a previous version", async () => {
     const { unmount } = await renderLibrary();
     // Both fixtures are originals — there is nothing to compare them with.
+    openActionsMenu(0);
+    openActionsMenu(1);
     expect(
-      screen.queryByRole("button", { name: "Compare versions" })
+      screen.queryByRole("menuitem", { name: "Compare versions" })
     ).toBeNull();
     // Unmounted before the second render: two live trees would double every
     // query in this file.
@@ -143,16 +156,19 @@ describe("CvLibrary", () => {
       asQuery([{ ...docs[0], parentId: "cv-0" }, docs[1]])
     );
     await renderLibrary();
+    openActionsMenu(0);
+    openActionsMenu(1);
 
     expect(
-      screen.getAllByRole("button", { name: "Compare versions" })
+      screen.getAllByRole("menuitem", { name: "Compare versions" })
     ).toHaveLength(1);
   });
 
   it("declares a previous version through the lineage modal", async () => {
     await renderLibrary();
+    openActionsMenu(0);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Mark as a new version of…" })[0]
+      screen.getByRole("menuitem", { name: "Mark as a new version of…" })
     );
 
     const select = await screen.findByRole("combobox", {
@@ -170,8 +186,9 @@ describe("CvLibrary", () => {
   it("keeps the lineage modal open and reports why a link was rejected", async () => {
     lineageSpy.mockRejectedValue(new ApiError(400, "cycle"));
     await renderLibrary();
+    openActionsMenu(0);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Mark as a new version of…" })[0]
+      screen.getByRole("menuitem", { name: "Mark as a new version of…" })
     );
 
     const select = await screen.findByRole("combobox", {
@@ -204,13 +221,15 @@ describe("CvLibrary", () => {
 
   it("opens the preview modal rendering DocumentPreview", async () => {
     await renderLibrary();
-    fireEvent.click(screen.getAllByRole("button", { name: "Preview" })[0]);
+    openActionsMenu(0);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Preview" }));
     expect(await screen.findByTestId("doc-preview")).toBeDefined();
   });
 
   it("renames a document through the rename modal", async () => {
     await renderLibrary();
-    fireEvent.click(screen.getAllByRole("button", { name: "Rename" })[0]);
+    openActionsMenu(0);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
     const input = await screen.findByDisplayValue("Backend Resume");
     fireEvent.change(input, { target: { value: "Renamed CV" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -222,9 +241,12 @@ describe("CvLibrary", () => {
 
   it("deletes a document after confirming the popconfirm", async () => {
     await renderLibrary();
-    fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[0]);
+    openActionsMenu(0);
+    // Delete lives behind a Popconfirm nested in the menu item — clicking its
+    // label text opens the confirm, it does not delete yet.
+    fireEvent.click(screen.getByText("Delete"));
     // Popconfirm confirm button carries visible text "Delete" (icon button has none)
-    const confirm = await screen.findByText("Delete");
+    const confirm = await screen.findByRole("button", { name: "Delete" });
     fireEvent.click(confirm);
     await waitFor(() =>
       expect(deleteSpy).toHaveBeenCalledWith("cv-1", expect.anything())

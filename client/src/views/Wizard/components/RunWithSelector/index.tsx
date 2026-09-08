@@ -77,7 +77,7 @@ const RunWithSelector = ({
 
   return (
     <div className="space-y-3 border-b border-line px-4 py-4 md:px-6">
-      <p className="text-xs font-semibold tracking-wider text-faint uppercase">
+      <p className="text-xs font-semibold tracking-wider text-muted uppercase">
         {t("credentials.runWith.title")}
       </p>
       <Checkbox.Group

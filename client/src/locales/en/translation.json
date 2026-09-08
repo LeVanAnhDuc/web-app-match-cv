@@ -42,7 +42,13 @@
     "jd": "Job Description",
     "cv": "CV / Resume",
     "review": "Review",
-    "result": "Result"
+    "result": "Result",
+    "jumpTo": "Go to {{label}}",
+    "blocked": {
+      "2": "Pick a job description first",
+      "3": "Pick a CV and a JD first",
+      "4": "Run a match first"
+    }
   },
   "stepper": {
     "progress": "Step {{n}} of 4"
@@ -108,6 +114,7 @@
     "emptyCta": "Start matching",
     "loadError": "Couldn't load your documents. Please try again.",
     "action": {
+      "menu": "Actions",
       "preview": "Preview",
       "rename": "Rename",
       "download": "Download",
@@ -436,5 +443,10 @@
       "jdNotComparable": "Neither version has been matched against that job description.",
       "failed": "Couldn't load the comparison. Please try again."
     }
+  },
+  "readout": {
+    "notComparable": "Not comparable",
+    "scaleMin": "0",
+    "scaleMax": "100"
   }
 }

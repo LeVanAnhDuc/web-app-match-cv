@@ -152,7 +152,7 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
             <Alert type="info" showIcon message={t("rewrite.noGaps")} />
           ) : (
             <div className="space-y-2">
-              <p className="text-xs font-semibold tracking-wider text-faint uppercase">
+              <p className="text-xs font-semibold tracking-wider text-muted uppercase">
                 {t("rewrite.gapsTitle")}
               </p>
               <ul className="space-y-1">
