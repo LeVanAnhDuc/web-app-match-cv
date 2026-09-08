@@ -28,13 +28,26 @@ Unit tests run **serially** (`fileParallelism: false` in `vitest.config.ts`): re
 
 **Pre-commit hook** (husky + lint-staged, auto-installed on `yarn install` via the `prepare` script): every `git commit` runs `eslint --fix` + `prettier --write` on **staged files only**, then re-stages them. An unfixable ESLint error blocks the commit.
 
-**E2E (Playwright)** — dual-gate §4.3. Requires **both** servers running (`server` :5200 + `client` :5300) and `E2E_DATABASE_URL` set:
+**E2E (Playwright)** — runs the committed specs under `e2e/` against the real app. Requires **both** servers running (`server` :5200 + `client` :5300), `E2E_DATABASE_URL` set, and `CREDENTIAL_ENCRYPTION_KEY` set in `server/.env` (base64 of exactly 32 bytes, `openssl rand -base64 32`; it is already a commented placeholder in `server/.env.example`). Without that key `POST /api/v1/ai-credentials` answers 503 and the five specs that seed a credential all fail — `ai-credentials`, `cover-letter-generator`, `cv-rewrite-assistant`, `cv-version-comparison`, `multi-provider-compare`.
 
 ```bash
-npx playwright install chromium   # first time
+npx playwright install chromium   # required on a fresh checkout — without the
+                                  # browser binary every spec fails at launch
 npx playwright test               # every e2e/<feature>/*.e2e.ts (serial)
 npx playwright test e2e/ai-credentials/   # one feature only
 npx playwright test --project=mobile   # one viewport only
+```
+
+Run **one project at a time** on a machine with little free RAM. All three in a
+single `npx playwright test` peaks high enough that Windows starts killing the dev
+server and the Playwright workers mid-run; the symptoms look like real failures but
+are not — truncated zip downloads in `data-export`, `page.waitForEvent` timeouts, and
+`browserContext._wrapApiCall: Tracing is already stopping`. Measured 2026-09-07: the
+combined run reported 56 failures, while the same specs re-run per project passed
+(desktop 169, tablet 176, mobile 176).
+
+```bash
+for p in desktop tablet mobile; do npx playwright test --project=$p; done
 ```
 
 The suite runs in three chromium projects — `desktop` (1280×720), `tablet` (820×1180) and `mobile` (390×844) — so responsive regressions surface at every breakpoint. Set `E2E_BASE_URL` when the dev server is not on `:5300` (e.g. a git worktree running alongside the main checkout); the server must then allow that origin via its `CLIENT_ORIGIN` env var.
