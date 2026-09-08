@@ -21,11 +21,13 @@ Token khai báo ở `src/styles.css` bằng Tailwind 4 `@theme` (KHÔNG `@theme 
 | `border-line-strong`          | `border-zinc-500 dark:border-zinc-500` | viền input — ranh giới control, phải đạt ≥3:1 |
 | `text-body`                   | `text-zinc-900 dark:text-zinc-50`      | chữ chính                                     |
 | `text-muted`                  | `text-zinc-600 dark:text-zinc-400`     | chữ phụ                                       |
-| `text-faint`                  | `text-zinc-500 dark:text-zinc-500`     | chữ mờ                                        |
+| `text-faint`                  | `text-zinc-500 dark:text-zinc-500`     | **CHỈ phi-văn-bản**: icon stroke, placeholder |
 | `bg-primary`                  | `bg-cyan-700 dark:bg-cyan-600`         | nền nhấn                                      |
 | `text-accent`                 | `text-cyan-700 dark:text-cyan-400`     | chữ nhấn                                      |
 
 Thêm token mới → sửa `src/styles.css` **và** `docs/design-system/match-cv/MASTER.md` §2 trong cùng PR. Nếu token là màu primary, sửa luôn `colorPrimary` của antd ở `src/contexts/AntdProvider` cho khớp — lệch hai chỗ này là hai màu khác nhau ở dark mode.
+
+⚠️ **`text-faint` không bao giờ dùng cho chữ.** zinc-500 trên nền dark chỉ đạt **3.67:1**, dưới ngưỡng 4.5:1 của NFR-A11Y-01 — ở light nó qua (4.83:1) nên lỗi này **chỉ lộ ở dark**. Chữ phụ dùng `text-muted`; `faint` dành cho icon stroke và placeholder. Đã sót một lần ở nhãn thang của `Readout`, phát hiện 2026-09-07.
 
 ## 2. `PageContainer` — mỗi trang đúng 1 cái
 

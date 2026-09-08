@@ -168,8 +168,12 @@ Hierarchy dựng bằng **size + weight + muted**, không bằng nhiều màu.
 - **Mật độ**: card `p-4 md:p-6` (không `p-8`/`p-10`) · header/footer trong card
   `px-4 py-4 md:px-6 md:py-5` · nhịp section `gap-6` · nhóm control `gap-4` · icon + label
   `gap-2`/`gap-3`.
-- **Hit-area** control ≥ 40px ở mobile (antd `size="large"`). Nút trong header card ở
-  mobile là full-width, không `size="small"` — 32px không đạt ngưỡng cảm ứng.
+- **Hit-area** control **≥ 44px** ở mobile — ngưỡng là
+  [NFR-A11Y-03](../../02-requirements/nfr.md), không phải một con số của file này.
+  antd `Button` mặc định **32px** và `size="large"` chỉ 40px, nên cả hai đều **không**
+  đủ: phải xin chiều cao tường minh (`!h-11` = 44px) và cho nút full-width dưới `md`.
+  Bản trước của file này ghi "≥ 40px", lệch với NFR — chính chỗ lệch đó đã để lọt ba nút
+  32px ở header step 4 (sửa 2026-09-07).
 
 ## 4b. Chuyển động, z-index, trạng thái
 
@@ -273,7 +277,8 @@ Chỗ hiển thị con số. Nó là nhận diện của app vì sản phẩm n�
 ĐỘ KHỚP TỔNG          ← eyebrow  text-xs uppercase tracking-wider text-muted
 73%          ↑ 8      ← font-mono tabular-nums text-4xl · delta semantic
 ▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░   ← track h-1.5 rounded-full bg-surface-subtle / fill bg-primary
-0    ┆    ┆    ┆  100 ← vạch: 3 span absolute left-1/4 · left-1/2 · left-3/4
+0    ┆    ┆    ┆  100 ← nhãn thang: font-mono text-xs text-muted (KHÔNG faint — là chữ)
+                        vạch: 3 span absolute left-1/4 · left-1/2 · left-3/4
 ```
 
 **Hai biến thể, và chọn sai là nói sai:**
@@ -308,7 +313,7 @@ tên, không thang) trong `list-row`.
 
   **Không `flex-wrap`.** Thiếu `min-w-0` hoặc thiếu `shrink-0` là nguyên nhân duy nhất của
   mọi ca item wrap xấu. Active/hover: `border-primary bg-primary/10`. Dưới `lg`, nhóm
-  hành động nhiều icon thu về **một nút menu** — sáu nút 40px không vừa một dòng ở 375px,
+  hành động nhiều icon thu về **một nút menu** — sáu nút 44px không vừa một dòng ở 375px,
   và luật "không `flex-wrap`" chặn đường thoát bằng cách xuống dòng.
 - **Sidebar nav item** — **6 item** dùng **chung một class string**; khác biệt thị giác duy
   nhất là trạng thái active.
@@ -331,7 +336,7 @@ tên, không thang) trong `list-row`.
   không phải cuộn tìm "Quay lại". Hover: ring `primary/10` quanh dot + nhãn gạch chân.
   Bước hiện tại `aria-current="step"`. Bước **chưa đủ dữ liệu** `aria-disabled` + tooltip
   explainer ("Cần chọn CV và JD trước") — §4b cấm disabled im lặng. Hit-area là dot cộng
-  nhãn nên đạt ≥40px ở mọi bề rộng.
+  nhãn nên đạt ≥44px ở mọi bề rộng.
   ⚠️ Nhảy về bước 1/2 rồi đổi tài liệu phải **xoá `runId` / `matchId`** trong store, nếu
   không kết quả ở step 4 thuộc về cặp tài liệu khác.
 - **Input tabs (Upload / Paste)** — pill group nền `surface-subtle rounded-md`, tab
@@ -348,7 +353,7 @@ tên, không thang) trong `list-row`.
 Ngưỡng đo được ở [`../../02-requirements/nfr.md`](../../02-requirements/nfr.md)
 §Accessibility (NFR-A11Y-01…05). Ở tầng thiết kế: radio group đúng semantics (có `name`,
 `label` bọc `input`) · focus ring primary luôn thấy · tab order hợp lý · tương phản đạt
-ở **cả hai** theme · mọi control có label · hit-area ≥ 40px · `faint` không bao giờ dùng
+ở **cả hai** theme · mọi control có label · hit-area ≥ 44px (NFR-A11Y-03) · `faint` không bao giờ dùng
 cho chữ (§2a).
 
 ## 10. Ghi chú
