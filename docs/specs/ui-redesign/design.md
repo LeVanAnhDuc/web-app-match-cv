@@ -48,6 +48,13 @@ chủ, và bản thu gọn trong `list-row`.
 
 Hai quyết định bên trong nó, cả hai đều là *nói đúng* chứ không phải thẩm mỹ:
 
+- **Màn so sánh phiên bản mất điểm bản cũ, và đó là ý định** *(xác nhận 2026-09-07)*.
+  `ScoreBar` cũ có prop `before` nên vẽ được cả cặp `61% → 75%`; `readout` mang **một** con
+  số theo thiết kế, nên sau Task 9 màn hình chỉ còn điểm bản mới cộng delta có dấu. Giữ
+  nguyên vì **delta chính là câu trả lời** mà FR-14 hỏi (*"CV của bạn đã tốt lên bao nhiêu"*),
+  còn con số gốc là dữ kiện trung gian. E2E giờ **assert điểm gốc KHÔNG xuất hiện**, để
+  việc đưa nó trở lại là một thay đổi có ý thức chứ không phải một hệ quả âm thầm nữa.
+
 - **Biến thể `plain` không vẽ thang.** "12 CV đã lưu" không có dải 0–100 nào; vẽ thang cho
   nó là bịa ra một giá trị tối đa không tồn tại.
 - **Delta có trạng thái `na` "không so được".** Bất biến #10: delta chỉ có nghĩa khi cùng
