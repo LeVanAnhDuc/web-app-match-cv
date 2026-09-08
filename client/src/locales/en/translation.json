@@ -43,7 +43,7 @@
     "cv": "CV / Resume",
     "review": "Review",
     "result": "Result",
-    "jumpTo": "Back to {{label}}",
+    "jumpTo": "Go to {{label}}",
     "blocked": {
       "2": "Pick a job description first",
       "3": "Pick a CV and a JD first",

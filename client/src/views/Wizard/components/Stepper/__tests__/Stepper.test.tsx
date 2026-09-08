@@ -68,10 +68,30 @@ describe("Stepper", () => {
     render(<Stepper current={3} blockedFrom={4} onJump={onJump} />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: /back to.*job description/i })
+      screen.getByRole("button", { name: /go to.*job description/i })
     );
 
     expect(onJump).toHaveBeenCalledWith(1);
+  });
+
+  // The jump label must not CONTAIN the footer button's own label. Playwright's
+  // getByRole matches the accessible name by substring, so a label of
+  // "Back to Job Description" made `getByRole("button", { name: "Back" })`
+  // resolve to two elements and took out 8 E2E specs. Testing Library matches
+  // exactly by default, which is why the unit tests never caught it — this
+  // assertion is the guard that does.
+  it("the jump label never contains the Back button's label, in either locale", async () => {
+    const i18n = (await import("#/i18n/config")).default;
+    for (const lng of ["en", "vi"] as const) {
+      await i18n.changeLanguage(lng);
+      const back = i18n.t("action.back");
+      const jump = i18n.t("step.jumpTo", { label: i18n.t("step.jd") });
+      expect(
+        jump.toLowerCase().includes(back.toLowerCase()),
+        `[${lng}] "${jump}" must not contain "${back}"`
+      ).toBe(false);
+    }
+    await i18n.changeLanguage("en");
   });
 
   it("the current step is not a button and carries aria-current", () => {

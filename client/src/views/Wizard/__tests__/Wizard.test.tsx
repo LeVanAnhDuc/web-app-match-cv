@@ -106,9 +106,11 @@ describe("wizard flow: JD -> CV -> Back", () => {
     await waitFor(() => expect(useWizardStore.getState().step).toBe(2));
 
     // Step 2: CV title from mock, Back button enabled this time.
-    // Exact name (not /back/i): step 1 is now "done" in the stepper, which
-    // renders its own "Back to Job Description" button — a loose regex would
-    // match both and throw on multiple elements.
+    // Exact name, not /back/i: step 1 is now "done" in the stepper and renders
+    // its own jump button. That button used to be labelled "Back to Job
+    // Description", which made even Playwright's default substring matching
+    // ambiguous; it is "Go to …" now, and Stepper.test.tsx guards that. Keep
+    // the exact name anyway — the footer button is what this test means.
     await screen.findByText(/candidate cv/i);
     const backButton = screen.getByRole("button", { name: "Back" });
     expect(backButton).not.toBeDisabled();
