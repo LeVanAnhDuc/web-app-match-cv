@@ -99,6 +99,18 @@ async function openRowMenu(page: Page, title: string): Promise<void> {
   await row(page, title).getByRole("button", { name: "Actions" }).click();
 }
 
+/**
+ * Open the Delete confirm from the row menu that is already open.
+ *
+ * Delete's menu-item label IS the Popconfirm's trigger, so the click has to
+ * land on its text rather than on the menuitem. But it must be scoped to the
+ * menu AND exact: one of the fixtures is titled "E2E Delete CV", so a bare
+ * `getByText("Delete")` matched the row title too and failed strict mode.
+ */
+async function openDeleteConfirm(page: Page): Promise<void> {
+  await page.getByRole("menu").getByText("Delete", { exact: true }).click();
+}
+
 /** Confirm an open antd Popconfirm (its confirm button lives in the overlay). */
 async function confirmPopconfirm(page: Page): Promise<void> {
   await page
@@ -211,9 +223,7 @@ test.describe("saved CV library", () => {
     await page.goto("/cv");
     await waitHydrated(page);
     await openRowMenu(page, MATCHED_CV);
-    // Delete's menu-item label IS the Popconfirm's trigger — click its text
-    // to open the confirm, same interaction the unit tests exercise.
-    await page.getByText("Delete").click();
+    await openDeleteConfirm(page);
     await confirmPopconfirm(page);
     await expect(page.getByText(/used in a match history/i)).toBeVisible();
     await expect(page.getByText(MATCHED_CV)).toBeVisible();
@@ -223,7 +233,7 @@ test.describe("saved CV library", () => {
     await page.goto("/cv");
     await waitHydrated(page);
     await openRowMenu(page, DELETE_CV);
-    await page.getByText("Delete").click();
+    await openDeleteConfirm(page);
     await confirmPopconfirm(page);
     await expect(page.getByText(DELETE_CV)).toHaveCount(0);
   });
