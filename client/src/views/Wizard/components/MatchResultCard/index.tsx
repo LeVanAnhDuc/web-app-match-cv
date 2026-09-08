@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Alert, Button, Collapse, Skeleton, Space } from "antd";
+import { Alert, Button, Collapse, Skeleton } from "antd";
 import {
   AlertTriangle,
   CircleCheck,
@@ -18,6 +18,15 @@ import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
 import type { MatchResultDto } from "#/types/Matching";
 import CoverLetterModal from "../CoverLetterModal";
+
+/**
+ * One class string for all header actions, the way the sidebar nav items share
+ * one (MASTER.md §8): below `md` they stack full-width at 44px, which is what
+ * meets the NFR-A11Y-03 touch target — antd's default Button is 32px, so the
+ * height has to be asked for explicitly. From `md` up they return to the
+ * compact inline row.
+ */
+const HEADER_ACTION_CLASS = "!h-11 w-full justify-center md:!h-8 md:w-auto";
 
 function ReportList({
   icon,
@@ -208,9 +217,12 @@ const MatchResultCard = ({
       // LOOKS BACK at whether the CV improved and only exists for a CV that has
       // a previous version. The conditional one goes last so its absence cannot
       // reflow the two that are always there.
+      // `Space` is not used here: it wraps each child in a fixed-width item, so
+      // `w-full` on the button would never reach the row.
       extra={
-        <Space wrap>
+        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:gap-2">
           <Button
+            className={HEADER_ACTION_CLASS}
             icon={<Wand2 size={16} />}
             onClick={() =>
               void navigate({
@@ -221,11 +233,16 @@ const MatchResultCard = ({
           >
             {t("action.improveCv")}
           </Button>
-          <Button icon={<Mail size={16} />} onClick={() => setLetterOpen(true)}>
+          <Button
+            className={HEADER_ACTION_CLASS}
+            icon={<Mail size={16} />}
+            onClick={() => setLetterOpen(true)}
+          >
             {t("coverLetter.open")}
           </Button>
           {cvQuery.data?.parentId && (
             <Button
+              className={HEADER_ACTION_CLASS}
               icon={<GitCompareArrows size={16} />}
               onClick={() =>
                 void navigate({
@@ -239,7 +256,7 @@ const MatchResultCard = ({
               {t("action.compareVersions")}
             </Button>
           )}
-        </Space>
+        </div>
       }
     >
       <div className="grid grid-cols-1 gap-4 border-b border-line bg-surface-subtle p-4 md:grid-cols-3 md:gap-6 md:p-6">

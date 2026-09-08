@@ -127,6 +127,28 @@ describe("MatchResultCard", () => {
     expect(grid).toHaveClass("md:grid-cols-3");
   });
 
+  // design.md §7 claims these actions reach the NFR-A11Y-03 touch target by
+  // going full-width on mobile. antd's default Button is 32px high, so the
+  // claim only holds if the card asks for the tall size and full width below
+  // `md`. Measured on the running app at 390px they were 157x32 — hence this
+  // test.
+  it("header actions are full-width and touch-sized below md, inline from md up", () => {
+    renderCard();
+
+    const improve = screen.getByRole("button", { name: /Improve my CV/ });
+    expect(improve.className).toContain("w-full");
+    expect(improve.className).toContain("md:w-auto");
+    // 44px below md (NFR-A11Y-03), back to the compact 32px from md up.
+    expect(improve.className).toContain("!h-11");
+    expect(improve.className).toContain("md:!h-8");
+
+    // The row itself has to stack, or w-full buttons still sit side by side.
+    const row = improve.parentElement;
+    expect(row).not.toBeNull();
+    expect(row!.className).toContain("flex-col");
+    expect(row!.className).toContain("md:flex-row");
+  });
+
   it("shows a skeleton instead of scores while the match is running", () => {
     render(
       <MatchResultCard

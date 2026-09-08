@@ -45,6 +45,20 @@ describe("Readout", () => {
     expect(label.className).not.toContain("text-faint");
   });
 
+  // Nhãn thang "0" / "100" là CHỮ, nên `faint` (zinc-500) bị cấm ở đây y như ở
+  // eyebrow: trên nền dark nó chỉ đạt 3.67:1, dưới ngưỡng NFR-A11Y-01 (4.5:1).
+  // Cỡ chữ phải là vai trò `text-xs` của MASTER §3, không phải một giá trị tuỳ ý.
+  it("nhãn thang dùng text-muted và cỡ text-xs, không faint, không cỡ tuỳ ý", () => {
+    render(<Readout label="Độ khớp tổng" value={73} unit="%" scale />);
+
+    const scaleRow = screen.getByText("0").parentElement;
+    expect(scaleRow).not.toBeNull();
+    expect(scaleRow!.className).toContain("text-muted");
+    expect(scaleRow!.className).not.toContain("text-faint");
+    expect(scaleRow!.className).toContain("text-xs");
+    expect(scaleRow!.className).not.toMatch(/text-\[\d+px\]/);
+  });
+
   it("delta na hiện 'không so được', không hiện mũi tên hay con số", () => {
     render(
       <Readout

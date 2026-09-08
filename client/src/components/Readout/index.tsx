@@ -112,7 +112,7 @@ const Readout = ({
         </div>
       )}
       {scale && (
-        <div className="flex justify-between font-mono text-[11px] text-faint">
+        <div className="flex justify-between font-mono text-xs text-muted">
           <span>{t("readout.scaleMin")}</span>
           <span>{t("readout.scaleMax")}</span>
         </div>
