@@ -18,7 +18,7 @@ Chi tiết version xem `server/package.json` (nguồn đúng) + `docs/03-design/
 - **Security**: helmet + `@nestjs/throttler` (global guard)
 - **Test**: Jest (`*.spec.ts` co-located)
 - **Auth**: **defer** — `CurrentUserService` hiện stub (`STUB_USER_ID`)
-- **Package manager**: yarn
+- **Package manager**: pnpm
 
 ## Skills
 
@@ -57,20 +57,20 @@ Chi tiết version xem `server/package.json` (nguồn đúng) + `docs/03-design/
 ## Commands
 
 ```bash
-yarn start:dev        # Dev server watch (port 5200)
-yarn build            # nest build → dist/
-yarn start:prod       # node dist/main
-yarn type-check       # tsc --noEmit
-yarn lint             # eslint .   (lint:fix để auto-fix)
-yarn format           # prettier --write .
-yarn test             # jest (test:cov, test:watch, test:e2e)
-npx prisma migrate dev --name <name>   # tạo + apply migration
-npx prisma generate                    # regenerate client
-yarn seed             # seed DB (idempotent)
-yarn recompute-scores                  # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
-yarn recompute-scores --apply          # ghi thật
-yarn seed:mock                         # dev only: chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
-yarn seed:mock:clean                   # xoá mock document + MatchResult/MatchRun sinh ra từ chúng
+pnpm start:dev        # Dev server watch (port 5200)
+pnpm build            # nest build → dist/
+pnpm start:prod       # node dist/main
+pnpm type-check       # tsc --noEmit
+pnpm lint             # eslint .   (lint:fix để auto-fix)
+pnpm format           # prettier --write .
+pnpm test             # jest (test:cov, test:watch, test:e2e)
+pnpm exec prisma migrate dev --name <name>   # tạo + apply migration
+pnpm exec prisma generate                    # regenerate client
+pnpm seed             # seed DB (idempotent)
+pnpm recompute-scores                        # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
+pnpm recompute-scores --apply                # ghi thật
+pnpm seed:mock                               # dev only: chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
+pnpm seed:mock:clean                         # xoá mock document + MatchResult/MatchRun sinh ra từ chúng
 ```
 
 ## Architecture
@@ -103,14 +103,14 @@ Request flow: Controller (thin, @Api* + pipes) → Service (@Injectable, busines
 **BẮT BUỘC: sau khi hoàn tất BẤT KỲ task code trong thư mục này, chạy đủ theo thứ tự:**
 
 ```bash
-yarn format       # auto-fix format
-yarn lint         # eslint (fix hết error)
-yarn type-check   # tsc --noEmit (fix tay)
-yarn test         # jest (phải xanh)
-yarn build        # nest build phải thành công
+pnpm format       # auto-fix format
+pnpm lint         # eslint (fix hết error)
+pnpm type-check   # tsc --noEmit (fix tay)
+pnpm test         # jest (phải xanh)
+pnpm build        # nest build phải thành công
 ```
 
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
-- `yarn format`/`yarn lint` có thể tự sửa file → đọc lại sau khi chạy.
-- Đổi Prisma schema → `npx prisma migrate dev` + cập nhật `seed.ts` idempotent; note ảnh hưởng data trong `design.md`.
-- **`yarn test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `yarn format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Case thật: `archiver@8` là pure ESM, Jest (CommonJS) không `require` được, nhưng không unit spec nào import service dùng nó và `yarn build` chỉ compile nên không phát hiện ra; lỗi chỉ lộ khi chạy `yarn test:e2e` thật.
+- `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại sau khi chạy.
+- Đổi Prisma schema → `pnpm exec prisma migrate dev` + cập nhật `seed.ts` idempotent; note ảnh hưởng data trong `design.md`.
+- **`pnpm test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `pnpm format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Case thật: `archiver@8` là pure ESM, Jest (CommonJS) không `require` được, nhưng không unit spec nào import service dùng nó và `pnpm build` chỉ compile nên không phát hiện ra; lỗi chỉ lộ khi chạy `pnpm test:e2e` thật.

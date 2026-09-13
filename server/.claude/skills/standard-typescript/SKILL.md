@@ -19,7 +19,7 @@ Actual `tsconfig.json` (NestJS default, hardened). Key flags:
 | `isolatedModules`                                  | `true`     | each file transpiles standalone                                                                                                         |
 | `skipLibCheck`                                     | `true`     | skip d.ts checks                                                                                                                        |
 
-- Type-check command: **`yarn type-check`** = `tsc --noEmit`. Must be green before handover.
+- Type-check command: **`pnpm type-check`** = `tsc --noEmit`. Must be green before handover.
 - Note: `noImplicitAny`, `strictBindCallApply`, `noFallthroughCasesInSwitch` are currently off in this repo — do not rely on them; still write explicit types.
 
 ## No path alias — relative imports

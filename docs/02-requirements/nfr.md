@@ -38,7 +38,7 @@ Tài liệu thiết kế của feature tham chiếu ID ở dòng `Liên quan:` �
 | NFR-SEC-02 | Không log PII, token, mật khẩu, hay nội dung tài liệu người dùng | review format log |
 | NFR-SEC-03 | ~~Rate limit endpoint đăng nhập / đăng ký / quên mật khẩu~~ **(bỏ — chưa có auth, FR-18)**. Thay bằng NFR-SEC-07 | — |
 | NFR-SEC-04 | Secret chỉ đọc từ biến môi trường. Không hardcode, không commit | grep + review |
-| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `yarn audit` |
+| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `pnpm audit` |
 | NFR-SEC-06 | Lỗi trả về client không chứa stack trace, tên bảng, hay câu SQL | test |
 | NFR-SEC-07 | Rate limit toàn cục 100 req/60s (`ThrottlerGuard`); endpoint gọi AI có ngưỡng riêng chặt hơn | review guard + test |
 | NFR-SEC-08 | Token AI của user mã hoá at-rest bằng **AES-256-GCM**, khoá từ env `CREDENTIAL_ENCRYPTION_KEY`. Không lưu plaintext | review code + đọc DB |

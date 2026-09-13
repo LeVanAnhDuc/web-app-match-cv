@@ -744,7 +744,7 @@ Especially helpful for large and static SVG nodes.
 <path d="M 10.3 20.8 L 30.9 40.2" />
 ```
 
-Automate: `npx svgo --precision=1 --multipass icon.svg`
+Automate: `pnpm dlx svgo --precision=1 --multipass icon.svg`
 
 ### 5.5 Use Explicit Conditional Rendering
 

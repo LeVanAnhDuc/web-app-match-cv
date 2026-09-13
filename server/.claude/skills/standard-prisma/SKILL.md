@@ -45,15 +45,15 @@ Rules:
 - **Relation tường minh** `@relation(fields, references)`. Nhiều relation cùng model đích → đặt tên relation (`"MatchResultCvDocument"` / `"MatchResultJdDocument"`).
 - **`@@index`** theo đúng field hay filter/sort — `Document` index `[userId, kind]` (list scope theo user + filter kind); `MatchResult` index `[userId]`. Equality field trước, sort field sau.
 - **Optional field** dùng `?` → cột nullable (`parsedContent Json?`, `externalSub String?`).
-- Sau khi sửa schema: `npx prisma generate` để cập nhật type `@prisma/client`.
+- Sau khi sửa schema: `pnpm exec prisma generate` để cập nhật type `@prisma/client`.
 
 ## Migrations
 
 ```bash
-npx prisma migrate dev --name <change>   # tạo + apply migration (dev), regenerate client
-npx prisma migrate deploy                # apply migration đã commit (CI/prod)
-npx prisma generate                      # chỉ regenerate client (sau khi pull schema)
-npx prisma migrate status                # kiểm tra drift
+pnpm exec prisma migrate dev --name <change>   # tạo + apply migration (dev), regenerate client
+pnpm exec prisma migrate deploy                # apply migration đã commit (CI/prod)
+pnpm exec prisma generate                      # chỉ regenerate client (sau khi pull schema)
+pnpm exec prisma migrate status                # kiểm tra drift
 ```
 
 - Migration file commit vào `prisma/migrations/` — **KHÔNG sửa migration đã apply/commit**; đổi schema → tạo migration mới.
@@ -155,7 +155,7 @@ await prisma.user.upsert({
 });
 ```
 
-- **`upsert`** để chạy lại nhiều lần không nhân bản (idempotent). Chạy: `npx prisma db seed` (config `prisma.seed` trong `package.json`).
+- **`upsert`** để chạy lại nhiều lần không nhân bản (idempotent). Chạy: `pnpm exec prisma db seed` (config `prisma.seed` trong `package.json`).
 - Seed hiện chỉ tạo stub user (auth deferred). Thêm seed data mới cũng phải idempotent (`upsert`/`createMany({ skipDuplicates: true })`).
 
 ## Injection safety

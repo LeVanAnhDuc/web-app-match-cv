@@ -1,7 +1,7 @@
 // Dev-only tooling: insert a fixed set of mock CV/JD documents, or remove them.
 //
-//   yarn seed:mock         insert / refresh the mock documents
-//   yarn seed:mock:clean   remove them, and any match produced from them
+//   pnpm seed:mock         insert / refresh the mock documents
+//   pnpm seed:mock:clean   remove them, and any match produced from them
 //
 // See docs/specs/seed-mock-documents/design.md. The documents themselves live
 // in ./mock-documents.ts; this file owns every database interaction.
@@ -16,7 +16,7 @@ import {
 } from "./mock-documents";
 
 // Deleting is the destructive branch, so it is the one that must be asked for
-// explicitly. Bare `yarn seed:mock` inserts.
+// explicitly. Bare `pnpm seed:mock` inserts.
 const CLEAN = process.argv.includes("--clean");
 
 const prisma = new PrismaClient();
@@ -64,7 +64,7 @@ async function insert(): Promise<void> {
   }
 
   console.log(`\n${MOCK_DOCUMENTS.length} mock documents seeded.`);
-  console.log("Remove them with: yarn seed:mock:clean");
+  console.log("Remove them with: pnpm seed:mock:clean");
 }
 
 async function clean(): Promise<void> {
@@ -103,7 +103,7 @@ async function clean(): Promise<void> {
   console.log(`  documents removed     : ${documents.count}`);
   // STUB_USER_ID is deliberately left alone: it is required seed data that
   // CurrentUserService resolves to, not mock data. Deleting it breaks the app.
-  console.log("\nMock data removed. Seed it again with: yarn seed:mock");
+  console.log("\nMock data removed. Seed it again with: pnpm seed:mock");
 }
 
 async function main(): Promise<void> {

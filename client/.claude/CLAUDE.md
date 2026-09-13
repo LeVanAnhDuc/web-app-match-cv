@@ -14,7 +14,7 @@ Chi tiết version/packages xem `package.json` (nguồn đúng) + `docs/03-desig
 - **Icons**: `lucide-react` (chính) + `@ant-design/icons`
 - **HTTP**: `apiFetch<T>` fetch wrapper (`src/libs/api.ts`) — trả DTO trực tiếp, throw `ApiError` khi non-2xx
 - **Test**: Vitest (unit) + Playwright (e2e)
-- **Package manager**: yarn
+- **Package manager**: pnpm
 
 ## Skills
 
@@ -59,19 +59,19 @@ Thư mục `.claude/skills/` chứa các file hướng dẫn coding convention. 
 ## Commands
 
 ```bash
-yarn dev              # Dev server (port 5300)
-yarn generate-routes  # tsr generate → routeTree.gen.ts (KHÔNG sửa tay)
-yarn build            # Production build (client + SSR)
-yarn preview          # Preview build
-yarn type-check       # tsc --noEmit
-yarn lint             # ESLint (check-only, không sửa file)
-yarn lint:fix         # ESLint + auto-fix
-yarn format           # prettier --write . && eslint --fix
-yarn format:check     # prettier --check .
-yarn test             # Vitest (unit)
-yarn test:e2e         # Playwright (e2e) — 3 viewport project: desktop / tablet / mobile
-                      #   1 viewport: yarn test:e2e --project=mobile
-                      #   dev server ở port khác (worktree): E2E_BASE_URL=http://localhost:5302 yarn test:e2e
+pnpm dev              # Dev server (port 5300)
+pnpm generate-routes  # tsr generate → routeTree.gen.ts (KHÔNG sửa tay)
+pnpm build            # Production build (client + SSR)
+pnpm preview          # Preview build
+pnpm type-check       # tsc --noEmit
+pnpm lint             # ESLint (check-only, không sửa file)
+pnpm lint:fix         # ESLint + auto-fix
+pnpm format           # prettier --write . && eslint --fix
+pnpm format:check     # prettier --check .
+pnpm test             # Vitest (unit)
+pnpm test:e2e         # Playwright (e2e) — 3 viewport project: desktop / tablet / mobile
+                      #   1 viewport: pnpm test:e2e --project=mobile
+                      #   dev server ở port khác (worktree): E2E_BASE_URL=http://localhost:5302 pnpm test:e2e
 ```
 
 **Lint/format config**: Prettier (`prettier.config.js`) dùng chung style với `server/` và app anh em `web-app-ducker-id` — double quote, có `;`, `trailingComma: none`, `printWidth 80`; kèm `prettier-plugin-tailwindcss` sort class Tailwind (`tailwindStylesheet: ./src/styles.css` vì Tailwind 4 không có file config JS). ESLint (`eslint.config.js`) = `tanstackConfig` + layer react / react-hooks / jsx-a11y / promise / unused-imports / prettier. `src/routeTree.gen.ts` bị **ignore ở cả prettier lẫn eslint** (file generated, tự yêu cầu vậy trong header).
@@ -118,13 +118,13 @@ i18n: src/i18n/config.ts init i18next (side-effect import trong __root)
 **BẮT BUỘC: sau khi hoàn tất BẤT KỲ task code trong thư mục này, chạy đủ theo thứ tự:**
 
 ```bash
-yarn format       # auto-fix format
-yarn lint         # ESLint (fix hết error)
-yarn type-check   # type check (fix tay)
-yarn test         # Vitest (phải xanh)
-yarn build        # build phải thành công
+pnpm format       # auto-fix format
+pnpm lint         # ESLint (fix hết error)
+pnpm type-check   # type check (fix tay)
+pnpm test         # Vitest (phải xanh)
+pnpm build        # build phải thành công
 ```
 
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
-- `yarn format`/`yarn lint` có thể tự sửa file → đọc lại file sau khi chạy.
-- E2E (`yarn test:e2e`) chạy khi thay đổi behavior user thấy được (§4.3 root CLAUDE.md).
+- `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại file sau khi chạy.
+- E2E (`pnpm test:e2e`) chạy khi thay đổi behavior user thấy được (§4.3 root CLAUDE.md).

@@ -3,7 +3,7 @@
 // Runs in a plain Node environment (no jsdom `window`/`document`) to prove
 // that importing/rendering DocumentPreview never touches a browser-only API
 // at module load or during a server render — the exact failure mode
-// (react-pdf/docx-preview executing during SSR) that made `yarn build` hang
+// (react-pdf/docx-preview executing during SSR) that made `pnpm build` hang
 // in a prior attempt. react-pdf/docx-preview are intentionally NOT mocked
 // here: they must never be reached, since real SSR (renderToStaticMarkup)
 // never runs effects, so a correctly-guarded component won't import them.

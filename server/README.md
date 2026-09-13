@@ -7,12 +7,12 @@ REST API cho `web-app-match-cv`, dựng bằng NestJS 11 + Prisma 6 + PostgreSQL
 ## Setup
 
 ```bash
-yarn
+pnpm install
 cp .env.example .env            # chỉnh DATABASE_URL theo Postgres local của bạn
 createdb matchcv                # hoặc: psql -c "CREATE DATABASE matchcv"
-npx prisma migrate dev          # tạo bảng User/Document
-npx prisma db seed              # seed stub current-user (auth defer)
-yarn start:dev
+pnpm exec prisma migrate dev    # tạo bảng User/Document
+pnpm exec prisma db seed        # seed stub current-user (auth defer)
+pnpm start:dev
 ```
 
 App chạy ở `http://localhost:5200` (đổi qua env `PORT`).
@@ -94,21 +94,21 @@ Xem `.env.example`:
 
 ## Scripts
 
-- `yarn start:dev` — dev server (watch mode)
-- `yarn build` — build production (`dist/`)
-- `yarn type-check` — `tsc --noEmit`
-- `yarn lint` — ESLint (check-only, không sửa file)
-- `yarn lint:fix` — ESLint + auto-fix
-- `yarn format` / `yarn format:check` — Prettier write / check
-- `yarn test:e2e` — e2e tests (Jest + supertest)
-- `yarn seed:mock` — **dev only**: chèn 6 document mock (3 CV + 3 JD, tiếng Việt + tiếng Anh) thuộc stub user, `isSaved = true` nên hiện luôn ở `/cv` và `/jd`. Idempotent — chạy lại **ghi đè** mock về nội dung gốc (kể cả khi đã rename trên UI), không nhân bản.
-- `yarn seed:mock:clean` — xoá 6 document đó, kèm `MatchResult`/`MatchRun` sinh ra từ chúng (`CoverLetter` tự cascade). Chỉ xoá theo danh sách UUID hằng số nên **không chạm dữ liệu thật**.
+- `pnpm start:dev` — dev server (watch mode)
+- `pnpm build` — build production (`dist/`)
+- `pnpm type-check` — `tsc --noEmit`
+- `pnpm lint` — ESLint (check-only, không sửa file)
+- `pnpm lint:fix` — ESLint + auto-fix
+- `pnpm format` / `pnpm format:check` — Prettier write / check
+- `pnpm test:e2e` — e2e tests (Jest + supertest)
+- `pnpm seed:mock` — **dev only**: chèn 6 document mock (3 CV + 3 JD, tiếng Việt + tiếng Anh) thuộc stub user, `isSaved = true` nên hiện luôn ở `/cv` và `/jd`. Idempotent — chạy lại **ghi đè** mock về nội dung gốc (kể cả khi đã rename trên UI), không nhân bản.
+- `pnpm seed:mock:clean` — xoá 6 document đó, kèm `MatchResult`/`MatchRun` sinh ra từ chúng (`CoverLetter` tự cascade). Chỉ xoá theo danh sách UUID hằng số nên **không chạm dữ liệu thật**.
 
 > Mock document dùng dial UUID cố định (`10000000-0000-4000-8000-…` cho CV, `20000000-0000-4000-8000-…` cho JD) thay vì cột `isMock`; `clean` xoá theo dial nên đổi số fixture không làm sót row cũ. `4`/`8` là nibble version/variant **bắt buộc** — id không hợp UUIDv4 vẫn seed được nhưng mọi endpoint ghi sẽ trả 400. Chi tiết + ma trận điểm của bộ fixture: `docs/specs/seed-mock-documents/design.md`.
 
-> **Chạy `npx prisma generate` trước khi lint** (nhất là ở worktree mới). ESLint dùng typed rules (`recommendedTypeChecked`); thiếu Prisma Client thì các model delegate suy ra `any` → vừa sinh cả trăm lỗi `no-unsafe-*` giả, vừa khiến `no-unnecessary-type-assertion` **tự xoá** type assertion hợp lệ khi `--fix`.
+> **Chạy `pnpm exec prisma generate` trước khi lint** (nhất là ở worktree mới). ESLint dùng typed rules (`recommendedTypeChecked`); thiếu Prisma Client thì các model delegate suy ra `any` → vừa sinh cả trăm lỗi `no-unsafe-*` giả, vừa khiến `no-unnecessary-type-assertion` **tự xoá** type assertion hợp lệ khi `--fix`.
 
-> **Pre-commit hook** (husky + lint-staged, cài tự động khi `yarn` qua script `prepare`): mỗi `git commit` tự chạy `eslint --fix` + `prettier --write` trên **staged files**. Lỗi ESLint không auto-fix được sẽ chặn commit.
+> **Pre-commit hook** (husky + lint-staged, cài tự động khi `pnpm install` qua script `prepare`): mỗi `git commit` tự chạy `eslint --fix` + `prettier --write` trên **staged files**. Lỗi ESLint không auto-fix được sẽ chặn commit.
 
 ## i18n
 
