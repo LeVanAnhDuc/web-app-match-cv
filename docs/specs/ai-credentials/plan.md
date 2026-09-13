@@ -22,8 +22,8 @@
   - `openrouter` → `https://openrouter.ai/api/v1` · `openai/gpt-4o-mini` · `openai/text-embedding-3-small`
   - `openai` → `https://api.openai.com/v1` · `gpt-4o-mini` · `text-embedding-3-small`
   - `gemini` → `https://generativelanguage.googleapis.com/v1beta/openai/` · `gemini-2.5-flash` · `gemini-embedding-001`
-- **BE quality gate** after every task touching `server/`: `yarn format && yarn lint && yarn type-check && yarn test && yarn build` — all green.
-- **FE quality gate** after every task touching `client/`: `yarn format && yarn lint && yarn type-check && yarn test && yarn build` — all green.
+- **BE quality gate** after every task touching `server/`: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build` — all green.
+- **FE quality gate** after every task touching `client/`: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build` — all green.
 - **Conventions**: BE follows `server/.claude/CLAUDE.md` + rules; FE follows `client/.claude/CLAUDE.md` + rules (one component per folder as `index.tsx`, arrow fn, single default export, props inline, antd for interactive elements, `#/` alias, all copy via `t()` with `en` + `vi` in sync).
 - **Endpoint base**: `api/v1`. The existing match controller is mounted at `match` (singular) — not `matches`.
 
@@ -132,7 +132,7 @@ describe("CredentialCryptoService", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd server/.worktrees/ai-credentials && yarn test credential-crypto`
+Run: `cd server/.worktrees/ai-credentials && pnpm test credential-crypto`
 Expected: FAIL — `Cannot find module './credential-crypto.service'`.
 
 - [ ] **Step 3: Write the implementation**
@@ -237,13 +237,13 @@ Append to `server/.env.example`:
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `yarn test credential-crypto`
+Run: `pnpm test credential-crypto`
 Expected: PASS, 6 tests.
 
 - [ ] **Step 6: Quality gate + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src/common/crypto src/config/env.validation.ts .env.example
 git commit -m "feat(crypto): AES-256-GCM service for user API keys"
 ```
@@ -322,7 +322,7 @@ In `model MatchResult`, add after `keywordScore`:
 
 - [ ] **Step 2: Generate the migration without applying it**
 
-Run: `npx prisma migrate dev --name add_ai_credential --create-only`
+Run: `pnpm exec prisma migrate dev --name add_ai_credential --create-only`
 
 - [ ] **Step 3: Rewrite the generated SQL so existing rows survive**
 
@@ -348,10 +348,10 @@ ALTER TABLE "MatchResult" ADD CONSTRAINT "MatchResult_credentialId_fkey"
 
 - [ ] **Step 4: Apply and verify**
 
-Run: `npx prisma migrate dev && npx prisma generate`
+Run: `pnpm exec prisma migrate dev && pnpm exec prisma generate`
 Then verify old rows survived:
 
-Run: `npx prisma db execute --stdin <<< 'SELECT provider, "chatModel" FROM "MatchResult" LIMIT 5;'`
+Run: `pnpm exec prisma db execute --stdin <<< 'SELECT provider, "chatModel" FROM "MatchResult" LIMIT 5;'`
 Expected: existing rows show `openrouter` / `openai/gpt-4o-mini`; no error.
 
 - [ ] **Step 5: Quality gate + commit**
@@ -359,7 +359,7 @@ Expected: existing rows show `openrouter` / `openai/gpt-4o-mini`; no error.
 `seed.ts` needs no change — no credential is seeded, because there is no real key to seed.
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add prisma
 git commit -m "feat(prisma): AiCredential model and MatchResult provider snapshot"
 ```
@@ -481,7 +481,7 @@ describe("resolveModels", () => {
 });
 ```
 
-Run: `yarn test providers` → PASS (implementation already written in Step 1).
+Run: `pnpm test providers` → PASS (implementation already written in Step 1).
 
 - [ ] **Step 3: Move and rewrite `AiService`**
 
@@ -842,10 +842,10 @@ describe("worstStatus", () => {
 
 - [ ] **Step 7: Run tests + quality gate + commit**
 
-Run: `yarn test` — all specs pass, including the untouched `matching.service.spec.ts`.
+Run: `pnpm test` — all specs pass, including the untouched `matching.service.spec.ts`.
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src prisma
 git commit -m "refactor(ai): extract AiModule with per-request provider config"
 ```
@@ -1184,7 +1184,7 @@ describe("AiCredentialsService", () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `yarn test ai-credentials.service`
+Run: `pnpm test ai-credentials.service`
 Expected: FAIL — module not found.
 
 - [ ] **Step 4: Write the service**
@@ -1538,10 +1538,10 @@ Register it in `app.module.ts` imports, after `MatchingModule`.
 
 - [ ] **Step 7: Run tests, quality gate, commit**
 
-Run: `yarn test ai-credentials.service` → PASS (12 tests).
+Run: `pnpm test ai-credentials.service` → PASS (12 tests).
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(ai-credentials): CRUD, encryption and connection testing"
 ```
@@ -1632,7 +1632,7 @@ Extend the existing `makeMatchingService` helper in that spec so its mock `ai` h
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `yarn test matching.service`
+Run: `pnpm test matching.service`
 Expected: FAIL — `credentialId` unknown / `credentials` undefined.
 
 - [ ] **Step 3: Extend the DTOs**
@@ -1717,13 +1717,13 @@ Add `AiCredentialsModule` to `MatchingModule`'s `imports`.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `yarn test matching`
+Run: `pnpm test matching`
 Expected: PASS.
 
 - [ ] **Step 6: Quality gate + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(matching): run a match with a chosen credential and snapshot the provider"
 ```
@@ -1771,13 +1771,13 @@ Clean up every row created by the spec in `afterAll` via Prisma.
 
 - [ ] **Step 2: Run it**
 
-Run: `yarn test:e2e ai-credentials`
+Run: `pnpm test:e2e ai-credentials`
 Expected: PASS.
 
 - [ ] **Step 3: Quality gate + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn test:e2e && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm test:e2e && pnpm build
 git add test
 git commit -m "test(ai-credentials): e2e covering ownership, leak safety and boundaries"
 ```
@@ -2049,7 +2049,7 @@ export {
 
 ```bash
 cd client/.worktrees/ai-credentials
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(client): data layer for AI credentials"
 ```
@@ -2230,7 +2230,7 @@ it("shows the provider default as the model placeholder", async () => {
 });
 ```
 
-Run: `yarn test CredentialFormModal` → FAIL (module not found).
+Run: `pnpm test CredentialFormModal` → FAIL (module not found).
 
 - [ ] **Step 4: Write the modal**
 
@@ -2247,13 +2247,13 @@ Build it with antd `Form` (`Form.useForm`), `Select` for provider, `Input` for l
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `yarn test CredentialFormModal`
+Run: `pnpm test CredentialFormModal`
 Expected: PASS.
 
 - [ ] **Step 6: Quality gate + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(client): shared credential form modal and status tag"
 ```
@@ -2311,7 +2311,7 @@ it("explains the 503 when credential storage is unconfigured", async () => {
 });
 ```
 
-Run: `yarn test AiCredentials` → FAIL.
+Run: `pnpm test AiCredentials` → FAIL.
 
 - [ ] **Step 2: Write the row**
 
@@ -2348,7 +2348,7 @@ export const Route = createFileRoute("/_app/ai-credentials")({
 });
 ```
 
-Run `yarn generate-routes` to refresh `routeTree.gen.ts` (never hand-edit it).
+Run `pnpm generate-routes` to refresh `routeTree.gen.ts` (never hand-edit it).
 
 - [ ] **Step 5: Add the sidebar entry**
 
@@ -2363,8 +2363,8 @@ Add `"aiCredentials": "AI credentials"` to `nav` in `en`, and the Vietnamese equ
 - [ ] **Step 6: Run tests + quality gate + commit**
 
 ```bash
-yarn test AiCredentials
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm test AiCredentials
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(client): AI credentials management page"
 ```
@@ -2431,7 +2431,7 @@ it("falls back to the system key when the selected credential disappears", async
 });
 ```
 
-Run: `yarn test RunWithSelector` → FAIL.
+Run: `pnpm test RunWithSelector` → FAIL.
 
 - [ ] **Step 3: Write the component**
 
@@ -2450,8 +2450,8 @@ Under the score header, render a muted line: the provider display name from `use
 - [ ] **Step 6: Run tests + quality gate + commit**
 
 ```bash
-yarn test
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm test
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 git add src
 git commit -m "feat(wizard): choose a credential in step 3 and show it in the result"
 ```
@@ -2513,7 +2513,7 @@ Copy the matrix from `design.md` and add, per scenario, the file and test name t
 
 With both dev servers running (server `:5200`, client `:5300`):
 
-Run: `yarn test:e2e --project=desktop -g "ai-credentials"`
+Run: `pnpm test:e2e --project=desktop -g "ai-credentials"`
 Expected: all PASS.
 
 - [ ] **Step 10: Commit**

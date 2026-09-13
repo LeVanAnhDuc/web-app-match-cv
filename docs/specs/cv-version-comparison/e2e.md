@@ -9,13 +9,13 @@ Cặp server/client riêng của worktree (DB riêng `matchcv_compare` — xem "
 
 ```bash
 # server worktree
-yarn build
+pnpm build
 PORT=5216 CLIENT_ORIGIN=http://localhost:5316 node dist/src/main.js
 
 # client worktree
-VITE_API_BASE_URL=http://localhost:5216/api/v1 yarn dev --port 5316
+VITE_API_BASE_URL=http://localhost:5216/api/v1 pnpm dev --port 5316
 E2E_BASE_URL=http://localhost:5316 E2E_API_BASE=http://localhost:5216/api/v1 \
-  yarn test:e2e --project=desktop
+  pnpm test:e2e --project=desktop
 ```
 
 > **Kiểm cổng TRƯỚC khi chạy.** Lần chạy đầu dùng `:5210` và im lặng bắn vào server của một session song song (`feat/data-export`) đang giữ cổng đó — suite chạy 40 phút rồi fail hàng loạt ở những spec chẳng liên quan gì tới feature này. Không có gì trong output nói ra điều đó; triệu chứng duy nhất là `503` khi seed credential. Cách xác minh mất 2 giây:
@@ -100,6 +100,6 @@ Nhánh này merge (không rebase — force-push bị chặn ở môi trường n
 
 ## Môi trường — lưu ý cho lần chạy sau
 
-- DB dev dùng chung (`matchcv`) đang bị nhiều session sửa migration song song, nên worktree này trỏ vào **DB riêng `matchcv_compare`** (`server/.env` + `E2E_DATABASE_URL` trong `client/.env`; cả hai đều gitignore). Sau khi merge `origin/main` phải chạy lại `npx prisma migrate deploy` — Roadmap #8 mang theo 2 migration (`add_cover_letter`, `add_timeout_test_status`). Bản thân feature này **không thêm migration nào**.
+- DB dev dùng chung (`matchcv`) đang bị nhiều session sửa migration song song, nên worktree này trỏ vào **DB riêng `matchcv_compare`** (`server/.env` + `E2E_DATABASE_URL` trong `client/.env`; cả hai đều gitignore). Sau khi merge `origin/main` phải chạy lại `pnpm exec prisma migrate deploy` — Roadmap #8 mang theo 2 migration (`add_cover_letter`, `add_timeout_test_status`). Bản thân feature này **không thêm migration nào**.
 - `server/.env` của worktree cũng cần `CREDENTIAL_ENCRYPTION_KEY` — thiếu nó thì các test cũ có seed credential (`multi-provider-compare`) nhận 503.
-- **`VITE_API_BASE_URL` KHÔNG được đặt trong `client/.env`** của worktree: `src/requests/__tests__/documents.test.ts` assert đúng URL mặc định `:5200`, và Vitest cũng nạp `.env`. Cổng của worktree truyền trên dòng lệnh khi chạy `yarn dev`.
+- **`VITE_API_BASE_URL` KHÔNG được đặt trong `client/.env`** của worktree: `src/requests/__tests__/documents.test.ts` assert đúng URL mặc định `:5200`, và Vitest cũng nạp `.env`. Cổng của worktree truyền trên dòng lệnh khi chạy `pnpm dev`.

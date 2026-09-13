@@ -85,7 +85,7 @@ Compromised dependencies, malicious packages, and tampered build pipelines are n
 - Pin dependency versions exactly — never use wildcard version ranges in production
 - Verify package integrity: use lockfiles (`package-lock.json`, `poetry.lock`, `go.sum`)
 - Run automated dependency scanning (OWASP Dependency Check, Snyk, GitHub Dependabot)
-- Audit packages before installation — `npm audit`, `pip-audit`, `govulncheck`
+- Audit packages before installation — `pnpm audit`, `pip-audit`, `govulncheck`
 - Review packages with unusual new releases or ownership changes
 - Sign builds and verify signatures in CI/CD pipelines
 - Never run CI/CD with broad write permissions to production
@@ -342,7 +342,7 @@ Cache-Control: no-store
 
 - Pin all dependencies to exact versions in production lockfiles
 - Review dependency changes in PRs — a single malicious package can compromise the entire app
-- Run `npm audit` / `pip-audit` / `govulncheck` in CI — fail the build on critical vulnerabilities
+- Run `pnpm audit` / `pip-audit` / `govulncheck` in CI — fail the build on critical vulnerabilities
 - Generate SBOM with every release (`syft`, `cyclonedx`)
 - Monitor for new CVEs against your installed dependencies (GitHub Dependabot, Snyk, OSV)
 - Verify package publishers — typosquatting is common (`lodash` vs `1odash`)

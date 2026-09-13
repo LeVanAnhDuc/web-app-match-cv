@@ -4,7 +4,7 @@
 
 ## Gates
 
-- **Gate A — committed Playwright suite**: `client/e2e/cv-jd-matching-wizard/*.e2e.ts`, chạy `cd client && npx playwright test` (serial `workers:1`, no auto webServer — cần server :5200 + client :5300 chạy). **Kết quả (Plan 1): 21 passed / 0 failed. Kết quả (Plan 2, sau khi thêm `review-and-result.e2e.ts` + sửa `happy-path.e2e.ts`): 25 passed / 0 failed** (full suite, single run).
+- **Gate A — committed Playwright suite**: `client/e2e/cv-jd-matching-wizard/*.e2e.ts`, chạy `cd client && pnpm exec playwright test` (serial `workers:1`, no auto webServer — cần server :5200 + client :5300 chạy). **Kết quả (Plan 1): 21 passed / 0 failed. Kết quả (Plan 2, sau khi thêm `review-and-result.e2e.ts` + sửa `happy-path.e2e.ts`): 25 passed / 0 failed** (full suite, single run).
 - **Gate B — MCP walk** (Playwright MCP, browser thật): walk step 1 (JD reuse radio) → step 2 (CV empty-state), verify render + BE integration (reuse list fetch từ backend) + **0 console errors** (sau khi thêm `@ant-design/v5-patch-for-react-19`). **PASS** (Plan 1 scope). Step 3–4 gate-B walk (route-stubbed, giống Gate A) chưa chạy trong task này — xem "Deferred / notes".
 
 ### Cập nhật `wizard-responsive` (2026-08-06)

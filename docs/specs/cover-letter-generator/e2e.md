@@ -8,15 +8,15 @@
 Ports **riêng** để không đụng worktree khác đang chạy song song:
 
 ```bash
-# server (từ server worktree, đã `yarn build`)
+# server (từ server worktree, đã `pnpm build`)
 PORT=5208 CLIENT_ORIGIN=http://localhost:5308 node dist/src/main.js
 
 # client (từ client worktree)
-VITE_API_BASE_URL=http://localhost:5208/api/v1 yarn dev --port 5308
+VITE_API_BASE_URL=http://localhost:5208/api/v1 pnpm dev --port 5308
 
 # suite
 E2E_BASE_URL=http://localhost:5308 E2E_API_BASE=http://localhost:5208/api/v1 \
-  yarn test:e2e --project=desktop
+  pnpm test:e2e --project=desktop
 ```
 
 ## Kết quả

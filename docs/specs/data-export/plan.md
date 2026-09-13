@@ -18,7 +18,7 @@
 - **Đuôi file lấy từ `fileMime`**, không từ tiêu đề user đặt.
 - **Không đổi `prisma/schema.prisma`**, không tạo migration. Feature này chỉ đọc.
 - **Import**: `server/` dùng **relative** (không có path alias); `client/` dùng alias **`#/`**. Nhầm chiều là lỗi.
-- Chạy `npx prisma generate` **trước** `yarn lint` — thiếu bước này rule typed của ESLint sẽ gỡ nhầm type assertion thật.
+- Chạy `pnpm exec prisma generate` **trước** `pnpm lint` — thiếu bước này rule typed của ESLint sẽ gỡ nhầm type assertion thật.
 - Worktree: `docs/`, `server/`, `client/` — đều ở `.worktrees/data-export`, branch `feat/data-export`.
 
 ## File Structure
@@ -292,7 +292,7 @@ describe("buildExportManifest()", () => {
 
 - [ ] **Step 2: Chạy test để xác nhận nó fail**
 
-Run: `cd server && yarn test export-manifest`
+Run: `cd server && pnpm test export-manifest`
 Expected: FAIL — `Cannot find module './export-manifest'`
 
 - [ ] **Step 3: Viết implementation**
@@ -481,16 +481,16 @@ export function buildExportManifest(input: ExportInput): ExportManifest {
 
 - [ ] **Step 4: Chạy test để xác nhận nó pass**
 
-Run: `cd server && yarn test export-manifest`
+Run: `cd server && pnpm test export-manifest`
 Expected: PASS — 13 test xanh
 
 - [ ] **Step 5: Format, lint, commit**
 
 ```bash
 cd server
-npx prisma generate
-yarn format
-yarn lint
+pnpm exec prisma generate
+pnpm format
+pnpm lint
 git add src/modules/me/export-manifest.ts src/modules/me/export-manifest.spec.ts
 git commit -m "feat(me): pure export manifest builder with security invariants"
 ```
@@ -516,8 +516,8 @@ git commit -m "feat(me): pure export manifest builder with security invariants"
 
 ```bash
 cd server
-yarn add archiver
-yarn add -D @types/archiver
+pnpm add archiver
+pnpm add -D @types/archiver
 ```
 
 - [ ] **Step 2: Tạo message i18n**
@@ -713,9 +713,9 @@ Trong `server/src/app.module.ts`: thêm `import { MeModule } from "./modules/me/
 
 ```bash
 cd server
-npx prisma generate
-yarn build
-yarn start:dev
+pnpm exec prisma generate
+pnpm build
+pnpm start:dev
 ```
 
 Ở terminal khác: `curl -sD - -o /tmp/export.zip http://localhost:5200/api/v1/me/export | head -5`
@@ -726,10 +726,10 @@ Expected: `HTTP/1.1 200`, `Content-Type: application/zip`, `Content-Disposition:
 
 ```bash
 cd server
-yarn format
-yarn lint
-yarn type-check
-git add src/modules/me package.json yarn.lock src/app.module.ts src/i18n/en/me.json src/i18n/vi/me.json
+pnpm format
+pnpm lint
+pnpm type-check
+git add src/modules/me package.json pnpm-lock.yaml src/app.module.ts src/i18n/en/me.json src/i18n/vi/me.json
 git commit -m "feat(me): stream a zip export of the current user's data"
 ```
 
@@ -893,20 +893,20 @@ describe("GET /me/export (e2e)", () => {
 
 ```bash
 cd server
-yarn add -D adm-zip @types/adm-zip
+pnpm add -D adm-zip @types/adm-zip
 ```
 
 - [ ] **Step 3: Chạy e2e**
 
-Run: `cd server && yarn test:e2e --testPathPatterns me`
+Run: `cd server && pnpm test:e2e --testPathPatterns me`
 Expected: 5 test xanh. Cần Postgres đang chạy (`DATABASE_URL` trong `.env`).
 
 - [ ] **Step 4: Commit**
 
 ```bash
 cd server
-yarn format && yarn lint
-git add test/me.e2e-spec.ts package.json yarn.lock
+pnpm format && pnpm lint
+git add test/me.e2e-spec.ts package.json pnpm-lock.yaml
 git commit -m "test(me): e2e for export contents, isolation and integrity"
 ```
 
@@ -972,7 +972,7 @@ export async function downloadMyData(): Promise<void> {
 
 ```bash
 cd client
-yarn format && yarn lint
+pnpm format && pnpm lint
 git add src/constants/endpoints.ts src/requests/myData.ts
 git commit -m "feat(client): request layer for the data export download"
 ```
@@ -1156,7 +1156,7 @@ export const Route = createFileRoute("/_app/my-data")({
 });
 ```
 
-Rồi chạy `yarn generate-routes` để cập nhật `routeTree.gen.ts`.
+Rồi chạy `pnpm generate-routes` để cập nhật `routeTree.gen.ts`.
 
 - [ ] **Step 4: Thêm mục sidebar**
 
@@ -1172,8 +1172,8 @@ và thêm `Download` vào import từ `lucide-react`.
 
 ```bash
 cd client
-yarn generate-routes
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm generate-routes
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
 Expected: tất cả xanh.
@@ -1216,7 +1216,7 @@ Dòng 13 (rò rỉ) và 14 (toàn vẹn) **không** làm ở đây — chúng đ
 
 - [ ] **Step 2: Chạy**
 
-Run: `cd client && yarn test:e2e --grep data-export`
+Run: `cd client && pnpm test:e2e --grep data-export`
 Expected: tất cả xanh. Cần server `:5200` và client `:5300` đang chạy.
 
 - [ ] **Step 3: Viết `e2e.md`**
@@ -1258,8 +1258,8 @@ Trong `client/.claude/CLAUDE.md`, thêm route `/my-data` vào chỗ liệt kê r
 - [ ] **Step 4: Green checks cả hai side**
 
 ```bash
-cd server && npx prisma generate && yarn format && yarn lint && yarn type-check && yarn test && yarn build
-cd ../client && yarn format && yarn lint && yarn type-check && yarn test && yarn build
+cd server && pnpm exec prisma generate && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
+cd ../client && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
 Cả 11 lệnh phải thoát mã 0.
@@ -1277,7 +1277,7 @@ cd ../client && git add .claude/CLAUDE.md && git commit -m "docs(client): docume
 ## Sau khi hoàn tất plan
 
 1. **§4.5 Security review — BẮT BUỘC.** Feature này đóng gói toàn bộ PII của user rồi gửi ra ngoài. Soi: rò rỉ ciphertext credential, per-user isolation, zip-slip qua tên entry, header injection qua `Content-Disposition`, và hành vi khi stream lỗi sau khi header đã gửi. Lưu vào `docs/specs/data-export/security-report.md`.
-2. **§4.3 E2E dual-gate** — gate A (`yarn test:e2e`) + gate B (MCP walk theo `e2e.md`).
+2. **§4.3 E2E dual-gate** — gate A (`pnpm test:e2e`) + gate B (MCP walk theo `e2e.md`).
 3. **PR 3 repo**: `docs/`, `server/`, `client/` — cùng branch `feat/data-export`.
 
 ## Tiêu chí nghiệm thu

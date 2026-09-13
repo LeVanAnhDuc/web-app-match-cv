@@ -2,7 +2,7 @@
 
 Kết quả dual-gate §4.3 cho feature `ui-consistency-shell`, chạy 2026-08-08.
 
-- **Gate A** — suite committed: `yarn test:e2e` (3 viewport project desktop/tablet/mobile) trên cặp dev server đang chạy (`server :5200` / `client :5300` từ worktree).
+- **Gate A** — suite committed: `pnpm test:e2e` (3 viewport project desktop/tablet/mobile) trên cặp dev server đang chạy (`server :5200` / `client :5300` từ worktree).
 - **Gate B** — MCP walk: browser thật qua Playwright MCP, context riêng (không chia sẻ storage với gate A).
 
 **Kết quả tổng: ✅ PASS cả 2 gate.** Gate A 135/135. Gate B: mọi scenario walk đều đúng kỳ vọng, `console` 0 error.

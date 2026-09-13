@@ -14,8 +14,8 @@
 - Every component: own folder + `index.tsx`, arrow fn, `export default`, one const/file.
 - Props typed inline in component params; all shared types in `src/types/<Domain>/`.
 - No behavior change; UI/markup/i18n keys unchanged.
-- `routeTree.gen.ts` is generated (`yarn generate-routes`) — never hand-edit.
-- Verification (green gate, all must pass): `yarn format` → `yarn lint` → `npx tsc --noEmit` → `yarn test` → `yarn build`.
+- `routeTree.gen.ts` is generated (`pnpm generate-routes`) — never hand-edit.
+- Verification (green gate, all must pass): `pnpm format` → `pnpm lint` → `pnpm exec tsc --noEmit` → `pnpm test` → `pnpm build`.
 - Work in worktree `client/.worktrees/client-layer-first-migration` (branch `refactor/client-layer-first-migration`).
 
 ---
@@ -75,7 +75,7 @@ Sections: Tech Stack (→ root `.claude/techstack/frontend.md`), Skills table, C
 
 **Interfaces:** Produces `apiFetch<T>`, `ApiError` from `#/libs/api`; `createQueryClient()` from `#/libs/query-client`; `AntdProvider` default/named from `#/contexts/AntdProvider`.
 
-- [ ] Move files; update imports; `npx tsc --noEmit` clean for touched files.
+- [ ] Move files; update imports; `pnpm exec tsc --noEmit` clean for touched files.
 
 ### Task B2: `constants/`
 
@@ -154,18 +154,18 @@ Sections: Tech Stack (→ root `.claude/techstack/frontend.md`), Skills table, C
 - Modify: `routes/wizard.tsx` → `import Wizard from '#/views/Wizard'`
 - Modify: `routes/index.tsx` (Home) → if kept as-is, leave; else move to `views/Home/` (optional, keep inline for MVP)
 - Delete: emptied `features/`, `lib/`, `providers/`, `integrations/tanstack-query/` dirs
-- Run: `yarn generate-routes` to refresh `routeTree.gen.ts`
+- Run: `pnpm generate-routes` to refresh `routeTree.gen.ts`
 
 - [ ] Remove empty dirs; regenerate routes; `tsc` clean.
 
 ### Task B9: green gate
 
-- [ ] `yarn format`
-- [ ] `yarn lint` (fix all)
-- [ ] `npx tsc --noEmit` (fix all)
-- [ ] `yarn test` (all vitest pass)
-- [ ] `yarn build` (succeeds)
-- [ ] `yarn test:e2e` if app boots (ports 5300/5200); else record skip reason (pure refactor).
+- [ ] `pnpm format`
+- [ ] `pnpm lint` (fix all)
+- [ ] `pnpm exec tsc --noEmit` (fix all)
+- [ ] `pnpm test` (all vitest pass)
+- [ ] `pnpm build` (succeeds)
+- [ ] `pnpm test:e2e` if app boots (ports 5300/5200); else record skip reason (pure refactor).
 
 ---
 
@@ -173,7 +173,7 @@ Sections: Tech Stack (→ root `.claude/techstack/frontend.md`), Skills table, C
 
 ### Task C1: root `.claude/CLAUDE.md` drift (§4.6)
 
-**Files (modify, root `.claude/` repo worktree):** mark `client/.claude/CLAUDE.md` + FE skills DONE (not TBD) in §2 & §4.2; set E2E command `yarn test:e2e`.
+**Files (modify, root `.claude/` repo worktree):** mark `client/.claude/CLAUDE.md` + FE skills DONE (not TBD) in §2 & §4.2; set E2E command `pnpm test:e2e`.
 
 > NOTE: root `.claude/` is a separate repo. Create a sibling worktree
 > `.claude/.worktrees/client-layer-first-migration` if this drift update is included.

@@ -61,7 +61,7 @@ Ba lý do, xếp theo sức nặng:
 
 Bước 2 không phải để cho đẹp. `semanticScore` là cosine của embedding — **hai embed model khác nhau cho hai không gian vector khác nhau**, nên hiệu của chúng không phải là "CV tốt lên". Và `gaps` do chat model viết, nên đổi model là đổi cả cách diễn đạt gap, làm nhiễu toàn bộ §3. Khi vẫn không ghép được cùng model, API trả `sameEmbedModel` / `sameChatModel` = `false` và **UI hiện cảnh báo tường minh** thay vì im lặng đưa ra một con số sai. Row `failed` không bao giờ được chọn: nó lưu `0/0/0` (`multi-provider-compare` D3), đem so sẽ ra delta −100%.
 
-> **Caveat dữ liệu cũ**: `MatchResult` tạo **trước** Roadmap #3 (Goal 8) mang `keywordScore` tính bằng tokenizer cũ. Script `yarn recompute-scores --apply` đã có sẵn và là bắt buộc của feature đó; nếu một DB chưa chạy nó, delta keyword sẽ phản ánh việc đổi công thức chứ không phải đổi CV. Không thêm code cho việc này — `createdAt` của cả hai bên được trả về DTO nên user nhìn thấy được hai lần chạy cách nhau bao lâu.
+> **Caveat dữ liệu cũ**: `MatchResult` tạo **trước** Roadmap #3 (Goal 8) mang `keywordScore` tính bằng tokenizer cũ. Script `pnpm recompute-scores --apply` đã có sẵn và là bắt buộc của feature đó; nếu một DB chưa chạy nó, delta keyword sẽ phản ánh việc đổi công thức chứ không phải đổi CV. Không thêm code cho việc này — `createdAt` của cả hai bên được trả về DTO nên user nhìn thấy được hai lần chạy cách nhau bao lâu.
 
 ## 3. Crux — khi nào hai gap là "cùng một gap"?
 

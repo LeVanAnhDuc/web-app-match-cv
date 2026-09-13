@@ -20,7 +20,7 @@
 - Mọi text hiển thị đi qua `t(...)`; key phải có ĐỦ ở cả `src/locales/en/translation.json` và `src/locales/vi/translation.json`.
 - Màu surface/border/text trong `src/views/**` và `src/components/**` phải dùng token mới (`bg-surface`, `border-line`, `text-body`…) — KHÔNG hard-code `slate-*` cho các vai trò này. Màu semantic khác (green/amber/red/blue của report) giữ nguyên.
 - Mobile-first: base = mobile, cộng lên `md:`/`lg:`. `p-6` đứng một mình (không có base nhỏ hơn) là mùi lỗi.
-- Sau MỌI task chạm code: `yarn format && yarn lint && yarn type-check && yarn test` phải xanh trước khi commit.
+- Sau MỌI task chạm code: `pnpm format && pnpm lint && pnpm type-check && pnpm test` phải xanh trước khi commit.
 - Commit message: Conventional Commits, scope `ui-shell`.
 
 ---
@@ -57,7 +57,7 @@
 
 ```bash
 cd client/.worktrees/ui-consistency-shell
-yarn install
+pnpm install
 ```
 
 Nếu `yarn install` báo lock file EPERM/EBUSY trên Windows: đóng process đang giữ file, hoặc chạy lại; xem memory `windows-worktree-yarn-locks`.
@@ -112,7 +112,7 @@ export const Probe = () => (
 );
 ```
 
-Run: `yarn build`
+Run: `pnpm build`
 Expected: build PASS. Sau đó kiểm tra CSS output có biến:
 
 ```bash
@@ -130,7 +130,7 @@ rm src/__token-probe.tsx
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/styles.css
 git commit -m "feat(ui-shell): add semantic color tokens with dark-mode overrides"
 ```
@@ -176,7 +176,7 @@ describe("PageContainer", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn test src/components/PageContainer`
+Run: `pnpm test src/components/PageContainer`
 Expected: FAIL — không resolve được `../index`.
 
 - [ ] **Step 3: Implement**
@@ -205,13 +205,13 @@ export default PageContainer;
 
 - [ ] **Step 4: Chạy test để thấy pass**
 
-Run: `yarn test src/components/PageContainer`
+Run: `pnpm test src/components/PageContainer`
 Expected: PASS (2 test).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/components/PageContainer
 git commit -m "feat(ui-shell): add PageContainer primitive"
 ```
@@ -310,7 +310,7 @@ describe("SectionCard", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn test src/components/SectionCard`
+Run: `pnpm test src/components/SectionCard`
 Expected: FAIL — không resolve được `../index`.
 
 - [ ] **Step 3: Implement**
@@ -393,13 +393,13 @@ export default SectionCard;
 
 - [ ] **Step 4: Chạy test để thấy pass**
 
-Run: `yarn test src/components/SectionCard`
+Run: `pnpm test src/components/SectionCard`
 Expected: PASS (7 test).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/components/SectionCard
 git commit -m "feat(ui-shell): add SectionCard primitive"
 ```
@@ -464,13 +464,13 @@ expect(screen.getByRole("link", { name: /job descriptions/i })).toBeDefined();
 
 - [ ] **Step 4: Chạy test**
 
-Run: `yarn test`
+Run: `pnpm test`
 Expected: PASS toàn bộ. Nếu `Home.test` / `DocumentLibrary.test` fail vì assert chuỗi cũ → sửa sang chuỗi mới (đây là hành vi mong muốn, không phải bug).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/locales src/views
 git commit -m "feat(ui-shell): clearer nav and library labels in en/vi"
 ```
@@ -543,7 +543,7 @@ describe("ui store — sidebar collapse", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn test src/stores`
+Run: `pnpm test src/stores`
 Expected: FAIL — không resolve được `../ui`.
 
 - [ ] **Step 3: Implement slice**
@@ -604,13 +604,13 @@ export { useWizardStore } from "./slices/wizard";
 
 - [ ] **Step 5: Chạy test để thấy pass**
 
-Run: `yarn test src/stores`
+Run: `pnpm test src/stores`
 Expected: PASS (8 test — 4 case của `it.each` + 4 case còn lại).
 
 - [ ] **Step 6: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/stores
 git commit -m "feat(ui-shell): add ui store slice for sidebar collapse state"
 ```
@@ -698,7 +698,7 @@ describe("Sidebar", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn test src/views/AppShell`
+Run: `pnpm test src/views/AppShell`
 Expected: FAIL — "marks only the current route as active" (chưa có `aria-current`) và "gives every idle item the same class string" (item `prominent` khác class).
 
 - [ ] **Step 3: Implement**
@@ -783,13 +783,13 @@ Lưu ý khi implement: TanStack `activeProps.className` được **nối thêm**
 
 - [ ] **Step 4: Chạy test để thấy pass**
 
-Run: `yarn test src/views/AppShell`
+Run: `pnpm test src/views/AppShell`
 Expected: PASS (4 test).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/views/AppShell/components/Sidebar
 git commit -m "feat(ui-shell): uniform sidebar items with active-only highlight and rail mode"
 ```
@@ -873,7 +873,7 @@ describe("AppShell", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn test src/views/AppShell/__tests__/AppShell.test.tsx`
+Run: `pnpm test src/views/AppShell/__tests__/AppShell.test.tsx`
 Expected: FAIL — không tìm thấy button "Collapse sidebar".
 
 - [ ] **Step 3: Implement**
@@ -987,13 +987,13 @@ export default AppShell;
 
 - [ ] **Step 4: Chạy test để thấy pass**
 
-Run: `yarn test src/views/AppShell`
+Run: `pnpm test src/views/AppShell`
 Expected: PASS (Sidebar 4 test + AppShell 3 test).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/views/AppShell
 git commit -m "feat(ui-shell): collapsible desktop sidebar with persisted state"
 ```
@@ -1099,13 +1099,13 @@ Bỏ import `Card` khỏi antd. Trong `locale.emptyText`: `text-slate-300 dark:t
 
 - [ ] **Step 5: Chạy test**
 
-Run: `yarn test src/views/Home`
+Run: `pnpm test src/views/Home`
 Expected: PASS. Nếu fail vì test assert class/nhãn cũ → cập nhật test cho khớp hành vi mới.
 
 - [ ] **Step 6: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/views/Home
 git commit -m "refactor(ui-shell): migrate Home to PageContainer + SectionCard"
 ```
@@ -1172,13 +1172,13 @@ Empty state: `border-slate-300 dark:border-slate-700` → `border-line`; `text-s
 
 - [ ] **Step 4: Chạy test**
 
-Run: `yarn test src/views/DocumentLibrary`
+Run: `pnpm test src/views/DocumentLibrary`
 Expected: PASS (test query theo role/text, không theo class — nếu có assert class cũ thì cập nhật).
 
 - [ ] **Step 5: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/views/DocumentLibrary
 git commit -m "refactor(ui-shell): migrate DocumentLibrary to shared primitives"
 ```
@@ -1259,13 +1259,13 @@ Trong body: eyebrow `text-sm font-bold tracking-wider text-slate-400 uppercase d
 
 - [ ] **Step 5: Chạy test**
 
-Run: `yarn test src/views/Wizard`
+Run: `pnpm test src/views/Wizard`
 Expected: PASS (`Wizard.test`, `Stepper.test`, `DocumentInputStep.test`, `StepReview.test`, `StepResult.test`). Test nào assert class cũ → cập nhật.
 
 - [ ] **Step 6: Green checks + commit**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test
+pnpm format && pnpm lint && pnpm type-check && pnpm test
 git add src/views/Wizard
 git commit -m "refactor(ui-shell): migrate Wizard steps to shared primitives"
 ```
@@ -1299,7 +1299,7 @@ Expected: `CLEAN`.
 - [ ] **Step 3: Full green checks**
 
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
 Expected: tất cả PASS.
@@ -1516,8 +1516,8 @@ Trước khi chạy: kiểm tra cách đổi locale trong `e2e/home-dashboard-li
 - [ ] **Step 3: Chạy suite E2E (gate A)**
 
 ```bash
-yarn test:e2e --project=desktop e2e/ui-consistency-shell
-yarn test:e2e
+pnpm test:e2e --project=desktop e2e/ui-consistency-shell
+pnpm test:e2e
 ```
 
 Expected: PASS. Fail → `superpowers:systematic-debugging`, ghi `docs/specs/ui-consistency-shell/e2e-bugs.md`, tối đa 3 vòng.

@@ -7,13 +7,13 @@
 ```bash
 # server (feature branch)
 cd server/.worktrees/home-dashboard-library
-PORT=5202 CLIENT_ORIGIN=http://localhost:5302 yarn start:dev
+PORT=5202 CLIENT_ORIGIN=http://localhost:5302 pnpm start:dev
 # client (feature branch)
 cd client/.worktrees/home-dashboard-library
-VITE_API_BASE_URL=http://localhost:5202/api/v1 yarn dev --port 5302
+VITE_API_BASE_URL=http://localhost:5202/api/v1 pnpm dev --port 5302
 # Gate A
 E2E_BASE_URL=http://localhost:5302 E2E_API_BASE=http://localhost:5202/api/v1 \
-  E2E_DATABASE_URL="<server DATABASE_URL>" yarn test:e2e e2e/home-dashboard-library/library.e2e.ts
+  E2E_DATABASE_URL="<server DATABASE_URL>" pnpm test:e2e e2e/home-dashboard-library/library.e2e.ts
 ```
 
 The spec is self-contained: `global-setup` clears `Document`/`MatchResult`; the suite seeds its own saved CVs/JD via the API + one `MatchResult` via `pg` (no OpenRouter call) — deterministic, re-runnable. Each mutation test targets its own document, so tests are order-independent.

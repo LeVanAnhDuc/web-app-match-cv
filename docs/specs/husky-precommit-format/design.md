@@ -17,7 +17,7 @@ proceed with linted & formatted code. An unfixable ESLint error blocks the commi
 
 ## Artifacts created in each repo
 
-- `.husky/pre-commit` → single line: `npx lint-staged`
+- `.husky/pre-commit` → single line: `pnpm exec lint-staged`
 - `package.json` → `"prepare": "husky"` in `scripts`
 - `package.json` → `"lint-staged"` config block
 

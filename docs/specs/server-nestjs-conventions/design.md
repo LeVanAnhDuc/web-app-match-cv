@@ -61,7 +61,7 @@ NestJS-native rules/skills; borrow only philosophy (module-struct, restful, doc-
 
 ### 4.3 `server/.claude/CLAUDE.md`
 Tech stack (→ root `.claude/techstack/backend.md`) · skills/rules tables · commands
-(`yarn build/start:dev/lint/format/type-check/test` + `npx prisma *`) · architecture
+(`pnpm build/start:dev/lint/format/type-check/test` + `pnpm exec prisma *`) · architecture
 (bootstrap, global prefix, ValidationPipe, Swagger, Throttler) · core patterns
 (`fromEntity`, `tX` i18n, `HttpException`, `PrismaService`, `CurrentUserService`) ·
 quality gate (`format → lint → type-check → test`, `build`).
@@ -81,5 +81,5 @@ After merge-ready, update root `.claude/CLAUDE.md` §2/§4.2 + status: mark
 ## 7. Verification
 
 Pure convention authoring + light align ⇒ E2E N/A (no FE), security review skip (no
-attack-surface change). Green gate: `yarn format` → `yarn lint` → `yarn type-check` →
-`yarn test` → `yarn build`, all pass.
+attack-surface change). Green gate: `pnpm format` → `pnpm lint` → `pnpm type-check` →
+`pnpm test` → `pnpm build`, all pass.

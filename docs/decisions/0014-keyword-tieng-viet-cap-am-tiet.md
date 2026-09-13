@@ -20,7 +20,7 @@ theo cùng một kiểu (`hệ thống` → `hệ` + `thống` ở cả hai phí
 vẫn phản ánh đúng độ trùng.
 
 Kèm theo: script chạy một lần tính lại `keywordScore` + `overallScore` cho
-`MatchResult` cũ (`yarn recompute-scores`), **không tốn call AI**.
+`MatchResult` cũ (`pnpm recompute-scores`), **không tốn call AI**.
 
 ## 3. Phương án đã loại
 

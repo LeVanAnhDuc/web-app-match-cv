@@ -6,14 +6,14 @@
 ## Cách chạy
 
 ```bash
-# server (từ server/.worktrees/multi-provider-compare, sau yarn build)
+# server (từ server/.worktrees/multi-provider-compare, sau pnpm build)
 PORT=5204 CLIENT_ORIGIN=http://localhost:5304 node dist/src/main.js
 
 # client
-VITE_API_BASE_URL=http://localhost:5204/api/v1 yarn dev --port 5304
+VITE_API_BASE_URL=http://localhost:5204/api/v1 pnpm dev --port 5304
 
 E2E_BASE_URL=http://localhost:5304 E2E_API_BASE=http://localhost:5204/api/v1 \
-  yarn test:e2e --project=desktop
+  pnpm test:e2e --project=desktop
 ```
 
 ## Nguyên tắc

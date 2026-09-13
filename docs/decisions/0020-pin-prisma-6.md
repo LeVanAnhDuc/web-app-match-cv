@@ -21,14 +21,14 @@ Pin **Prisma 6.19.3**. Không nâng lên 7 cho tới khi có lý do cụ thể.
 | Phương án | Vì sao loại |
 | --- | --- |
 | Nâng lên 7 ngay | Phải viết lại cấu hình + thêm driver adapter, đổi lấy đúng con số version. Không tính năng nào đang cần |
-| Để dải version mở (`^6`) | Minor của Prisma kéo theo engine binary mới; pin cứng để `yarn install` ở hai máy ra cùng một thứ |
+| Để dải version mở (`^6`) | Minor của Prisma kéo theo engine binary mới; pin cứng để `pnpm install` ở hai máy ra cùng một thứ |
 
 ## 4. Hệ quả
 
 **Được:**
 
 - Cấu hình Prisma giữ nguyên dạng đã quen; không có tầng driver adapter phải hiểu thêm.
-- `yarn install` tái lập được.
+- `pnpm install` tái lập được.
 
 **Mất / phải chấp nhận:**
 
