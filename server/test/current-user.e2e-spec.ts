@@ -13,7 +13,10 @@ describe("CurrentUser stub + seed (e2e)", () => {
   let currentUserService: CurrentUserService;
 
   beforeAll(async () => {
-    execSync("npx prisma db seed", { cwd: process.cwd(), stdio: "inherit" });
+    execSync("pnpm exec prisma db seed", {
+      cwd: process.cwd(),
+      stdio: "inherit"
+    });
 
     const moduleRef = await Test.createTestingModule({
       imports: [PrismaModule, CurrentUserModule]

@@ -6,23 +6,23 @@ This is a **monorepo** with two workspaces, `client/` and `server/`, plus shared
 
 ## Commands
 
-Root (`/`): `yarn install` — installs husky only; the pre-commit hook runs `lint-staged` in `client/` and then `server/`.
+Root (`/`): `pnpm install` — installs husky only; the pre-commit hook runs `lint-staged` in `client/` and then `server/`.
 
 From `server/`:
 
-- `yarn install` then `cp .env.example .env` — needs a local PostgreSQL (no Docker in this repo)
-- `npx prisma migrate dev` — apply migrations · `npx prisma generate` — regenerate the client (run before `yarn lint`) · `npx prisma db seed` — seed the stub user
-- `yarn start:dev` (watch, `:5200`) · `yarn start` · `yarn build` · `yarn start:prod`
-- `yarn test` (Jest unit, `src/**/*.spec.ts`) · `yarn test:watch` · `yarn test:cov` · `yarn test:e2e` (Jest + supertest, needs the DB)
-- `yarn type-check` · `yarn lint` · `yarn lint:fix` · `yarn format` · `yarn format:check`
-- `yarn seed:mock` / `yarn seed:mock:clean` — dev-only mock CV/JD documents · `yarn recompute-scores` — recompute stored keyword/overall scores
+- `pnpm install` then `cp .env.example .env` — needs a local PostgreSQL (no Docker in this repo)
+- `pnpm exec prisma migrate dev` — apply migrations · `pnpm exec prisma generate` — regenerate the client (run before `pnpm lint`) · `pnpm exec prisma db seed` — seed the stub user
+- `pnpm start:dev` (watch, `:5200`) · `pnpm start` · `pnpm build` · `pnpm start:prod`
+- `pnpm test` (Jest unit, `src/**/*.spec.ts`) · `pnpm test:watch` · `pnpm test:cov` · `pnpm test:e2e` (Jest + supertest, needs the DB)
+- `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
+- `pnpm seed:mock` / `pnpm seed:mock:clean` — dev-only mock CV/JD documents · `pnpm recompute-scores` — recompute stored keyword/overall scores
 
 From `client/`:
 
-- `yarn install` then `cp .env.example .env`
-- `yarn dev` (`:5300`) · `yarn build` · `yarn preview` · `yarn generate-routes` (`tsr generate`)
-- `yarn test` (Vitest unit, serial) · `yarn test:e2e` (Playwright; needs both servers up and `E2E_DATABASE_URL`; first run `npx playwright install chromium`)
-- `yarn type-check` · `yarn lint` · `yarn lint:fix` · `yarn format` · `yarn format:check`
+- `pnpm install` then `cp .env.example .env`
+- `pnpm dev` (`:5300`) · `pnpm build` · `pnpm preview` · `pnpm generate-routes` (`tsr generate`)
+- `pnpm test` (Vitest unit, serial) · `pnpm test:e2e` (Playwright; needs both servers up and `E2E_DATABASE_URL`; first run `pnpm exec playwright install chromium`)
+- `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
 
 ## README (REQUIRED — keep in sync with features)
 

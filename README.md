@@ -86,17 +86,17 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 ## Running
 
-You need Node.js, Yarn and a local PostgreSQL.
+You need Node.js, pnpm and a local PostgreSQL.
 
 **1. Server** (from `server/`)
 
 ```bash
-yarn install
+pnpm install
 cp .env.example .env          # set DATABASE_URL for your local Postgres
 createdb matchcv              # or: psql -c "CREATE DATABASE matchcv"
-npx prisma migrate dev        # create the tables
-npx prisma db seed            # seed the stub current-user (auth is deferred)
-yarn start:dev                # http://localhost:5200 — Swagger at /api/v1/docs
+pnpm exec prisma migrate dev  # create the tables
+pnpm exec prisma db seed      # seed the stub current-user (auth is deferred)
+pnpm start:dev                # http://localhost:5200 — Swagger at /api/v1/docs
 ```
 
 Env vars (see `server/.env.example`):
@@ -106,25 +106,25 @@ Env vars (see `server/.env.example`):
 - `OPENROUTER_API_KEY` — the system fallback key. Without it, and without a credential of your own, running a match returns 503. `OPENROUTER_BASE_URL` / `OPENROUTER_CHAT_MODEL` / `OPENROUTER_EMBED_MODEL` are optional overrides.
 - `CREDENTIAL_ENCRYPTION_KEY` — base64 of exactly 32 bytes (`openssl rand -base64 32`). Required for `/ai-credentials`; missing or wrong length makes those endpoints return 503 while everything else keeps working. Changing or losing it makes stored credentials undecryptable.
 
-Optional dev data: `yarn seed:mock` inserts 3 CV + 3 JD mock documents (Vietnamese and English), `yarn seed:mock:clean` removes them.
+Optional dev data: `pnpm seed:mock` inserts 3 CV + 3 JD mock documents (Vietnamese and English), `pnpm seed:mock:clean` removes them.
 
 **2. Client** (from `client/`)
 
 ```bash
-yarn install
+pnpm install
 cp .env.example .env          # VITE_API_BASE_URL, VITE_DEFAULT_LOCALE
-yarn dev                      # http://localhost:5300
+pnpm dev                      # http://localhost:5300
 ```
 
 **3. Tests**
 
 ```bash
-cd server && yarn test        # Jest unit tests
-cd server && yarn test:e2e    # Jest + supertest, needs the database
-cd client && yarn test        # Vitest unit tests (run serially)
-cd client && yarn test:e2e    # Playwright; both servers must be running, and
+cd server && pnpm test        # Jest unit tests
+cd server && pnpm test:e2e    # Jest + supertest, needs the database
+cd client && pnpm test        # Vitest unit tests (run serially)
+cd client && pnpm test:e2e    # Playwright; both servers must be running, and
                               # E2E_DATABASE_URL + CREDENTIAL_ENCRYPTION_KEY set
-                              # (first run: npx playwright install chromium)
+                              # (first run: pnpm exec playwright install chromium)
 ```
 
 ## Project structure

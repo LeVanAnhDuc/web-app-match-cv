@@ -1,4 +1,4 @@
-// Fixture data for `yarn seed:mock` — see docs/specs/seed-mock-documents/design.md.
+// Fixture data for `pnpm seed:mock` — see docs/specs/seed-mock-documents/design.md.
 //
 // Pure data on purpose: this file never touches the database, so adding or
 // editing a mock document means reading exactly one file and knowing nothing

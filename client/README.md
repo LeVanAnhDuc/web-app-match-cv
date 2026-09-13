@@ -5,9 +5,9 @@ TanStack Start (React 19 + Vite) frontend for the CV↔JD Matching Wizard. Port 
 **Setup**
 
 ```bash
-yarn install
+pnpm install
 cp .env.example .env   # fill in values, .env is git-ignored
-yarn dev                # http://localhost:5300
+pnpm dev                # http://localhost:5300
 ```
 
 **Pages**: `/` home dashboard · `/wizard` the 4-step matching wizard (1 JD · 2 CV · 3 Review · 4 Result) · `/cv` and `/jd` saved-document libraries · `/ai-credentials` your own AI provider keys.
@@ -24,22 +24,22 @@ All of them need the API server running (see `server/`). Running a match needs a
 
 Unit tests run **serially** (`fileParallelism: false` in `vitest.config.ts`): rendering antd through jsdom is CPU-bound, and parallel files starved each other enough that form-validation and router specs failed their `waitFor` windows while passing in isolation.
 
-**Scripts**: `yarn dev` · `yarn build` · `yarn preview` · `yarn test` (Vitest unit) · `yarn type-check` · `yarn lint` (check-only) · `yarn lint:fix` · `yarn format` · `yarn format:check`
+**Scripts**: `pnpm dev` · `pnpm build` · `pnpm preview` · `pnpm test` (Vitest unit) · `pnpm type-check` · `pnpm lint` (check-only) · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
 
-**Pre-commit hook** (husky + lint-staged, auto-installed on `yarn install` via the `prepare` script): every `git commit` runs `eslint --fix` + `prettier --write` on **staged files only**, then re-stages them. An unfixable ESLint error blocks the commit.
+**Pre-commit hook** (husky + lint-staged, auto-installed on `pnpm install` via the `prepare` script): every `git commit` runs `eslint --fix` + `prettier --write` on **staged files only**, then re-stages them. An unfixable ESLint error blocks the commit.
 
 **E2E (Playwright)** — runs the committed specs under `e2e/` against the real app. Requires **both** servers running (`server` :5200 + `client` :5300), `E2E_DATABASE_URL` set, and `CREDENTIAL_ENCRYPTION_KEY` set in `server/.env` (base64 of exactly 32 bytes, `openssl rand -base64 32`; it is already a commented placeholder in `server/.env.example`). Without that key `POST /api/v1/ai-credentials` answers 503 and the five specs that seed a credential all fail — `ai-credentials`, `cover-letter-generator`, `cv-rewrite-assistant`, `cv-version-comparison`, `multi-provider-compare`.
 
 ```bash
-npx playwright install chromium   # required on a fresh checkout — without the
-                                  # browser binary every spec fails at launch
-npx playwright test               # every e2e/<feature>/*.e2e.ts (serial)
-npx playwright test e2e/ai-credentials/   # one feature only
-npx playwright test --project=mobile   # one viewport only
+pnpm exec playwright install chromium  # required on a fresh checkout — without the
+                                       # browser binary every spec fails at launch
+pnpm exec playwright test              # every e2e/<feature>/*.e2e.ts (serial)
+pnpm exec playwright test e2e/ai-credentials/  # one feature only
+pnpm exec playwright test --project=mobile     # one viewport only
 ```
 
 Run **one project at a time** on a machine with little free RAM. All three in a
-single `npx playwright test` peaks high enough that Windows starts killing the dev
+single `pnpm exec playwright test` peaks high enough that Windows starts killing the dev
 server and the Playwright workers mid-run; the symptoms look like real failures but
 are not — truncated zip downloads in `data-export`, `page.waitForEvent` timeouts, and
 `browserContext._wrapApiCall: Tracing is already stopping`. Measured 2026-09-07: the
@@ -47,7 +47,7 @@ combined run reported 56 failures, while the same specs re-run per project passe
 (desktop 169, tablet 176, mobile 176).
 
 ```bash
-for p in desktop tablet mobile; do npx playwright test --project=$p; done
+for p in desktop tablet mobile; do pnpm exec playwright test --project=$p; done
 ```
 
 The suite runs in three chromium projects — `desktop` (1280×720), `tablet` (820×1180) and `mobile` (390×844) — so responsive regressions surface at every breakpoint. Set `E2E_BASE_URL` when the dev server is not on `:5300` (e.g. a git worktree running alongside the main checkout); the server must then allow that origin via its `CLIENT_ORIGIN` env var.
@@ -61,8 +61,8 @@ Welcome to your new TanStack Start app!
 To run this application:
 
 ```bash
-yarn install
-yarn run dev
+pnpm install
+pnpm run dev
 ```
 
 # Building For Production
@@ -70,7 +70,7 @@ yarn run dev
 To build this application for production:
 
 ```bash
-yarn run build
+pnpm run build
 ```
 
 ## Testing
@@ -78,7 +78,7 @@ yarn run build
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-yarn run test
+pnpm run test
 ```
 
 ## Styling
@@ -92,7 +92,7 @@ If you prefer not to use Tailwind CSS:
 1. Remove the demo pages in `src/routes/demo/`
 2. Replace the Tailwind import in `src/styles.css` with your own styles
 3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `yarn add @tailwindcss/vite tailwindcss --dev`
+4. Uninstall the packages: `pnpm add @tailwindcss/vite tailwindcss --dev`
 
 ## Linting & Formatting
 
@@ -103,11 +103,11 @@ ESLint starts from [tanstack/eslint-config](https://tanstack.com/config/latest/d
 `src/routeTree.gen.ts` is excluded from both — it is generated by `tsr generate` and its own header asks for exactly that.
 
 ```bash
-yarn run lint         # check only
-yarn run lint:fix     # eslint --fix
-yarn run format       # prettier --write . && eslint --fix
-yarn run format:check # prettier --check .
-yarn run type-check   # tsc --noEmit
+pnpm run lint         # check only
+pnpm run lint:fix     # eslint --fix
+pnpm run format       # prettier --write . && eslint --fix
+pnpm run format:check # prettier --check .
+pnpm run type-check   # tsc --noEmit
 ```
 
 ## Routing

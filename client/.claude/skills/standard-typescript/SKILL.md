@@ -36,7 +36,7 @@ user-invocable: false
 
 `strict: true` enables: `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `alwaysStrict`.
 
-> **Frontend resolution**: bundled by Vite, so use `module: "ESNext"` + `moduleResolution: "Bundler"`, `jsx: "react-jsx"` (Vite/esbuild handles the JSX transform — no runtime import needed), `allowImportingTsExtensions: true`, and include `"DOM"` in `lib`. The path alias `#/*` → `./src/*` is declared in `tsconfig.json` `paths` (mirrored in `package.json` `imports`). Type-check with `npx tsc --noEmit` (the build via `vite build` does not type-check).
+> **Frontend resolution**: bundled by Vite, so use `module: "ESNext"` + `moduleResolution: "Bundler"`, `jsx: "react-jsx"` (Vite/esbuild handles the JSX transform — no runtime import needed), `allowImportingTsExtensions: true`, and include `"DOM"` in `lib`. The path alias `#/*` → `./src/*` is declared in `tsconfig.json` `paths` (mirrored in `package.json` `imports`). Type-check with `pnpm exec tsc --noEmit` (the build via `vite build` does not type-check).
 
 Additional required flags:
 

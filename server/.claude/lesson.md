@@ -14,7 +14,7 @@
 ## Thêm cột NOT NULL vào bảng đã có dữ liệu (2026-08-08)
 
 - `prisma migrate dev` **từ chối** ("There are N rows in this table"). Cột nullable hoặc có `@default` thì tự backfill được, không cần can thiệp.
-- **Áp dụng khi thật sự cần NOT NULL không default**: `npx prisma migrate dev --name <x> --create-only` → sửa tay SQL thành `ADD COLUMN ... DEFAULT '<giá trị backfill>'` rồi `ALTER COLUMN ... DROP DEFAULT` → `migrate dev`. Ghi lý do giá trị backfill ngay trong file SQL.
+- **Áp dụng khi thật sự cần NOT NULL không default**: `pnpm exec prisma migrate dev --name <x> --create-only` → sửa tay SQL thành `ADD COLUMN ... DEFAULT '<giá trị backfill>'` rồi `ALTER COLUMN ... DROP DEFAULT` → `migrate dev`. Ghi lý do giá trị backfill ngay trong file SQL.
 - **Hệ quả cần cảnh báo**: sau khi apply, code trên `main` (chưa có cột) sẽ **không insert được** cho tới khi branch merge. DB dev dùng chung nên phải nói trước.
 
 ## E2E raw SQL insert vỡ khi schema thêm cột/bảng (2026-08-08)

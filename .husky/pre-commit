@@ -1,2 +1,2 @@
-cd client && npx lint-staged
-cd ../server && npx lint-staged
+cd client && pnpm exec lint-staged
+cd ../server && pnpm exec lint-staged

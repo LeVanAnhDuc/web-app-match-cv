@@ -4,6 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
@@ -25,9 +26,17 @@
     "seed:mock": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/seed-mock.ts",
     "seed:mock:clean": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/seed-mock.ts --clean"
   },
-  "resolutions": {
-    "string-width": "4.2.3",
-    "strip-ansi": "6.0.1"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "unrs-resolver"
+    ],
+    "overrides": {
+      "string-width": "4.2.3",
+      "strip-ansi": "6.0.1"
+    }
   },
   "lint-staged": {
     "*.ts": [
@@ -69,6 +78,7 @@
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.2.0",
     "@types/node": "^24.0.0",
+    "@types/superagent": "^8.1.11",
     "@types/supertest": "^7.0.0",
     "adm-zip": "^0.6.0",
     "cross-env": "^10.1.0",

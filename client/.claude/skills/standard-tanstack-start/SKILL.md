@@ -177,7 +177,7 @@ Rules:
 
 `src/routeTree.gen.ts` is **generated**. Never hand-edit it.
 
-- Regenerate with `yarn generate-routes` (runs `tsr generate`). Config: `tsr.config.json`.
+- Regenerate with `pnpm generate-routes` (runs `tsr generate`). Config: `tsr.config.json`.
 - The Vite dev server regenerates it automatically on route file changes; run the command manually before type-checking/building in CI or when the file looks stale.
 - It is committed (imported by `router.tsx`), but treat every change to it as a build artifact — review it, don't author it.
 
@@ -216,6 +216,6 @@ if (import.meta.env.DEV && typeof window !== "undefined") {
 - Keep route files thin; put UI + logic in `views/` / feature modules.
 - Data goes through React Query + `apiFetch`; use loaders only for blocking/SSR-critical data via `ensureQueryData`.
 - Read env from `import.meta.env` with the `VITE_` prefix; never `process.env`, never a secret in the client.
-- Never hand-edit `routeTree.gen.ts`; run `yarn generate-routes`.
+- Never hand-edit `routeTree.gen.ts`; run `pnpm generate-routes`.
 - Guard every `window`/`document` access for SSR; avoid hydration mismatches.
 - `<HeadContent />` and `<Scripts />` stay in `__root.tsx`; the antd React-19 patch import stays first.

@@ -52,7 +52,7 @@ The server is the last line of defense — **never rely on the client for securi
 ### A03 Software Supply Chain
 
 - Prisma pinned exactly (`6.19.3`) — v7 is breaking. Prefer exact/careful ranges for security-critical deps; commit the lockfile.
-- Run `yarn npm audit` (or `npm audit`) before releases; review dependency bumps.
+- Run `pnpm audit` before releases; review dependency bumps.
 
 ### A04 Cryptographic Failures
 

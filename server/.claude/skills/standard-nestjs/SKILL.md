@@ -123,10 +123,10 @@ await app.listen(process.env.PORT ?? 5200); // port 5200
 ## Commands
 
 ```bash
-yarn start:dev        # nest start --watch
-yarn build            # nest build
-yarn type-check       # tsc --noEmit
-yarn lint             # eslint .
-yarn format           # prettier --write .
-yarn test             # jest (unit *.spec.ts co-located)
+pnpm start:dev        # nest start --watch
+pnpm build            # nest build
+pnpm type-check       # tsc --noEmit
+pnpm lint             # eslint .
+pnpm format           # prettier --write .
+pnpm test             # jest (unit *.spec.ts co-located)
 ```
