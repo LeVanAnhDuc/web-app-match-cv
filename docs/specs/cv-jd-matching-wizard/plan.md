@@ -73,7 +73,7 @@ describe('Health (e2e)', () => {
 
 - [ ] **Step 3: Run test → verify FAIL**
 
-Run: `cd server && yarn test:e2e health`
+Run: `cd server && pnpm test:e2e health`
 Expected: FAIL (health route chưa tồn tại → 404).
 
 - [ ] **Step 4: Implement health module**
@@ -117,12 +117,12 @@ bootstrap();
 
 - [ ] **Step 6: Run test → verify PASS**
 
-Run: `cd server && yarn test:e2e health`
+Run: `cd server && pnpm test:e2e health`
 Expected: PASS.
 
 - [ ] **Step 7: Smoke boot**
 
-Run: `cd server && yarn start:dev` → mở `http://localhost:5200/api/v1/health` → thấy `{"status":"ok"}`. Ctrl-C.
+Run: `cd server && pnpm start:dev` → mở `http://localhost:5200/api/v1/health` → thấy `{"status":"ok"}`. Ctrl-C.
 
 ### Task 2: PostgreSQL + Prisma — ⏸️ DEFERRED sang Plan 1
 
@@ -163,8 +163,8 @@ Run: `cd server && docker compose up -d` → `docker compose ps` thấy containe
 
 Run:
 ```bash
-cd server && yarn add @prisma/client && yarn add -D prisma
-npx prisma init --datasource-provider postgresql
+cd server && pnpm add @prisma/client && pnpm add -D prisma
+pnpm exec prisma init --datasource-provider postgresql
 ```
 Set `server/.env` → `DATABASE_URL="postgresql://matchcv:matchcv@localhost:5432/matchcv?schema=public"`.
 
@@ -186,9 +186,9 @@ datasource db {
 
 - [ ] **Step 4: Migration khởi tạo (tạo extension)**
 
-Run: `cd server && npx prisma migrate dev --name init_pgvector`
-Sau đó xác nhận file migration có `CREATE EXTENSION IF NOT EXISTS "vector"`. Nếu Prisma chưa emit, thêm tay vào migration rồi `npx prisma migrate dev`.
-Expected: migration applied, `npx prisma generate` chạy.
+Run: `cd server && pnpm exec prisma migrate dev --name init_pgvector`
+Sau đó xác nhận file migration có `CREATE EXTENSION IF NOT EXISTS "vector"`. Nếu Prisma chưa emit, thêm tay vào migration rồi `pnpm exec prisma migrate dev`.
+Expected: migration applied, `pnpm exec prisma generate` chạy.
 
 - [ ] **Step 5: PrismaService + module**
 
@@ -246,7 +246,7 @@ describe('Prisma (e2e)', () => {
 
 - [ ] **Step 7: Run test → PASS**
 
-Run: `cd server && yarn test:e2e prisma`
+Run: `cd server && pnpm test:e2e prisma`
 Expected: PASS (yêu cầu `docker compose up -d` đã chạy).
 
 </details>
@@ -267,7 +267,7 @@ Expected: PASS (yêu cầu `docker compose up -d` đã chạy).
 
 Run:
 ```bash
-cd server && yarn add @nestjs/config @nestjs/swagger class-validator class-transformer nestjs-i18n helmet @nestjs/throttler
+cd server && pnpm add @nestjs/config @nestjs/swagger class-validator class-transformer nestjs-i18n helmet @nestjs/throttler
 ```
 
 - [ ] **Step 2: Env validation schema**
@@ -347,7 +347,7 @@ it('Swagger docs served', async () => {
   expect([200, 301]).toContain(res.status);
 });
 ```
-Run: `cd server && yarn test:e2e app-config` → PASS. Boot `yarn start:dev`, mở `/api/v1/docs` thấy Swagger UI.
+Run: `cd server && pnpm test:e2e app-config` → PASS. Boot `pnpm start:dev`, mở `/api/v1/docs` thấy Swagger UI.
 
 ### Task 4: Finalize server + GitHub push
 
@@ -365,11 +365,11 @@ Run: `cd server && yarn test:e2e app-config` → PASS. Boot `yarn start:dev`, m�
 
 - [ ] **Step 3: README ngắn**
 
-`server/README.md`: mô tả setup (`yarn`, `docker compose up -d`, `npx prisma migrate dev`, `yarn start:dev`), port 5200, link Swagger `/api/v1/docs`.
+`server/README.md`: mô tả setup (`pnpm install`, `docker compose up -d`, `pnpm exec prisma migrate dev`, `pnpm start:dev`), port 5200, link Swagger `/api/v1/docs`.
 
 - [ ] **Step 4: Verify toàn bộ check xanh**
 
-Run: `cd server && yarn lint && yarn build && yarn test:e2e`
+Run: `cd server && pnpm lint && pnpm build && pnpm test:e2e`
 Expected: lint 0 error, build OK, tất cả e2e PASS.
 
 - [ ] **Step 5: Git init + initial commit + push**
@@ -405,17 +405,17 @@ Run trong `D:\Learn\web-app-match-cv`:
 npx @tanstack/cli@latest create client --add-ons tailwind,tanstack-query,eslint
 ```
 Chọn package manager = **yarn** khi được hỏi (hoặc thêm `--package-manager yarn` nếu CLI hỗ trợ). Nếu prompt add-ons khác, giữ mặc định + đảm bảo có tailwind + tanstack-query.
-Xác minh: `cd client && yarn dev` boot được (đổi port sang 5300 ở step 2).
+Xác minh: `cd client && pnpm dev` boot được (đổi port sang 5300 ở step 2).
 
 - [ ] **Step 2: Set port 5300**
 
-Trong `client/vite.config.ts` thêm `server: { port: 5300 }` (và `preview: { port: 5300 }`). Boot `yarn dev` → `http://localhost:5300`.
+Trong `client/vite.config.ts` thêm `server: { port: 5300 }` (và `preview: { port: 5300 }`). Boot `pnpm dev` → `http://localhost:5300`.
 
 - [ ] **Step 3: Cài Vitest + testing-library**
 
 Run:
 ```bash
-cd client && yarn add -D vitest @testing-library/react @testing-library/jest-dom jsdom
+cd client && pnpm add -D vitest @testing-library/react @testing-library/jest-dom jsdom
 ```
 Thêm `client/vitest.config.ts` (environment `jsdom`, globals true) + script `"test": "vitest run"` vào `package.json`. (Nếu CLI đã thêm vitest add-on, bỏ qua trùng.)
 
@@ -437,7 +437,7 @@ describe('Home', () => {
 
 - [ ] **Step 5: Run → FAIL**
 
-Run: `cd client && yarn test`
+Run: `cd client && pnpm test`
 Expected: FAIL (`HomeComponent` chưa export).
 
 - [ ] **Step 6: Implement home route**
@@ -455,7 +455,7 @@ export const Route = createFileRoute('/')({ component: HomeComponent });
 
 - [ ] **Step 7: Run → PASS + smoke**
 
-Run: `cd client && yarn test` → PASS. `yarn dev` → `:5300` thấy "Match CV".
+Run: `cd client && pnpm test` → PASS. `pnpm dev` → `:5300` thấy "Match CV".
 
 ### Task 6: Ant Design + Tailwind integration (SSR-safe)
 
@@ -470,7 +470,7 @@ Run: `cd client && yarn test` → PASS. `yarn dev` → `:5300` thấy "Match CV"
 
 - [ ] **Step 1: Cài antd + cssinjs**
 
-Run: `cd client && yarn add antd @ant-design/cssinjs @ant-design/icons`
+Run: `cd client && pnpm add antd @ant-design/cssinjs @ant-design/icons`
 
 - [ ] **Step 2: Tránh xung đột reset — tắt Tailwind preflight**
 
@@ -513,7 +513,7 @@ it('renders antd primary button', () => {
 
 - [ ] **Step 7: Run test → PASS + smoke SSR**
 
-Run: `cd client && yarn test` → PASS. `yarn dev` → `:5300`: Button hiển thị đúng style antd; DevTools Console không lỗi; view-source có style antd (no FOUC).
+Run: `cd client && pnpm test` → PASS. `pnpm dev` → `:5300`: Button hiển thị đúng style antd; DevTools Console không lỗi; view-source có style antd (no FOUC).
 
 ### Task 7: TanStack Query provider + i18next + env
 
@@ -532,7 +532,7 @@ Nếu add-on `tanstack-query` chưa bọc app, thêm `QueryClient` + `QueryClien
 
 - [ ] **Step 2: Cài i18next**
 
-Run: `cd client && yarn add i18next react-i18next`
+Run: `cd client && pnpm add i18next react-i18next`
 
 - [ ] **Step 3: i18n resources + init**
 
@@ -574,7 +574,7 @@ describe('i18n', () => {
 
 - [ ] **Step 5: Run → PASS**
 
-Run: `cd client && yarn test` → PASS.
+Run: `cd client && pnpm test` → PASS.
 
 - [ ] **Step 6: `.env.example`**
 
@@ -595,11 +595,11 @@ VITE_DEFAULT_LOCALE=en
 
 - [ ] **Step 2: README ngắn**
 
-`client/README.md`: setup (`yarn`, `yarn dev`), port 5300, env cần (`VITE_API_BASE_URL`), lệnh test.
+`client/README.md`: setup (`pnpm install`, `pnpm dev`), port 5300, env cần (`VITE_API_BASE_URL`), lệnh test.
 
 - [ ] **Step 3: Verify check xanh**
 
-Run: `cd client && yarn lint && yarn build && yarn test`
+Run: `cd client && pnpm lint && pnpm build && pnpm test`
 Expected: lint 0 error, build OK, test PASS.
 
 - [ ] **Step 4: Git init + commit + push**
@@ -676,7 +676,7 @@ git push -u origin main
 
 **Files:** `server/src/modules/documents/{documents.module,documents.controller,documents.service}.ts`, `dto/create-document.dto.ts`, `dto/document.dto.ts`, parse util `documents/parsing.ts`, `server/test/documents.e2e-spec.ts`.
 
-- [ ] Deps: `yarn add pdf-parse mammoth` (+ types nếu có).
+- [ ] Deps: `pnpm add pdf-parse mammoth` (+ types nếu có).
 - [ ] `parsing.ts`: `parseFile(buffer, mime|ext) → { rawText, sourceFormat }` — pdf → `pdf-parse`, docx → `mammoth.extractRawText`; reject khác.
 - [ ] DTO `CreateDocumentDto` (class-validator): `kind` (`@IsEnum`), `save` (`@IsBoolean`, transform), `title?` (`@IsString`, required nếu save), `sourceText?` (khi paste). File qua `@UseInterceptors(FileInterceptor('file'))` + `ParseFilePipe` (maxSize 10MB, fileType pdf/docx).
 - [ ] Service: nếu có file → parse; nếu `sourceText` → sourceFormat `text`, rawText = sourceText (trim, non-empty). Tạo `Document` với `userId = currentUser`, `isSaved = save`. Trả `DocumentDto`.
@@ -769,11 +769,11 @@ git push -u origin main
 
 ### Task E1: `MatchResult` model + migration
 - `prisma/schema.prisma`: model `MatchResult { id uuid @id; userId; user @relation; cvDocumentId; jdDocumentId; overallScore Int; semanticScore Int; keywordScore Int; report Json; createdAt }` + relations tới `Document` (cv/jd). Index `(userId)`.
-- `npx prisma migrate dev --name add_match_result`. Update `docs/erd.md` (MatchResult → thực).
+- `pnpm exec prisma migrate dev --name add_match_result`. Update `docs/erd.md` (MatchResult → thực).
 - Commit.
 
 ### Task E2: `OpenRouterService` (embedding + report)
-- `yarn add openai`. `src/modules/matching/ai.service.ts`:
+- `pnpm add openai`. `src/modules/matching/ai.service.ts`:
   - `isConfigured(): boolean` (có `OPENROUTER_API_KEY`).
   - `embed(text): Promise<number[]>` — OpenRouter embed model.
   - `generateReport(cvText, jdText, scores): Promise<{strengths,gaps,suggestions}>` — prompt OpenRouter gen model, **response JSON schema** (structured), parse an toàn.

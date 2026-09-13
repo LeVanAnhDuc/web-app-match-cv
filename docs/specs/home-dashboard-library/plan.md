@@ -19,7 +19,7 @@
 - **Preview client-only**: `react-pdf` + `docx-preview` chỉ chạy browser → component preview phải guard SSR (dynamic import / `typeof window`).
 - **Ports**: server `:5200`, client `:5300`. **Package manager**: yarn.
 - **Commit review gate**: user opt-out ("merge luôn") → commit per-task tự động; merge gate opt-out (squash-merge + xóa branch + pull).
-- **Green checks** trước PR: BE `yarn lint && yarn build && yarn test:e2e`; FE `yarn format && yarn lint && yarn type-check && yarn test && yarn build`.
+- **Green checks** trước PR: BE `pnpm lint && pnpm build && pnpm test:e2e`; FE `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`.
 
 ---
 
@@ -48,13 +48,13 @@ Trong `schema.prisma` model `Document`, sau `parsedContent Json?`:
 
 - [ ] **Step 2: Migration**
 
-Run: `cd server && npx prisma migrate dev --name add_document_file`
+Run: `cd server && pnpm exec prisma migrate dev --name add_document_file`
 Expected: migration tạo cột `fileData bytea`, `fileMime text` nullable; `prisma generate` chạy.
 
 - [ ] **Step 3: Test failing — create upload lưu fileMime**
 
 Trong `documents.e2e-spec.ts` thêm: upload 1 PDF nhỏ (fixture buffer) với `save=false` → 201; sau đó query DB (`prisma.document.findUnique`) assert `fileMime === 'application/pdf'` và `fileData != null`. Paste text → `fileData == null`.
-Run: `yarn test:e2e documents` → FAIL (service chưa lưu).
+Run: `pnpm test:e2e documents` → FAIL (service chưa lưu).
 
 - [ ] **Step 4: Implement — lưu binary trong `create`**
 
@@ -67,7 +67,7 @@ Trong `documents.service.ts` `create`, block `if (file)` thêm capture mime; ở
 
 - [ ] **Step 5: Test PASS**
 
-Run: `yarn test:e2e documents` → PASS.
+Run: `pnpm test:e2e documents` → PASS.
 
 - [ ] **Step 6: Commit** — `feat(documents): store original file binary (fileData/fileMime)`
 
@@ -83,7 +83,7 @@ Run: `yarn test:e2e documents` → PASS.
 - [ ] **Step 1: Test failing**
 
 `documents.e2e-spec.ts`: upload PDF (save=true, title 'CV1') → lấy id. `GET /documents/:id/file` → 200, header `content-type: application/pdf`, body bytes = fixture. `?download=1` → header `content-disposition` chứa `attachment`. Doc của user khác (tạo doc user2 trực tiếp qua prisma) → 404. Paste-text doc → 404 (`noOriginalFile`).
-Run: `yarn test:e2e documents` → FAIL (route 404 tất cả).
+Run: `pnpm test:e2e documents` → FAIL (route 404 tất cả).
 
 - [ ] **Step 2: Service `getFile`**
 
@@ -126,7 +126,7 @@ Run: `yarn test:e2e documents` → FAIL (route 404 tất cả).
 
 - [ ] **Step 4: i18n key** — thêm `documents.errors.noOriginalFile` vào `server/src/i18n/en/documents.json` ("No original file for this document.") + `vi` ("Tài liệu này không có file gốc.").
 
-- [ ] **Step 5: Test PASS** — `yarn test:e2e documents`.
+- [ ] **Step 5: Test PASS** — `pnpm test:e2e documents`.
 
 - [ ] **Step 6: Commit** — `feat(documents): stream original file per-user (inline/download)`
 
@@ -240,7 +240,7 @@ export class MatchSummaryDto {
 - [ ] **Step 6: Commit** — `feat(matching): list match history per-user (GET /match)`
 
 ### Task A6: BE green checks
-- [ ] Run `cd server && yarn lint && yarn build && yarn test:e2e` → xanh hết. Fix nếu fail.
+- [ ] Run `cd server && pnpm lint && pnpm build && pnpm test:e2e` → xanh hết. Fix nếu fail.
 
 ---
 
@@ -307,7 +307,7 @@ export function fetchMatchHistory(): Promise<Array<MatchSummaryDto>> {
 }
 ```
 - [ ] **Step 5: hooks impl** — `useDocuments.ts` thêm `useRenameDocument` (mutation `renameDocument`, onSuccess invalidate `savedDocumentsQueryKey(kind)` — cần kind: invalidate cả CV+JD hoặc trả kind từ data → invalidate `["documents"]` prefix), `useDeleteDocument` (tương tự invalidate `["documents"]`). `useMatch.ts` thêm `useMatchHistory()` = `useQuery({ queryKey: matchHistoryQueryKey(), queryFn: fetchMatchHistory })`. Barrel `hooks/index.ts` export thêm.
-- [ ] **Step 6: hooks test PASS** — `cd client && yarn test`.
+- [ ] **Step 6: hooks test PASS** — `cd client && pnpm test`.
 - [ ] **Step 7: Commit** — `feat(client): requests+hooks for document manage & match history`
 
 ### Task B2: App shell + sidebar (pathless layout route, responsive)
@@ -327,12 +327,12 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import AppShell from "#/views/AppShell";
 export const Route = createFileRoute("/_app")({ component: () => <AppShell><Outlet /></AppShell> });
 ```
-Đổi `routes/index.tsx` → `routes/_app/index.tsx` (component Home); `routes/wizard.tsx` → `routes/_app/wizard.tsx`. Run `yarn generate-routes`. (Giữ `__root.tsx` nguyên.)
+Đổi `routes/index.tsx` → `routes/_app/index.tsx` (component Home); `routes/wizard.tsx` → `routes/_app/wizard.tsx`. Run `pnpm generate-routes`. (Giữ `__root.tsx` nguyên.)
 - [ ] **Step 2: Sidebar test failing** — render `<Sidebar />` trong router test → có 4 nav link (`Home`,`Match`,`Saved CVs`,`Saved JDs`) role `link` accessible names (i18n en). FAIL trước.
 - [ ] **Step 3: nav i18n** — thêm `nav: { home, match, savedCvs, savedJds }` (en + vi) vào translation.json.
 - [ ] **Step 4: Sidebar impl** — `views/AppShell/components/Sidebar/index.tsx`: `<nav>` với `<Link>` (TanStack) + Lucide icons (`LayoutDashboard`, `Sparkles`, `FileUser`? → dùng `FileText`/`User` sẵn có trong lucide-react; Match item accent `text-primary`/`bg-primary/10` khi active). `activeProps` để active state. Icon-only + tooltip khi collapsed.
 - [ ] **Step 5: AppShell impl** — `views/AppShell/index.tsx`: layout `flex h-screen`; `>=lg` render `<aside class="hidden lg:flex w-64 ...">` Sidebar; `<lg` header có hamburger mở antd `Drawer` chứa Sidebar; `<main class="flex-1 min-h-0 overflow-y-auto">{children}</main>`. Header hiển thị tên trang + (placeholder) locale toggle.
-- [ ] **Step 6: test PASS + smoke** — `yarn test`; `yarn dev` mở `/` thấy sidebar; resize < lg thấy hamburger + drawer.
+- [ ] **Step 6: test PASS + smoke** — `pnpm test`; `pnpm dev` mở `/` thấy sidebar; resize < lg thấy hamburger + drawer.
 - [ ] **Step 7: Commit** — `feat(client): app shell + responsive sidebar nav`
 
 ### Task B3: Home dashboard view
@@ -351,7 +351,7 @@ export const Route = createFileRoute("/_app")({ component: () => <AppShell><Outl
 - [ ] **Step 3: StatCards impl** — antd `Card` + `Statistic`; counts từ `useSavedDocuments('CV').data?.length ?? 0` v.v.; match count = `history.length`; highest = `Math.max(...scores)`, avg = `round(mean)`; guard rỗng → `0`/`—`.
 - [ ] **Step 4: HeroCta impl** — Card accent primary + `<Link to="/wizard">` antd `Button size=large` icon `Sparkles`.
 - [ ] **Step 5: RecentMatches impl** — antd `List`/`Table` 5 dòng đầu; helper `scoreBand(n)` → `success|warning|error` (`>=75|>=50|<50`) render `Tag`; ngày `new Intl.DateTimeFormat(i18n.language).format(new Date(createdAt))`; row click → `navigate({ to: "/wizard" })` sau khi set store `matchId` + `step=4` (dùng `useWizardStore.getState()`); "Xem tất cả" khi `length>5`.
-- [ ] **Step 6: test PASS + smoke** — `yarn test`; `yarn dev` `/`.
+- [ ] **Step 6: test PASS + smoke** — `pnpm test`; `pnpm dev` `/`.
 - [ ] **Step 7: Commit** — `feat(client): home dashboard (hero CTA + stats + recent matches)`
 
 ---
@@ -368,12 +368,12 @@ export const Route = createFileRoute("/_app")({ component: () => <AppShell><Outl
 **Interfaces:**
 - Produces: `<DocumentPreview docId={string} sourceFormat={SourceFormat} rawText={string} />` — chọn renderer theo `sourceFormat`: `pdf`→PdfPreview (react-pdf, fetch arrayBuffer qua `fetchDocumentFile`), `docx`→DocxPreview (`docx-preview` renderAsync vào container ref), `text`→TextPreview (render `rawText` `<pre>` format). SSR-guard: các renderer dùng `useEffect` + dynamic `import()` (react-pdf/docx-preview) — không import top-level (tránh SSR crash).
 
-- [ ] **Step 1: add deps** — `cd client && yarn add react-pdf docx-preview`. Cấu hình pdf.js worker cho react-pdf (import `pdfjs` từ `react-pdf`, set `pdfjs.GlobalWorkerOptions.workerSrc` dùng bundled worker URL `new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url)` — trong `useEffect`/client-only).
+- [ ] **Step 1: add deps** — `cd client && pnpm add react-pdf docx-preview`. Cấu hình pdf.js worker cho react-pdf (import `pdfjs` từ `react-pdf`, set `pdfjs.GlobalWorkerOptions.workerSrc` dùng bundled worker URL `new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url)` — trong `useEffect`/client-only).
 - [ ] **Step 2: test failing** — render `<DocumentPreview sourceFormat="text" rawText="hello" docId="x" />` → thấy "hello". Mock `fetchDocumentFile`. Với `sourceFormat="pdf"` → render vùng `data-testid="pdf-preview"` (mock react-pdf `Document`/`Page` bằng `vi.mock`). FAIL trước.
 - [ ] **Step 3: TextPreview impl** — `<pre className="whitespace-pre-wrap ...">{rawText}</pre>`.
 - [ ] **Step 4: PdfPreview impl** — client-only: `useState<ArrayBuffer|null>`, `useEffect` gọi `fetchDocumentFile(docId)`; dynamic import react-pdf; render `<Document file={{ data }}><Page pageNumber /></Document>`; state loading + error. Guard `typeof window === "undefined"` → null.
 - [ ] **Step 5: DocxPreview impl** — client-only: `useRef<HTMLDivElement>`, `useEffect`: `fetchDocumentFile(docId)` → `const { renderAsync } = await import("docx-preview")` → `renderAsync(new Blob([buf]), ref.current)`; loading + error state.
-- [ ] **Step 6: test PASS + build** — `yarn test && yarn build` (build phải qua với SSR guard).
+- [ ] **Step 6: test PASS + build** — `pnpm test && pnpm build` (build phải qua với SSR guard).
 - [ ] **Step 7: Commit** — `feat(client): DocumentPreview (react-pdf/docx-preview/text, SSR-safe)`
 
 ### Task C2: DocumentLibrary view (`/cv`, `/jd`)
@@ -395,13 +395,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import DocumentLibrary from "#/views/DocumentLibrary";
 export const Route = createFileRoute("/_app/cv")({ component: () => <DocumentLibrary kind="CV" /> });
 ```
-tương tự `jd.tsx` (`kind="JD"`). `yarn generate-routes`.
+tương tự `jd.tsx` (`kind="JD"`). `pnpm generate-routes`.
 - [ ] **Step 3: test failing** — mock `useSavedDocuments` trả 2 doc → render 2 row với title + badge format + 4 action button (aria-label). Empty → empty-state. Click Delete → Popconfirm → `useDeleteDocument.mutate`. Delete lỗi 409 → hiển thị message `library.delete.inUse` (mock mutation reject `ApiError(409)`). Rename mở modal → confirm gọi mutate. Preview mở modal chứa `<DocumentPreview>`. FAIL trước.
 - [ ] **Step 4: DocumentRow impl** — list-row pattern (`flex items-center gap-4 px-4 py-3 rounded-xl border`, no wrap): icon tile + badge (`format.pdf|docx|text`), middle `min-w-0 flex-1` title truncate + meta ngày (Intl), right `shrink-0` antd icon `Button` (Eye/Pencil/Download/Trash2 lucide) aria-label. Download = `<a href={documentFileUrl(id,true)}>`.
 - [ ] **Step 5: PreviewModal impl** — antd `Modal`/`Drawer` (Drawer full trên mobile, Modal `width` lớn desktop) chứa `<DocumentPreview>`; header title + close; footer Download. a11y: focus trap của antd, Esc đóng.
 - [ ] **Step 6: RenameModal impl** — antd `Modal` + `Input` (default title); confirm → `useRenameDocument.mutate({id,title})`; success message; optimistic optional.
 - [ ] **Step 7: DocumentLibrary impl** — header title theo kind + subtitle count; `useSavedDocuments(kind)`; loading skeleton; error UI; empty-state (Lucide `SearchX` + CTA → `/wizard`); map rows; quản state modal preview/rename.
-- [ ] **Step 8: test PASS + smoke** — `yarn test`; `yarn dev` `/cv`,`/jd`.
+- [ ] **Step 8: test PASS + smoke** — `pnpm test`; `pnpm dev` `/cv`,`/jd`.
 - [ ] **Step 9: Commit** — `feat(client): saved CV/JD library with preview/rename/download/delete`
 
 ---
@@ -420,7 +420,7 @@ tương tự `jd.tsx` (`kind="JD"`). `yarn generate-routes`.
 
 - [ ] **Step 1: test failing/updating** — StepReview test: mock `useDocument` trả doc (sourceFormat pdf) → render 2 `<DocumentPreview>` (mock component) không có textarea; Run match → `useRunMatch.mutateAsync({cvDocumentId:cvDocId, jdDocumentId:jdDocId})` (KHÔNG tạo transient doc) → setMatchId → goNext. missingDocs guard giữ. Cập nhật/loại ca "edit text → transient doc".
 - [ ] **Step 2: rewrite StepReview** — layout `grid gap-6 lg:grid-cols-2` (mobile stack): mỗi pane Card header (title + badge format) + `<DocumentPreview docId sourceFormat rawText>`; action bar Back + primary "Run match" (Sparkles); loading khi `useDocument` fetch; `isSubmitting` khi match; error `err.matchFailed`/`err.matchUnavailable` (503).
-- [ ] **Step 3: test PASS + build** — `yarn test && yarn build`.
+- [ ] **Step 3: test PASS + build** — `pnpm test && pnpm build`.
 - [ ] **Step 4: Commit** — `refactor(wizard): step 3 review renders original file (remove text edit)`
 
 ### Task D2: Reconcile E2E artifacts + expand `e2e.md`
@@ -433,13 +433,13 @@ tương tự `jd.tsx` (`kind="JD"`). `yarn generate-routes`.
 - [ ] **Step 4: Commit** — `test(home-dashboard-library): e2e scenarios (home/library/review/responsive/i18n)`
 
 ### Task D3: FE green checks
-- [ ] `cd client && yarn format && yarn lint && yarn type-check && yarn test && yarn build` → xanh hết.
+- [ ] `cd client && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build` → xanh hết.
 
 ---
 
 ## E2E gate (dual-gate §4.3) — cần dev server
 
-> Sau PART A–D code xong + unit/component xanh: chạy dual-gate. **Cần server :5200 + client :5300 chạy** → agent TỰ CHECK 1 lần; chưa chạy → hỏi user (self-run/user-run). Gate A `yarn test:e2e` (client) trên app thật; Gate B MCP walk Scenario Matrix (Playwright `browser_*`) auth context riêng. Mutation-heavy = gate B chỉ verify read/render. Fail ≥1 gate → systematic-debugging → `e2e-bugs.md` → fix → rerun (max 3 vòng).
+> Sau PART A–D code xong + unit/component xanh: chạy dual-gate. **Cần server :5200 + client :5300 chạy** → agent TỰ CHECK 1 lần; chưa chạy → hỏi user (self-run/user-run). Gate A `pnpm test:e2e` (client) trên app thật; Gate B MCP walk Scenario Matrix (Playwright `browser_*`) auth context riêng. Mutation-heavy = gate B chỉ verify read/render. Fail ≥1 gate → systematic-debugging → `e2e-bugs.md` → fix → rerun (max 3 vòng).
 
 ## Post-code (trước PR)
 - **§4.5 Security review** (BẮT BUỘC — feature đụng file upload/stream + input user): `/security-review` diff mỗi repo → `docs/specs/home-dashboard-library/security-report.md` (verdict). BLOCK → fix.

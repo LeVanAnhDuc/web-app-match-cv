@@ -9,12 +9,12 @@ Cặp server/client riêng của worktree (DB riêng `matchcv_rewrite` — xem "
 
 ```bash
 # server worktree
-yarn build && node dist/src/main.js          # .env: PORT=5206, CLIENT_ORIGIN=http://localhost:5306
+pnpm build && node dist/src/main.js          # .env: PORT=5206, CLIENT_ORIGIN=http://localhost:5306
 
 # client worktree
-VITE_API_BASE_URL=http://localhost:5206/api/v1 yarn dev --port 5306
+VITE_API_BASE_URL=http://localhost:5206/api/v1 pnpm dev --port 5306
 E2E_BASE_URL=http://localhost:5306 E2E_API_BASE=http://localhost:5206/api/v1 \
-  yarn test:e2e --project=desktop
+  pnpm test:e2e --project=desktop
 ```
 
 **Provider thật bị chặn hoàn toàn bằng route interception** — `POST /cv-rewrite` sinh một chat completion thật trên key thật, thứ một suite E2E không được phép tiêu.

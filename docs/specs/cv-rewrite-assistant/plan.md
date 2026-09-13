@@ -33,11 +33,11 @@
 
    @@index([parentId])
    ```
-2. `npx prisma migrate dev --name add_document_parent` → `npx prisma generate`.
+2. `pnpm exec prisma migrate dev --name add_document_parent` → `pnpm exec prisma generate`.
 3. `DocumentDto` + `parentId: string | null` (`@ApiProperty({ nullable: true })`) + map trong `fromEntity`.
 4. `seed.ts` **không đổi** (mọi document cũ là bản gốc → `null`).
 
-**Verify**: `yarn type-check`; migration SQL chứa `ON DELETE SET NULL`; `documents.e2e-spec.ts` cũ vẫn xanh với field mới trong response.
+**Verify**: `pnpm type-check`; migration SQL chứa `ON DELETE SET NULL`; `documents.e2e-spec.ts` cũ vẫn xanh với field mới trong response.
 
 ## T2 · BE · `grounding.ts` — hàm thuần (test trước)
 
@@ -112,7 +112,7 @@ Case: generate → accept → `GET /documents/:id` có `parentId` đúng · CV g
 
 **File**: `src/routes/_app/cv-rewrite.$matchResultId.tsx`, `src/views/CvRewrite/index.tsx`, `mains/RewriteReview/index.tsx`, `components/{ChangeCard,RewriteRunWith,SaveRewriteModal}/index.tsx`, `src/locales/{en,vi}/translation.json`
 
-- Route mỏng: `createFileRoute("/_app/cv-rewrite/$matchResultId")({ component })` → `yarn generate-routes`.
+- Route mỏng: `createFileRoute("/_app/cv-rewrite/$matchResultId")({ component })` → `pnpm generate-routes`.
 - `index.tsx` = `PageContainer` + tiêu đề + `<RewriteReview matchResultId={...} />` (chỉ import từ `mains/`).
 - `RewriteReview`: `useMatchResult` + `useDocument` → panel Run-with + privacy + **Generate** → skeleton (`aria-busy`) → danh sách `ChangeCard` (`aria-live="polite"`, **0 tick mặc định**) + Select all + `Alert` `unaddressedGaps` + `Collapse` Preview result + footer Save.
 - `ChangeCard`: `role="group"` + accessible name; eyebrow `sectionHint`; `original` đỏ nhạt gạch ngang, `replacement` xanh nhạt; `rationale` `text-muted`; `addressesGap` → `Tag`; `Checkbox` antd có nhãn liên kết.
@@ -138,7 +138,7 @@ Case: generate → accept → `GET /documents/:id` có `parentId` đúng · CV g
 - `helpers.ts`: `CV_REWRITE_ROUTE = "**/api/v1/cv-rewrite"` + `CV_REWRITE_ACCEPT_ROUTE = "**/api/v1/cv-rewrite/accept"` (**glob**, không regex `$` — bài học của `multi-provider-compare`); stub proposal có tham số; helper đi từ wizard tới step 4 (dùng lại `multi-provider-compare/helpers`).
 - Một test cho mỗi row ✅ ở matrix (`design.md` §7): 1, 4, 5, 6, 8, 9, 10, 11, 12.
 - **Reconcile**: chạy **cả suite desktop**, sửa mọi spec cũ bị lệch vì (a) nút mới trên `MatchResultCard`, (b) đường `matchId` mới ở `StepResult`. Add / update / remove — không chỉ append.
-- Chạy: `E2E_BASE_URL=http://localhost:5306 E2E_API_BASE=http://localhost:5206/api/v1 yarn test:e2e --project=desktop` trên cặp server `:5206` / client `:5306`.
+- Chạy: `E2E_BASE_URL=http://localhost:5306 E2E_API_BASE=http://localhost:5206/api/v1 pnpm test:e2e --project=desktop` trên cặp server `:5206` / client `:5306`.
 
 ## T11 · DOC
 
@@ -148,4 +148,4 @@ Case: generate → accept → `GET /documents/:id` có `parentId` đúng · CV g
 
 ## Gate trước PR
 
-`4.5` security review → `4.6` drift audit → **`4.7`**: `server/` `yarn format && yarn lint && yarn type-check && yarn test && yarn build` + `yarn test:e2e`; `client/` `yarn format && yarn lint && yarn type-check && yarn test && yarn build` → `4.8` README → **step 5** PR mỗi repo, base `main`, **KHÔNG merge**.
+`4.5` security review → `4.6` drift audit → **`4.7`**: `server/` `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build` + `pnpm test:e2e`; `client/` `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build` → `4.8` README → **step 5** PR mỗi repo, base `main`, **KHÔNG merge**.

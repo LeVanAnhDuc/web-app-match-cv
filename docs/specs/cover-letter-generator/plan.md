@@ -8,7 +8,7 @@
 
 - 3 worktree tách từ `origin/main` mới nhất, cùng tên branch.
 - `.env` copy sang worktree (`Copy-Item`, không `cp`).
-- `yarn install` cả `server/` + `client/`.
+- `pnpm install` cả `server/` + `client/`.
 
 ---
 
@@ -19,7 +19,7 @@
 1. Thêm 4 enum: `CoverLetterTone`, `CoverLetterLength`, `CoverLetterLanguage`, `CoverLetterStatus`.
 2. Thêm model `CoverLetter` đúng shape design §5.1 (`String[]` cho `omittedRequirements`, `@@index([userId, matchResultId])`).
 3. Relation ngược: `User.coverLetters`, `MatchResult.coverLetters`, `AiCredential.coverLetters`. **Không đụng `Document`.**
-4. `npx prisma migrate dev --name add_cover_letter` + `npx prisma generate`.
+4. `pnpm exec prisma migrate dev --name add_cover_letter` + `pnpm exec prisma generate`.
 5. `seed.ts` **không đổi** (xác nhận, không sửa).
 
 **Verify**: migration chỉ chứa `CREATE TYPE` × 4 + `CREATE TABLE "CoverLetter"` + FK + index. **Không có `ALTER TABLE "Document"`** — grep để chắc.
@@ -143,8 +143,8 @@ Một test cho mỗi row ✅ của design §8:
 **Gate A** — chạy **toàn bộ** project `desktop`:
 ```
 server: PORT=5208 CLIENT_ORIGIN=http://localhost:5308 node dist/src/main.js
-client: VITE_API_BASE_URL=http://localhost:5208/api/v1 yarn dev --port 5308
-test:   E2E_BASE_URL=http://localhost:5308 E2E_API_BASE=http://localhost:5208/api/v1 yarn test:e2e --project=desktop
+client: VITE_API_BASE_URL=http://localhost:5208/api/v1 pnpm dev --port 5308
+test:   E2E_BASE_URL=http://localhost:5308 E2E_API_BASE=http://localhost:5208/api/v1 pnpm test:e2e --project=desktop
 ```
 Reconcile bất kỳ spec cũ nào bị vỡ. **Gate B (MCP walk) không chạy** — ghi lý do vào `e2e.md`.
 
@@ -156,7 +156,7 @@ Cleanup tôn trọng thứ tự FK: `CoverLetter` → `MatchResult` → `MatchRu
 
 - `security-report.md` — `/security-review` trên diff, findings + verdict.
 - Drift audit: `docs/erd.md` (+ `CoverLetter`), `docs/project-goals.md` (§6.4, §12 xoá open question, Roadmap #8), `server/README.md` (4 endpoint + hợp đồng D4). `server/.claude/CLAUDE.md` + `client/.claude/CLAUDE.md` — kiểm tra có drift không (module list / commands).
-- Green checks **cả 2 repo**: `yarn format && yarn lint && yarn type-check && yarn test && yarn build`, thêm `yarn test:e2e` (Jest e2e) ở server.
+- Green checks **cả 2 repo**: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`, thêm `pnpm test:e2e` (Jest e2e) ở server.
 - `e2e.md` — matrix cuối + ghi rõ gate B chưa chạy.
 
 ---

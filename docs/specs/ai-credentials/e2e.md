@@ -8,15 +8,15 @@
 Cần một cặp dev server đang chạy. Từ worktree, dùng port riêng để không đụng main checkout:
 
 ```bash
-# server (từ server/.worktrees/ai-credentials, sau yarn build)
+# server (từ server/.worktrees/ai-credentials, sau pnpm build)
 PORT=5202 CLIENT_ORIGIN=http://localhost:5302 node dist/src/main.js
 
 # client (từ client/.worktrees/ai-credentials)
-VITE_API_BASE_URL=http://localhost:5202/api/v1 yarn dev --port 5302
+VITE_API_BASE_URL=http://localhost:5202/api/v1 pnpm dev --port 5302
 
 # gate A
 E2E_BASE_URL=http://localhost:5302 E2E_API_BASE=http://localhost:5202/api/v1 \
-  yarn test:e2e --project=desktop
+  pnpm test:e2e --project=desktop
 ```
 
 `CLIENT_ORIGIN` của server **phải** khớp origin của client, nếu không CORS chặn hết request.

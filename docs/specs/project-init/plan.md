@@ -94,7 +94,7 @@ Giữ nguyên khung §1–§7 và toàn bộ flow (context routing, superpowers 
 - §3.2/§3.3: giữ nguyên cơ chế uiux + SuperDesign strict-theme (agnostic về quy trình), token cụ thể = TBD.
 - §4.1: giữ nguyên bảng superpowers (agnostic).
 - §4.2: skill convention stack — giữ các skill root-level + agnostic (`standard-coding-universal`, `standard-typescript`); các skill tech-specific (`standard-jwt`, `standard-mongodb`, `standard-restful-api`, `standard-nextjs`, `standard-tailwind`, `standard-shadcn`, `module-struct`, …) đánh dấu **"TBD — định nghĩa khi thêm server/client + chốt tech"**, KHÔNG liệt kê như đang tồn tại.
-- §4.3/§5: giữ flow E2E dual-gate + cross-stack; port cụ thể (`:5000`/`:3000`/`:3100`/`:5100`), lệnh `yarn e2e`, env cụ thể → thay bằng "TBD khi có server/client + tech". Ghi rõ `server/`/`client/` repo **sẽ được thêm sau**.
+- §4.3/§5: giữ flow E2E dual-gate + cross-stack; port cụ thể (`:5000`/`:3000`/`:3100`/`:5100`), lệnh `pnpm e2e`, env cụ thể → thay bằng "TBD khi có server/client + tech". Ghi rõ `server/`/`client/` repo **sẽ được thêm sau**.
 - §6: giữ worktree isolation rule; note runner `worktree.mjs` **chưa có** (thêm cùng server/client).
 - §7: giữ nguyên commit review gate.
 - Mọi tên repo store → repo match-cv tương ứng (`doc-web-app-match-cv`, `claude-architecture-match-cv`); `server`/`client` repo = "TBD".

@@ -24,7 +24,7 @@
 - **Không hardcode chuỗi hiển thị** — mọi text qua `t(...)`, key đồng bộ `en`/`vi` (NFR-I18N-01).
 - **Một component một folder + `index.tsx`, arrow fn, `export default` duy nhất** (`component-folder.md`).
 - **Props viết inline tại tham số**, không `type Props` (`types.md`).
-- Sau **mỗi** task: `yarn format && yarn lint && yarn type-check && yarn test` phải xanh trước khi commit.
+- Sau **mỗi** task: `pnpm format && pnpm lint && pnpm type-check && pnpm test` phải xanh trước khi commit.
 
 ---
 
@@ -46,7 +46,7 @@
 - [x] **Step 1: Cài ba font**
 
 ```bash
-cd client && yarn add @fontsource/inter @fontsource/space-grotesk @fontsource/jetbrains-mono
+cd client && pnpm add @fontsource/inter @fontsource/space-grotesk @fontsource/jetbrains-mono
 ```
 
 Dùng file CSS đầy đủ (`400.css`, không `latin-400.css`): nó khai báo `unicode-range` cho mọi subset kể cả **vietnamese**, nên trình duyệt chỉ tải subset thật cần. Bỏ subset vietnamese là dấu tiếng Việt rơi về font fallback.
@@ -106,7 +106,7 @@ describe("THEME khớp styles.css", () => {
 
 - [x] **Step 3: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/constants/__tests__/theme.test.ts`
+Run: `cd client && pnpm test src/constants/__tests__/theme.test.ts`
 Expected: FAIL — `Cannot find module '#/constants'` chưa export `THEME`, hoặc `light["line-strong"]` là `undefined`.
 
 - [x] **Step 4: Viết `THEME`**
@@ -248,7 +248,7 @@ Nếu Vite hash tên file font khiến đường dẫn trên không tồn tại 
 
 - [x] **Step 8: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/constants/__tests__/theme.test.ts`
+Run: `cd client && pnpm test src/constants/__tests__/theme.test.ts`
 Expected: PASS — 3 test.
 
 - [x] **Step 9: Sync rule file**
@@ -258,7 +258,7 @@ Expected: PASS — 3 test.
 - [x] **Step 10: Commit**
 
 ```bash
-git add client/package.json client/yarn.lock client/src/styles.css client/src/constants client/src/contexts/AntdProvider/index.tsx client/src/routes/__root.tsx client/.claude/rules/layout-primitives.md
+git add client/package.json client/pnpm-lock.yaml client/src/styles.css client/src/constants client/src/contexts/AntdProvider/index.tsx client/src/routes/__root.tsx client/.claude/rules/layout-primitives.md
 git commit -m "feat(design-system): bootstrap token zinc + cyan va ba typeface tu host
 
 Doi nguon mau va chu sang bo token moi theo ADR-0021. THEME o src/constants
@@ -331,7 +331,7 @@ describe("SectionCard", () => {
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/components/SectionCard`
+Run: `cd client && pnpm test src/components/SectionCard`
 Expected: FAIL — `eyebrow` chưa là prop; header còn `shrink-0` và không có `flex-col`.
 
 - [x] **Step 3: Sửa `SectionCard`**
@@ -416,12 +416,12 @@ const SectionCard = ({
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/components/SectionCard`
+Run: `cd client && pnpm test src/components/SectionCard`
 Expected: PASS — 4 test.
 
 - [x] **Step 5: Chạy toàn bộ suite để bắt regression ở consumer**
 
-Run: `cd client && yarn test`
+Run: `cd client && pnpm test`
 Expected: PASS. `SectionCard` có nhiều consumer; test nào đỏ vì đổi cấu trúc header thì sửa **query của test**, không sửa lại markup.
 
 - [x] **Step 6: Commit**
@@ -542,7 +542,7 @@ describe("Readout", () => {
 
 - [x] **Step 3: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/components/Readout`
+Run: `cd client && pnpm test src/components/Readout`
 Expected: FAIL — module chưa tồn tại.
 
 - [x] **Step 4: Viết `Readout`**
@@ -660,7 +660,7 @@ Ba `<span>` vạch thang dùng fraction của Tailwind (`left-1/4` · `left-1/2`
 
 - [x] **Step 5: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/components/Readout`
+Run: `cd client && pnpm test src/components/Readout`
 Expected: PASS — 8 test.
 
 - [x] **Step 6: Commit**
@@ -729,7 +729,7 @@ it("render actionBar ghim đáy khi được truyền", () => {
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/layouts/AppShell`
+Run: `cd client && pnpm test src/layouts/AppShell`
 Expected: FAIL — root div còn `h-screen`; `actionBar` chưa là prop.
 
 - [x] **Step 3: Sửa `AppShell`**
@@ -760,7 +760,7 @@ Không có `lg:static`: đây là ngoại lệ của MASTER §5 luật 3 cho mà
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/layouts/AppShell`
+Run: `cd client && pnpm test src/layouts/AppShell`
 Expected: PASS — 5 test.
 
 - [x] **Step 5: Commit**
@@ -853,7 +853,7 @@ describe("Stepper", () => {
 
 - [x] **Step 3: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/views/Wizard/components/Stepper`
+Run: `cd client && pnpm test src/views/Wizard/components/Stepper`
 Expected: FAIL — `onJump`/`blockedFrom` chưa tồn tại; `blue-600` còn trong markup.
 
 - [x] **Step 4: Sửa `Stepper`**
@@ -905,7 +905,7 @@ Line nối đổi `bg-blue-600 dark:bg-indigo-600` → `bg-primary`.
 
 - [x] **Step 5: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/views/Wizard/components/Stepper`
+Run: `cd client && pnpm test src/views/Wizard/components/Stepper`
 Expected: PASS — 5 test.
 
 - [x] **Step 6: Commit**
@@ -997,7 +997,7 @@ describe("wizardStore", () => {
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/stores`
+Run: `cd client && pnpm test src/stores`
 Expected: FAIL — `setCvDocId` giữ nguyên `runId`; `jumpTo` chưa tồn tại.
 
 - [x] **Step 3: Sửa slice**
@@ -1054,7 +1054,7 @@ const Wizard = () => {
 
 - [x] **Step 5: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/stores src/views/Wizard`
+Run: `cd client && pnpm test src/stores src/views/Wizard`
 Expected: PASS.
 
 - [x] **Step 6: Commit**
@@ -1111,7 +1111,7 @@ it("eyebrow của danh sách đã lưu dùng text-muted", () => {
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/views/Wizard/components/DocumentInputStep`
+Run: `cd client && pnpm test src/views/Wizard/components/DocumentInputStep`
 Expected: FAIL — `h3` còn `text-faint`.
 
 - [x] **Step 3: Sửa hai file**
@@ -1122,7 +1122,7 @@ Expected: FAIL — `h3` còn `text-faint`.
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/views/Wizard`
+Run: `cd client && pnpm test src/views/Wizard`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
@@ -1166,7 +1166,7 @@ it("StepResult không tự render thanh hành động — nó thuộc shell", ()
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/views/Wizard/mains/StepResult`
+Run: `cd client && pnpm test src/views/Wizard/mains/StepResult`
 Expected: FAIL — thanh hành động còn nằm trong một `div.rounded-xl` của `StepResult`.
 
 - [x] **Step 3: Chuyển thanh hành động lên shell**
@@ -1197,7 +1197,7 @@ useEffect(() => {
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/views/Wizard`
+Run: `cd client && pnpm test src/views/Wizard`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
@@ -1255,7 +1255,7 @@ it("ScoreDelta báo 'không so được' khi khác model, không vẽ mũi tên"
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/views/Wizard/components/MatchResultCard src/views/Home src/views/CvComparison`
+Run: `cd client && pnpm test src/views/Wizard/components/MatchResultCard src/views/Home src/views/CvComparison`
 Expected: FAIL — chưa có `role="meter"`.
 
 - [x] **Step 3: Thay gauge và ScoreBar**
@@ -1280,7 +1280,7 @@ Ba điểm số là **một nhóm** nên ở `md` chúng lên 3 cột, không t�
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test`
+Run: `cd client && pnpm test`
 Expected: PASS. Test cũ của `MatchResultCard` tìm text `"73%"` sẽ đỏ vì số và `%` giờ nằm ở hai `<span>` — sửa query sang `getByRole("meter")`, **không** ghép lại thành một node.
 
 - [x] **Step 5: Commit**
@@ -1338,7 +1338,7 @@ Nếu `globSync` chưa có ở Node của máy thì dùng `fast-glob` (đã là 
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/__tests__/no-hardcoded-colour.test.ts`
+Run: `cd client && pnpm test src/__tests__/no-hardcoded-colour.test.ts`
 Expected: FAIL — liệt kê 4 file với 14 chỗ.
 
 - [x] **Step 3: Đổi từng chỗ sang token**
@@ -1363,7 +1363,7 @@ Semantic đi qua token là thay đổi so với rule cũ (nó cho phép giữ cl
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test && yarn build`
+Run: `cd client && pnpm test && pnpm build`
 Expected: PASS, và build phải thành công — `accent-[--color-primary]` là arbitrary value đọc CSS variable, nếu Tailwind 4 không nhận thì đổi sang một `<input>` bọc bằng antd `<Radio>` và bỏ hẳn `accent-*`.
 
 - [x] **Step 5: Commit**
@@ -1410,7 +1410,7 @@ Dùng lại helper liệt kê file của Task 10 — tách nó ra `client/src/__
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/__tests__/no-faint-text.test.ts`
+Run: `cd client && pnpm test src/__tests__/no-faint-text.test.ts`
 Expected: FAIL — 11 file.
 
 - [x] **Step 3: Đổi 27 chỗ**
@@ -1421,7 +1421,7 @@ Không đổi các chỗ `text-faint` đứng trên `<Icon>` hoặc placeholder.
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test`
+Run: `cd client && pnpm test`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
@@ -1463,7 +1463,7 @@ Test chạy ở `jsdom` nên breakpoint không có thật; render **một** cây
 
 - [x] **Step 2: Chạy test, xác nhận fail**
 
-Run: `cd client && yarn test src/components/DocumentRow`
+Run: `cd client && pnpm test src/components/DocumentRow`
 Expected: FAIL — 6 nút đang render thẳng.
 
 - [x] **Step 3: Sửa `DocumentRow`**
@@ -1485,7 +1485,7 @@ Giữ `Popconfirm` cho `Xoá` và mọi `aria-label` đang có (E2E dựa vào c
 
 - [x] **Step 4: Chạy test, xác nhận pass**
 
-Run: `cd client && yarn test src/components/DocumentRow`
+Run: `cd client && pnpm test src/components/DocumentRow`
 Expected: PASS.
 
 - [x] **Step 5: Commit**
@@ -1511,7 +1511,7 @@ Lien quan: MASTER 8 - NFR-A11Y-03"
 
 - [x] **Step 1: Toàn bộ cổng chất lượng**
 
-Run: `cd client && yarn format && yarn lint && yarn type-check && yarn test && yarn build`
+Run: `cd client && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`
 Expected: tất cả xanh. Còn error thì fix hết, không bàn giao.
 
 - [x] **Step 2: Grep xác nhận không sót**
@@ -1521,12 +1521,12 @@ Expected: **0 dòng.**
 
 - [x] **Step 3: E2E ba viewport**
 
-Run: `cd client && yarn test:e2e`
+Run: `cd client && pnpm test:e2e`
 Expected: PASS ở cả ba project `desktop` / `tablet` / `mobile`. Server phải chạy (`:5200` + `:5300`) và `E2E_DATABASE_URL` phải set.
 
 - [x] **Step 4: Nhìn app thật**
 
-Chạy `yarn dev` ở cả hai side, rồi lái bằng Playwright hoặc chrome-devtools MCP: chụp ở **375 / 768 / 1024 / 1440**, đi qua cả 4 bước Wizard, thử hover / focus / tab / mở modal, và **đổi `prefers-color-scheme` sang dark**. Kiểm riêng ba thứ:
+Chạy `pnpm dev` ở cả hai side, rồi lái bằng Playwright hoặc chrome-devtools MCP: chụp ở **375 / 768 / 1024 / 1440**, đi qua cả 4 bước Wizard, thử hover / focus / tab / mở modal, và **đổi `prefers-color-scheme` sang dark**. Kiểm riêng ba thứ:
   - Wizard: `Quay lại` / `Tiếp tục` thấy được **ngay khi tải**, không cần cuộn, ở cả ba bề rộng.
   - Step 4 mobile: ba nút header xếp dọc, không có chỗ nào tràn ngang.
   - Font: không nhấp nháy khi hydrate; dấu tiếng Việt render đúng font chứ không rơi về fallback.

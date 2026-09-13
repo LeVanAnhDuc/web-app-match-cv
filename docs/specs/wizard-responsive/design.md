@@ -189,7 +189,7 @@ Spec mới `e2e/cv-jd-matching-wizard/responsive.e2e.ts` phủ row 6, 13, 14 (+ 
 
 ### 8.4 Green checks gate (§4.7)
 
-`yarn format` → `yarn lint` → `yarn type-check` → `yarn test` → `yarn build` (FE), rồi dual-gate §4.3. Phải xanh hết trước PR.
+`pnpm format` → `pnpm lint` → `pnpm type-check` → `pnpm test` → `pnpm build` (FE), rồi dual-gate §4.3. Phải xanh hết trước PR.
 
 ## 9. Artifact ngoài code
 

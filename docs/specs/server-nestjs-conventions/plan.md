@@ -12,7 +12,7 @@
 
 - NestJS module structure kept as-is; no module moves.
 - Rules describe actual code (relative imports — no alias; `HttpException` + `tX` i18n; DTO `fromEntity`).
-- Verification gate: `yarn format` → `yarn lint` → `yarn type-check` → `yarn test` → `yarn build`.
+- Verification gate: `pnpm format` → `pnpm lint` → `pnpm type-check` → `pnpm test` → `pnpm build`.
 - Work in worktree `server/.worktrees/server-nestjs-conventions` (branch `chore/server-nestjs-conventions`).
 
 ---
@@ -39,11 +39,11 @@
 - [ ] Apply only clear low-risk fixes (e.g. hoist `MAX_FILE_SIZE_BYTES`/regex to a per-module constants file). No module moves.
 
 ### Task B2: Green gate
-- [ ] `yarn format`
-- [ ] `yarn lint` (fix all)
-- [ ] `yarn type-check` (fix all)
-- [ ] `yarn test` (all pass)
-- [ ] `yarn build` (succeeds)
+- [ ] `pnpm format`
+- [ ] `pnpm lint` (fix all)
+- [ ] `pnpm type-check` (fix all)
+- [ ] `pnpm test` (all pass)
+- [ ] `pnpm build` (succeeds)
 
 ## Group C — drift + PR
 

@@ -14,8 +14,8 @@ Cần: **một lệnh chèn bộ CV/JD mock cố định, và một lệnh xoá 
 | Trong phạm vi                                             | Ghi chú                                        |
 | --------------------------------------------------------- | ---------------------------------------------- |
 | File dữ liệu mock cho CV + JD                             | 3 CV + 3 JD, thuần data                        |
-| `yarn seed:mock` — chèn / làm mới mock                    | Idempotent                                     |
-| `yarn seed:mock:clean` — xoá mock + match sinh ra từ mock | Chỉ theo **dial** id hằng số                   |
+| `pnpm seed:mock` — chèn / làm mới mock                    | Idempotent                                     |
+| `pnpm seed:mock:clean` — xoá mock + match sinh ra từ mock | Chỉ theo **dial** id hằng số                   |
 | Ghi chú lệnh mới vào `server/.claude/CLAUDE.md` §Commands | Drift audit §4.6                               |
 
 | Ngoài phạm vi                        | Lý do                                                                                                                             |
@@ -136,7 +136,7 @@ server/scripts/seed-mock.ts        ← runner: chèn, hoặc --clean để xoá
 
 ## 6. Hành vi
 
-### `yarn seed:mock`
+### `pnpm seed:mock`
 
 1. Upsert `STUB_USER_ID` (`role: candidate`) — để chạy được trên DB trắng chưa `prisma db seed`.
 2. Upsert từng mock document theo `id`. Nhánh `update` ghi lại **đầy đủ** mọi field, không phải `update: {}`.
@@ -144,7 +144,7 @@ server/scripts/seed-mock.ts        ← runner: chèn, hoặc --clean để xoá
 
 `update` đầy đủ là có ý: nó khiến lệnh này vừa là "chèn" vừa là "làm mới". Chạy lại sau khi đã rename mock trên UI, hoặc sau khi lỡ sửa nội dung, sẽ trả mock về đúng trạng thái gốc. Với dữ liệu thật thì ghi đè như vậy là sai; với mock thì đó chính là hành vi mong muốn.
 
-### `yarn seed:mock:clean`
+### `pnpm seed:mock:clean`
 
 Trong **một** `$transaction`, đúng thứ tự khoá ngoại:
 
@@ -178,17 +178,17 @@ Hai npm script riêng (cùng một file TS, phân biệt bằng `--clean`) thay 
 
 ## 7. Xác minh
 
-Script dev-only, không thêm unit spec — khớp tiền lệ `recompute-keyword-scores.ts`, và `jest` có `rootDir: src` nên spec nằm trong `scripts/` sẽ không được `yarn test` nhặt lên. Với script trực tiếp đọc/ghi DB, chạy thật cho bằng chứng mạnh hơn một unit test trên fixture thuần:
+Script dev-only, không thêm unit spec — khớp tiền lệ `recompute-keyword-scores.ts`, và `jest` có `rootDir: src` nên spec nằm trong `scripts/` sẽ không được `pnpm test` nhặt lên. Với script trực tiếp đọc/ghi DB, chạy thật cho bằng chứng mạnh hơn một unit test trên fixture thuần:
 
 1. Đếm `document` / `matchResult` / `matchRun` / `coverLetter` / `user` trước — và làm việc này trên **DB có dữ liệu thật**, không phải DB trống. Đây mới là chỗ chứng minh được "không chạm dữ liệu thật".
-2. `yarn seed:mock` → phải có đúng 6 document mock, đọc lại kiểm `kind` / `isSaved` / `sourceFormat` / `fileData` / `parsedContent` / `parentId` / owner / độ dài `rawText`.
-3. `yarn seed:mock` **lần hai** → vẫn đúng 6 (chứng minh idempotent, không nhân bản).
-4. Sửa tay một mock (title + `isSaved` + `rawText`) → `yarn seed:mock` → cả ba trở về gốc (chứng minh nhánh làm mới).
-5. Tạo `MatchRun` + `MatchResult` + `CoverLetter` trỏ vào mock, **và** một document **thật** có `parentId` trỏ vào mock → `yarn seed:mock:clean` → mock biến hết, document thật sống với `parentId = null`, số đếm về đúng bước 1, `STUB_USER_ID` còn nguyên.
-6. `yarn seed:mock:clean` lần hai khi không còn mock → `0/0/0`, exit 0.
+2. `pnpm seed:mock` → phải có đúng 6 document mock, đọc lại kiểm `kind` / `isSaved` / `sourceFormat` / `fileData` / `parsedContent` / `parentId` / owner / độ dài `rawText`.
+3. `pnpm seed:mock` **lần hai** → vẫn đúng 6 (chứng minh idempotent, không nhân bản).
+4. Sửa tay một mock (title + `isSaved` + `rawText`) → `pnpm seed:mock` → cả ba trở về gốc (chứng minh nhánh làm mới).
+5. Tạo `MatchRun` + `MatchResult` + `CoverLetter` trỏ vào mock, **và** một document **thật** có `parentId` trỏ vào mock → `pnpm seed:mock:clean` → mock biến hết, document thật sống với `parentId = null`, số đếm về đúng bước 1, `STUB_USER_ID` còn nguyên.
+6. `pnpm seed:mock:clean` lần hai khi không còn mock → `0/0/0`, exit 0.
 7. **Kiểm tầng HTTP — BẮT BUỘC, không được bỏ.** Cho id mock đi qua **DTO thật** (`plainToInstance(CreateMatchDto, …)` + `validateSync`) và khẳng định **0 error**. Bước này thiếu ở phiên bản đầu, và đó chính là lý do bug §3.1 lọt: bước 1–6 chỉ chạm tầng DB, tầng DB nhận mọi chuỗi vì `Document.id` là `TEXT`. Một fixture có thể qua sạch 6 bước đầu mà vẫn 400 ở mọi endpoint ghi.
-8. `yarn format` → `yarn lint` → `yarn type-check` → `yarn test` → `yarn build` xanh hết.
-9. `npx prisma db seed` vẫn chạy (vì `prisma/seed.ts` giờ import `STUB_USER_ID` từ `src/`, xem §5).
+8. `pnpm format` → `pnpm lint` → `pnpm type-check` → `pnpm test` → `pnpm build` xanh hết.
+9. `pnpm exec prisma db seed` vẫn chạy (vì `prisma/seed.ts` giờ import `STUB_USER_ID` từ `src/`, xem §5).
 
 **Bài học của §7**: verification chỉ mạnh bằng tầng thấp nhất mà nó chạm. Đo ở tầng DB và ở hàm thuần thì bỏ lọt đúng lớp mà dữ liệu phải đi qua để có ích — lớp validate.
 

@@ -17,8 +17,8 @@
 - **A provider failure is a 201 with `status=failed`**, not a 503. 503 stays only for configuration errors (missing system key, missing encryption key).
 - **Route order**: `GET /match/runs/:id` must be declared before `GET /match/:id`.
 - Every result row keeps its own `provider` / `chatModel` / `embedModel` snapshot — cards read attribution from the row, never from the credential list.
-- BE gate: `yarn format && yarn lint && yarn type-check && yarn test && yarn test:e2e && yarn build`.
-- FE gate: `yarn format && yarn lint && yarn type-check && yarn test && yarn build`, plus Playwright.
+- BE gate: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm test:e2e && pnpm build`.
+- FE gate: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`, plus Playwright.
 - Conventions: `server/.claude/CLAUDE.md` and `client/.claude/CLAUDE.md` + their rules.
 
 ## File Structure
@@ -43,7 +43,7 @@
 
 - [ ] **Step 1** — Add `enum MatchStatus { succeeded failed }` and the `MatchRun` model (design §3.1). Add `runs MatchRun[]` to `User`, and the two named relations to `Document`.
 - [ ] **Step 2** — Add to `MatchResult`: `runId String?` + relation `onDelete: Cascade`, `status MatchStatus @default(succeeded)`, `errorCode String?`.
-- [ ] **Step 3** — `npx prisma migrate dev --name add_match_run`. Unlike `add_ai_credential`, no hand-editing is needed: `runId`/`errorCode` are nullable and `status` has a default, so existing rows backfill on their own.
+- [ ] **Step 3** — `pnpm exec prisma migrate dev --name add_match_run`. Unlike `add_ai_credential`, no hand-editing is needed: `runId`/`errorCode` are nullable and `status` has a default, so existing rows backfill on their own.
 - [ ] **Step 4** — Verify: existing rows read back `status = succeeded`, `runId = null`.
 - [ ] **Step 5** — Gate + commit.
 
@@ -92,7 +92,7 @@ Today both methods swallow everything into one 503, so the caller cannot tell `n
 
 - [ ] **Step 1** — Write `match-runs.e2e-spec.ts`: create a run → two matches under it → `GET /match/runs/:id` returns both with distinct providers; a run id from another user → 404; a `runId` pointing at other documents → 400; a pre-existing row with `runId = null` still readable via `GET /match/:id`; a failing provider yields `201` with `status: "failed"` and an `errorCode` from the closed set — and the response body contains no provider message.
 - [ ] **Step 2** — Reconcile `matching.e2e-spec.ts` with the new contract.
-- [ ] **Step 3** — `yarn test:e2e`. Gate + commit.
+- [ ] **Step 3** — `pnpm test:e2e`. Gate + commit.
 
 ---
 

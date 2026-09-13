@@ -139,7 +139,7 @@ Vì pipeline bỏ dấu trước khi lọc, danh sách phải viết `va`, `cua`
 
 ## 5. Script tính lại điểm cũ
 
-`server/scripts/recompute-keyword-scores.ts`, chạy bằng `yarn recompute-scores`.
+`server/scripts/recompute-keyword-scores.ts`, chạy bằng `pnpm recompute-scores`.
 
 - **Chỉ tính lại `keywordScore` + `overallScore`**; `semanticScore` giữ nguyên như đã lưu.
 - **Phải áp `capForMatch(MAX_MATCH_CHARS = 20_000)` y hệt engine.** Điểm gốc tính trên text **đã cắt** (`matching.service.ts:173-182`); không cắt thì số mới lệch so với một lần match thật — tức là ta thay một kiểu sai bằng một kiểu sai khác.
@@ -181,8 +181,8 @@ Assert quan hệ chứ không assert `69%`: con số sẽ đổi mỗi lần ai 
 |---|---|---|
 | **§4.3 E2E** | **SKIP** | Không UI mới, không flow mới. Đã verify: `client/e2e/cv-jd-matching-wizard/helpers.ts` dùng `MatchResult` **stub cắm thẳng DB** (82/90/74), không gọi engine → đổi tokenizer không làm vỡ E2E |
 | **§4.5 Security review** | **CHẠY** | Xử lý text do user nạp. Soi: regex `\p{L}` có backtracking không (đánh giá ban đầu: không — character class, không lồng quantifier), và input đã bị chặn ở 20k ký tự trước khi vào `keywordScore` |
-| **§4.6 Drift audit** | **CHẠY cho `server/.claude/CLAUDE.md`** | Thêm `tokenizer.ts` vào mô tả module + `yarn recompute-scores` vào bảng Commands. `techstack/backend.md` **không đổi** (không thêm dependency). `erd.md` **không đổi** (không đổi schema) |
-| **§4.7 Green checks** | `yarn lint` → `type-check` → `test` → `build` trong `server/` | |
+| **§4.6 Drift audit** | **CHẠY cho `server/.claude/CLAUDE.md`** | Thêm `tokenizer.ts` vào mô tả module + `pnpm recompute-scores` vào bảng Commands. `techstack/backend.md` **không đổi** (không thêm dependency). `erd.md` **không đổi** (không đổi schema) |
+| **§4.7 Green checks** | `pnpm lint` → `type-check` → `test` → `build` trong `server/` | |
 | **Worktree** | `docs/` + `server/` | Không đụng `client/` |
 
 ## 8. Tiêu chí thành công
@@ -197,4 +197,4 @@ Assert quan hệ chứ không assert `69%`: con số sẽ đổi mỗi lần ai 
    > Cả hai đều là cải thiện có chủ ý. Tiêu chí đúng phải là **không hồi quy**, không phải **bất biến**.
 3. Cặp *CV có dấu ↔ JD không dấu* cho cùng điểm với cặp *cả hai đều có dấu*.
 4. Input NFC và NFD của cùng một văn bản cho cùng token set.
-5. `yarn recompute-scores --apply` chạy xong, mọi `MatchResult` cũ mang điểm theo công thức mới; chạy lại lần hai không đổi gì.
+5. `pnpm recompute-scores --apply` chạy xong, mọi `MatchResult` cũ mang điểm theo công thức mới; chạy lại lần hai không đổi gì.

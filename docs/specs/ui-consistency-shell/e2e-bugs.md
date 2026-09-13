@@ -4,7 +4,7 @@ Append-only log của các vòng dual-gate fail (§4.3). Tối đa 3 vòng rồi
 
 ## Round 1 — 2026-08-08
 
-- **Gate fail**: A (`yarn test:e2e --project=desktop e2e/ui-consistency-shell`) — 2/7 fail.
+- **Gate fail**: A (`pnpm test:e2e --project=desktop e2e/ui-consistency-shell`) — 2/7 fail.
 - **Scenario**: 11 `[state] collapse to rail…` và 11 `[state] a collapsed desktop preference does not affect the mobile drawer`.
 - **Triệu chứng**: `getByText("Curriculum Vitae")` resolve ra 2 element (strict-mode violation / assertion sai). Observed: locator khớp cả `span` trong stat card Home lẫn `span` nhãn nav. Expected: chỉ khớp nhãn trong sidebar.
 - **Root cause**: đổi `home.stat.savedCvs` sang cùng chuỗi "Curriculum Vitae" với `nav.savedCvs` (đúng theo design §4.4) khiến locator không phạm vi trở nên mơ hồ. **Lỗi ở test, không phải ở app.**

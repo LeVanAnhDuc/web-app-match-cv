@@ -20,7 +20,7 @@
 - **Một phần tử = một lần trong DOM.** Không được render 2 biến thể của cùng một nội dung rồi `hidden`/`lg:hidden`.
 - Ẩn chữ ở mobile: `sr-only md:not-sr-only` (KHÔNG `hidden` — mất khỏi accessibility tree và làm vỡ test).
 - Convention: `client/.claude/rules/{component-folder,views,jsx,imports}.md` — component = folder + `index.tsx`, arrow fn, `export default` duy nhất; `views/<V>/index.tsx` chỉ import từ `mains/`; interactive element dùng antd.
-- Sau mỗi task: `yarn format && yarn lint && yarn type-check && yarn test` phải xanh.
+- Sau mỗi task: `pnpm format && pnpm lint && pnpm type-check && pnpm test` phải xanh.
 
 ---
 
@@ -58,7 +58,7 @@ Thêm vào `Stepper.test.tsx`:
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn vitest run src/views/Wizard/components/Stepper`
+Run: `pnpm exec vitest run src/views/Wizard/components/Stepper`
 Expected: FAIL — `label.className` hiện là `text-sm font-medium …`, không chứa `sr-only`.
 
 - [ ] **Step 3: Viết implementation — thay toàn bộ phần render của `Stepper`**
@@ -129,8 +129,8 @@ const Stepper = ({ current }: { current: WizardStep }) => {
 
 - [ ] **Step 4: Chạy test**
 
-Run: `yarn vitest run src/views/Wizard/components/Stepper`
-Expected: PASS (6 test — 4 cũ + 2 mới). `yarn type-check` sẽ fail ở `views/Wizard/index.tsx` vì còn truyền `orientation` — Task 2 sửa.
+Run: `pnpm exec vitest run src/views/Wizard/components/Stepper`
+Expected: PASS (6 test — 4 cũ + 2 mới). `pnpm type-check` sẽ fail ở `views/Wizard/index.tsx` vì còn truyền `orientation` — Task 2 sửa.
 
 ---
 
@@ -169,8 +169,8 @@ describe("wizard shell layout", () => {
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn vitest run src/views/Wizard/__tests__/Wizard.test.tsx`
-Expected: FAIL — `yarn type-check`/render lỗi vì `Stepper` không còn nhận `orientation` (Task 1 đã bỏ).
+Run: `pnpm exec vitest run src/views/Wizard/__tests__/Wizard.test.tsx`
+Expected: FAIL — `pnpm type-check`/render lỗi vì `Stepper` không còn nhận `orientation` (Task 1 đã bỏ).
 
 - [ ] **Step 3: Tạo `mains/WizardNav/index.tsx`**
 
@@ -258,7 +258,7 @@ export default Wizard;
 
 - [ ] **Step 5: Chạy test + type-check**
 
-Run: `yarn vitest run src/views/Wizard && yarn type-check`
+Run: `pnpm exec vitest run src/views/Wizard && pnpm type-check`
 Expected: PASS cả hai (`index.tsx` không còn import `components/Stepper` ⇒ đúng `rules/views.md`).
 
 ---
@@ -297,7 +297,7 @@ Thêm vào `DocumentInputStep.test.tsx`:
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn vitest run src/views/Wizard/components/DocumentInputStep`
+Run: `pnpm exec vitest run src/views/Wizard/components/DocumentInputStep`
 Expected: FAIL — không có class `sticky`, không có `ant-btn-lg`.
 
 - [ ] **Step 3: Sửa `DocumentInputStep/index.tsx`** (4 dòng class + 2 `Button`)
@@ -324,7 +324,7 @@ Hai `Button` trong footer: thêm `size="large"` (giữ nguyên mọi prop khác)
 
 - [ ] **Step 5: Chạy test**
 
-Run: `yarn vitest run src/views/Wizard && yarn type-check`
+Run: `pnpm exec vitest run src/views/Wizard && pnpm type-check`
 Expected: PASS.
 
 ---
@@ -354,7 +354,7 @@ Expected: PASS.
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn vitest run src/views/Wizard/mains/StepReview`
+Run: `pnpm exec vitest run src/views/Wizard/mains/StepReview`
 Expected: FAIL — TextArea đang có `style="height: 100%"` và class `!flex-1`.
 
 - [ ] **Step 3: Sửa `StepReview/index.tsx`**
@@ -374,7 +374,7 @@ Hai `Button` footer (`Back`, `Run match`): thêm `size="large"`. `Button` trong 
 
 - [ ] **Step 4: Chạy test**
 
-Run: `yarn vitest run src/views/Wizard/mains/StepReview && yarn type-check`
+Run: `pnpm exec vitest run src/views/Wizard/mains/StepReview && pnpm type-check`
 Expected: PASS.
 
 ---
@@ -403,7 +403,7 @@ Expected: PASS.
 
 - [ ] **Step 2: Chạy test để thấy fail**
 
-Run: `yarn vitest run src/views/Wizard/mains/StepResult`
+Run: `pnpm exec vitest run src/views/Wizard/mains/StepResult`
 Expected: FAIL — chưa có `sticky`, chưa có `ant-btn-lg`.
 
 - [ ] **Step 3: Sửa `StepResult/index.tsx`**
@@ -425,7 +425,7 @@ Hai `Button` footer (`Start over`, `Save report`): thêm `size="large"`. `Button
 
 - [ ] **Step 4: Chạy test**
 
-Run: `yarn vitest run src/views/Wizard && yarn type-check`
+Run: `pnpm exec vitest run src/views/Wizard && pnpm type-check`
 Expected: PASS toàn bộ unit test của Wizard.
 
 - [ ] **Step 5: Commit (Task 1–5 gộp 1 commit code)**
@@ -452,7 +452,7 @@ git commit -m "feat(wizard): responsive layout for tablet and mobile
 
 **Interfaces:**
 - Consumes: helper `gotoWizard`, `pasteText`, `nextButton`, `stepperStep` từ `./helpers`.
-- Produces: 3 project name `desktop` / `tablet` / `mobile` (dùng cho `npx playwright test --project=<name>`).
+- Produces: 3 project name `desktop` / `tablet` / `mobile` (dùng cho `pnpm exec playwright test --project=<name>`).
 
 - [ ] **Step 1: Sửa import chết trong `helpers.ts`**
 
@@ -460,7 +460,7 @@ git commit -m "feat(wizard): responsive layout for tablet and mobile
 import type { MatchResultDto } from "../../src/types/Matching";
 ```
 
-Run: `yarn type-check` → PASS (nếu `e2e/` nằm ngoài tsconfig include thì kiểm bằng `npx tsc --noEmit e2e/cv-jd-matching-wizard/helpers.ts` là đủ để thấy path hợp lệ).
+Run: `pnpm type-check` → PASS (nếu `e2e/` nằm ngoài tsconfig include thì kiểm bằng `pnpm exec tsc --noEmit e2e/cv-jd-matching-wizard/helpers.ts` là đủ để thấy path hợp lệ).
 
 - [ ] **Step 2: Thêm 3 project vào `playwright.config.ts`**
 
@@ -614,7 +614,7 @@ test.describe("responsive layout", () => {
 - [ ] **Step 4: Chạy spec mới ở cả 3 project**
 
 Tiền đề: server `:5200` + client `:5300` đang chạy (§4.3).
-Run: `npx playwright test e2e/cv-jd-matching-wizard/responsive.e2e.ts`
+Run: `pnpm exec playwright test e2e/cv-jd-matching-wizard/responsive.e2e.ts`
 Expected: PASS ở `desktop`, `tablet`, `mobile`.
 
 - [ ] **Step 5: Commit**
@@ -641,12 +641,12 @@ git commit -m "test(e2e): add 3 viewport projects + responsive layout spec
 
 Run lần lượt, phải xanh hết:
 ```bash
-yarn format && yarn lint && yarn type-check && yarn test && yarn build
+pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build
 ```
 
 - [ ] **Step 2: Gate A — full suite × 3 viewport**
 
-Run: `npx playwright test`
+Run: `pnpm exec playwright test`
 Expected: 9 spec × 3 project, 0 failed. Spec cũ fail ở 390px ⇒ sửa **spec** (selector/assertion) hoặc **code** nếu là bug layout thật; ghi nguyên nhân vào `e2e.md`. KHÔNG nới lỏng assertion để cho qua.
 
 - [ ] **Step 3: Gate B — MCP walk (Playwright MCP)**
@@ -678,7 +678,7 @@ Thay đổi thuần layout/CSS: không đụng auth, không đụng input valida
 
 - [ ] **Step 2: §4.6 Drift audit `client/.claude/CLAUDE.md`**
 
-Kiểm 2 điểm: (a) `playwright.config.ts` giờ có 3 project ⇒ nếu CLAUDE.md ghi `yarn test:e2e` thì thêm ghi chú project name; (b) comment trong `src/styles.css` trỏ `src/providers/AntdProvider.tsx` nhưng file thật là `src/contexts/AntdProvider/` ⇒ sửa comment. Cập nhật `.claude/uiux/frontend-reference.md` §5/§5b đã làm ở repo `.claude/`.
+Kiểm 2 điểm: (a) `playwright.config.ts` giờ có 3 project ⇒ nếu CLAUDE.md ghi `pnpm test:e2e` thì thêm ghi chú project name; (b) comment trong `src/styles.css` trỏ `src/providers/AntdProvider.tsx` nhưng file thật là `src/contexts/AntdProvider/` ⇒ sửa comment. Cập nhật `.claude/uiux/frontend-reference.md` §5/§5b đã làm ở repo `.claude/`.
 
 - [ ] **Step 3: README check (§4.8)**
 

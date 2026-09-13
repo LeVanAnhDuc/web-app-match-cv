@@ -18,7 +18,7 @@
 - **`MIN_TOKEN_LENGTH` giữ nguyên `2`.** Token 1 ký tự (`C`, `R`) vẫn bị bỏ — hạn chế có sẵn, ngoài phạm vi.
 - **Không tính lại `semanticScore`** — cần gọi lại embedding, tốn tiền, và vế semantic vốn không hỏng.
 - Convention BE: đọc `server/.claude/CLAUDE.md` + rule `constants`, `imports`, `services` trước khi sửa code.
-- Chạy `npx prisma generate` **trước** `yarn lint --fix` — thiếu bước này rule typed của ESLint sẽ gỡ nhầm type assertion thật.
+- Chạy `pnpm exec prisma generate` **trước** `pnpm lint --fix` — thiếu bước này rule typed của ESLint sẽ gỡ nhầm type assertion thật.
 - Worktree: `server/.worktrees/vietnamese-document-support` + `docs/.worktrees/vietnamese-document-support`, branch `feat/vietnamese-document-support`.
 
 ## File Structure
@@ -109,7 +109,7 @@ describe("tokenize()", () => {
 
 - [ ] **Step 2: Chạy test để xác nhận nó fail**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: FAIL — `Cannot find module './tokenizer'`
 
 - [ ] **Step 3: Viết implementation tối thiểu**
@@ -181,7 +181,7 @@ export function tokenize(text: string): Set<string> {
 
 - [ ] **Step 4: Chạy test để xác nhận nó pass**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: PASS — 8 test xanh
 
 - [ ] **Step 5: Commit**
@@ -229,7 +229,7 @@ Thêm vào `describe("tokenize()")` trong `tokenizer.spec.ts`:
 
 - [ ] **Step 2: Chạy test để xác nhận nó fail**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: FAIL — `expect(tokens.has("voi")).toBe(false)` nhận `true` (chưa có stopword VI)
 
 - [ ] **Step 3: Viết implementation tối thiểu**
@@ -264,7 +264,7 @@ for (const word of VIETNAMESE_STOPWORDS) STOPWORDS.add(word);
 
 - [ ] **Step 4: Chạy test để xác nhận nó pass**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: PASS — 10 test xanh
 
 - [ ] **Step 5: Commit**
@@ -307,7 +307,7 @@ Thêm vào `describe("tokenize()")`:
 
 - [ ] **Step 2: Chạy test để xác nhận nó fail**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: FAIL — `tokenize("ReactJS")` cho `Set{"reactjs"}` chứ không phải `Set{"react"}`
 
 - [ ] **Step 3: Viết implementation tối thiểu**
@@ -374,7 +374,7 @@ export function tokenize(text: string): Set<string> {
 
 - [ ] **Step 4: Chạy test để xác nhận nó pass**
 
-Run: `cd server && yarn test tokenizer`
+Run: `cd server && pnpm test tokenizer`
 Expected: PASS — 12 test xanh
 
 - [ ] **Step 5: Commit**
@@ -425,7 +425,7 @@ Assert **quan hệ** thay vì một con số cụ thể: con số sẽ đổi m�
 
 - [ ] **Step 2: Chạy test để xác nhận nó fail**
 
-Run: `cd server && yarn test matching.service`
+Run: `cd server && pnpm test matching.service`
 Expected: FAIL — `[EP vietnamese]` nhận điểm thấp (~13), `[invariant]` nhận 2 số khác nhau
 
 - [ ] **Step 3: Viết implementation tối thiểu**
@@ -465,7 +465,7 @@ import { tokenize } from "./tokenizer";
 
 - [ ] **Step 4: Chạy toàn bộ test của module**
 
-Run: `cd server && yarn test matching`
+Run: `cd server && pnpm test matching`
 Expected: PASS — 4 test `keywordScore` **cũ vẫn xanh** (đã kiểm chứng khi lập plan: full=100, partial=33, none=0, boundary=0) + 2 test mới xanh + 12 test tokenizer xanh
 
 - [ ] **Step 5: Commit**
@@ -485,7 +485,7 @@ git commit -m "refactor(matching): keywordScore uses the shared Unicode tokenize
 
 **Interfaces:**
 - Consumes: `MAX_MATCH_CHARS`, `capForMatch` từ Task 4 · `MatchingService.keywordScore` và `MatchingService.combineOverall`
-- Produces: lệnh CLI `yarn recompute-scores [--apply]`
+- Produces: lệnh CLI `pnpm recompute-scores [--apply]`
 
 Script **tái dùng chính các phương thức public của engine** thay vì chép lại công thức — đó là điều duy nhất đảm bảo điểm tính lại khớp với điểm một lần match thật sẽ tạo ra. Nó dựng `MatchingService` với collaborator `undefined` y như `matching.service.spec.ts` làm, vì `keywordScore`/`combineOverall` là hàm thuần không đụng tới DI.
 
@@ -574,7 +574,7 @@ main()
   });
 ```
 
-- [ ] **Step 2: Đăng ký lệnh yarn**
+- [ ] **Step 2: Đăng ký lệnh pnpm**
 
 Trong `server/package.json`, thêm vào khối `"scripts"` (ngay sau dòng `"test:e2e"`):
 
@@ -586,17 +586,17 @@ Dùng đúng cách gọi `ts-node` mà `prisma.seed` đang dùng — không thê
 
 - [ ] **Step 3: Chạy dry-run trên DB thật**
 
-Run: `cd server && yarn recompute-scores`
+Run: `cd server && pnpm recompute-scores`
 Expected: in danh sách `id  keyword X -> Y   overall A -> B`, kết thúc bằng `Dry run — pass --apply to write the changes.` **Không có row nào bị ghi.**
 
 Xác nhận bằng cách chạy lại đúng lệnh trên: output phải **y hệt** (dry-run không đổi trạng thái).
 
 - [ ] **Step 4: Áp thật rồi kiểm chứng tính idempotent**
 
-Run: `cd server && yarn recompute-scores --apply`
+Run: `cd server && pnpm recompute-scores --apply`
 Expected: cùng danh sách, kết thúc bằng `Applied.`
 
-Run lại: `cd server && yarn recompute-scores`
+Run lại: `cd server && pnpm recompute-scores`
 Expected: `0 would change.` — chạy lần hai không còn gì để đổi. Đây là bằng chứng script idempotent.
 
 - [ ] **Step 5: Commit**
@@ -619,11 +619,11 @@ git commit -m "chore(matching): add one-off keyword score recompute script"
 
 - [ ] **Step 1: Cập nhật convention doc**
 
-Trong `server/.claude/CLAUDE.md`, khối ` ```bash ` ở mục **Commands**, thêm dòng dưới `yarn seed`:
+Trong `server/.claude/CLAUDE.md`, khối ` ```bash ` ở mục **Commands**, thêm dòng dưới `pnpm seed`:
 
 ```bash
-yarn recompute-scores                  # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
-yarn recompute-scores --apply          # ghi thật
+pnpm recompute-scores                  # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
+pnpm recompute-scores --apply          # ghi thật
 ```
 
 Trong mục **Core Patterns**, thêm một gạch đầu dòng:
@@ -638,15 +638,15 @@ Run lần lượt, mỗi lệnh phải xanh mới sang lệnh sau:
 
 ```bash
 cd server
-npx prisma generate
-yarn format
-yarn lint
-yarn type-check
-yarn test
-yarn build
+pnpm exec prisma generate
+pnpm format
+pnpm lint
+pnpm type-check
+pnpm test
+pnpm build
 ```
 
-Expected: cả 6 lệnh thoát mã 0. `yarn format`/`yarn lint` có thể tự sửa file — đọc lại file sau khi chạy.
+Expected: cả 6 lệnh thoát mã 0. `pnpm format`/`pnpm lint` có thể tự sửa file — đọc lại file sau khi chạy.
 
 - [ ] **Step 3: Commit**
 
@@ -671,4 +671,4 @@ Theo `.claude/CLAUDE.md` §5, còn 3 cổng trước khi mở PR:
 - [ ] Cặp CV↔JD tiếng Anh thuần cho **đúng điểm như trước khi sửa** — 4 test cũ vẫn xanh
 - [ ] Cặp *CV có dấu ↔ JD không dấu* cho cùng điểm với cặp *cả hai đều có dấu*
 - [ ] Input NFC và NFD của cùng văn bản cho cùng token set
-- [ ] `yarn recompute-scores --apply` chạy xong; chạy lại lần hai báo `0 would change.`
+- [ ] `pnpm recompute-scores --apply` chạy xong; chạy lại lần hai báo `0 would change.`

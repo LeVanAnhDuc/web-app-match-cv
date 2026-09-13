@@ -119,7 +119,7 @@ Seed 2 CV (v1 → v2) + 1 JD + 2 `MatchResult` → assert delta + gapDiff + `ver
 
 **File**: `routes/_app/compare.$documentId.tsx` · `views/CvComparison/index.tsx` · `mains/ComparisonReport/index.tsx` · `components/ScoreDelta/index.tsx` · `components/GapDiffList/index.tsx` · `locales/{en,vi}/translation.json`
 
-Route: `validateSearch` cho `{ jd?: string }`. Luồng đúng design.md §5.1 (9 bước). Sau khi thêm route → `yarn generate-routes`.
+Route: `validateSearch` cho `{ jd?: string }`. Luồng đúng design.md §5.1 (9 bước). Sau khi thêm route → `pnpm generate-routes`.
 
 ## FE-3 — Điểm vào
 
@@ -142,5 +142,5 @@ Một test cho mỗi row ✅ của ma trận §7. Route interception toàn bộ 
 
 - **4.5** `/security-review` → `security-report.md`. Bề mặt cần rà: IDOR trên `:documentId` và trên `parentId` (body), vòng lineage, DoS qua `gap-diff` O(n·m), rò rỉ dữ liệu user khác qua `jdOptions`, XSS qua text gap.
 - **4.6** drift audit: `docs/erd.md`, `docs/project-goals.md` (Roadmap #7, §6.6, §12, §13), `docs/unfinished-features.md`, `server/README.md`.
-- **4.7** green checks **cả 2 repo**: `yarn format && yarn lint && yarn type-check && yarn test && yarn build`; server thêm `yarn test:e2e`.
+- **4.7** green checks **cả 2 repo**: `pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`; server thêm `pnpm test:e2e`.
 - **5** PR per-repo (`docs`, `server`, `client`), base `main`, **không merge**.
