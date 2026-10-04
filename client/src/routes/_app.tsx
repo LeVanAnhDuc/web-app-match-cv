@@ -1,4 +1,5 @@
 import { Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
+import AuthErrorToast from "#/components/AuthErrorToast";
 import AppShell from "#/layouts/AppShell";
 import { useWizardStore } from "#/stores";
 import ResultActionBar from "#/views/Wizard/components/ResultActionBar";
@@ -20,6 +21,7 @@ const AppRoute = () => {
 
   return (
     <AppShell actionBar={showResultActionBar ? <ResultActionBar /> : undefined}>
+      <AuthErrorToast />
       <Outlet />
     </AppShell>
   );

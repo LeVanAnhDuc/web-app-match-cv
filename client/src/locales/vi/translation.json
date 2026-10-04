@@ -448,5 +448,16 @@
     "notComparable": "Không so được",
     "scaleMin": "0",
     "scaleMax": "100"
+  },
+  "auth": {
+    "error": {
+      "denied": "Đã huỷ đăng nhập.",
+      "state": "Phiên đăng nhập đã hết hạn — vui lòng thử lại.",
+      "iss": "Không xác minh được lần đăng nhập. Vui lòng thử lại.",
+      "exchange": "Không thể hoàn tất đăng nhập. Vui lòng thử lại.",
+      "token": "Không xác minh được đăng nhập của bạn. Vui lòng thử lại.",
+      "server": "Hiện chưa thể đăng nhập. Vui lòng thử lại sau.",
+      "generic": "Đăng nhập thất bại. Vui lòng thử lại."
+    }
   }
 }

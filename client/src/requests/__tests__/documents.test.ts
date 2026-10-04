@@ -31,9 +31,10 @@ describe("fetchDocumentFile", () => {
     const result = await fetchDocumentFile("jd-1");
 
     expect(result).toBe(buffer);
-    // Routed through apiFetchBinary → same base URL, no ad-hoc credentials flag.
+    // Routed through apiFetchBinary → same base URL, session cookie sent.
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:5200/api/v1/documents/jd-1/file"
+      "http://localhost:5200/api/v1/documents/jd-1/file",
+      { credentials: "include" }
     );
   });
 

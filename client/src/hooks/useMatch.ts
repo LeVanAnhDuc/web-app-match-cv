@@ -1,4 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AUTH_QUERY_KEY } from "#/requests/auth";
 import {
   createMatchRun,
   fetchMatchHistory,
@@ -12,8 +13,14 @@ import {
 
 /** POST /match — run the hybrid (semantic + keyword) matching engine. */
 export function useRunMatch() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: runMatch
+    mutationFn: runMatch,
+    // Guest quota changes on success and on a 429 — refresh either way.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+    }
   });
 }
 

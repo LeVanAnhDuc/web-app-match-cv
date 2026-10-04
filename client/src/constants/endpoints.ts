@@ -28,5 +28,7 @@ export const ENDPOINTS = {
     `/comparisons/${encodeURIComponent(id)}${
       jdDocumentId ? `?jdDocumentId=${encodeURIComponent(jdDocumentId)}` : ""
     }`,
-  meExport: "/me/export"
+  meExport: "/me/export",
+  authMe: "/auth/me",
+  authLogout: "/auth/logout"
 } as const;

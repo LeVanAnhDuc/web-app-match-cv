@@ -1,3 +1,4 @@
+export { useAuth, useSignOut } from "./useAuth";
 export {
   useDocument,
   useSavedDocuments,

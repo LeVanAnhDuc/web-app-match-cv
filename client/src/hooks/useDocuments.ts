@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AUTH_QUERY_KEY } from "#/requests/auth";
 import {
   createDocument,
   deleteDocument,
@@ -34,6 +35,10 @@ export function useCreateDocument() {
 
   return useMutation({
     mutationFn: createDocument,
+    // A first upload can mint a guest session — refresh who-am-I either way.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+    },
     onSuccess: (data) => {
       if (data.isSaved) {
         void queryClient.invalidateQueries({
