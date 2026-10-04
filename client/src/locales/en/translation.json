@@ -458,6 +458,18 @@
       "token": "Could not verify your sign-in. Please try again.",
       "server": "Sign-in is unavailable right now. Please try again later.",
       "generic": "Sign-in failed. Please try again."
+    },
+    "signIn": "Sign in",
+    "signInWithDucker": "Sign in with Ducker ID",
+    "signOut": "Sign out",
+    "account": "Account",
+    "guest": {
+      "eyebrow": "Guest mode",
+      "pitch": "Sign in to keep your CVs, match history and results — and to rewrite CVs, draft cover letters and use your own AI key."
+    },
+    "quota": {
+      "label": "Free matches today",
+      "left": "{{left}} / {{limit}} left"
     }
   }
 }

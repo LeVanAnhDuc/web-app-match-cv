@@ -458,6 +458,18 @@
       "token": "Không xác minh được đăng nhập của bạn. Vui lòng thử lại.",
       "server": "Hiện chưa thể đăng nhập. Vui lòng thử lại sau.",
       "generic": "Đăng nhập thất bại. Vui lòng thử lại."
+    },
+    "signIn": "Đăng nhập",
+    "signInWithDucker": "Đăng nhập bằng Ducker ID",
+    "signOut": "Đăng xuất",
+    "account": "Tài khoản",
+    "guest": {
+      "eyebrow": "Chế độ khách",
+      "pitch": "Đăng nhập để giữ CV, lịch sử đối chiếu và kết quả — đồng thời viết lại CV, soạn thư xin việc và dùng khoá AI của riêng bạn."
+    },
+    "quota": {
+      "label": "Lượt đối chiếu miễn phí hôm nay",
+      "left": "Còn {{left}} / {{limit}}"
     }
   }
 }
