@@ -1,13 +1,13 @@
 # Client — Frontend Web
 
-TanStack Start frontend cho web-app-match-cv (job-board 2 chiều; MVP = CV↔JD matching wizard). Kết nối BE qua `apiFetch<T>` → `VITE_API_BASE_URL` (mặc định `http://localhost:5200/api/v1`).
+TanStack Start frontend cho web-app-match-cv (CV↔JD matching + nội dung sinh từ kết quả chấm: CV rewrite, cover letter, so sánh). Kết nối BE qua `apiFetch<T>` → `VITE_API_BASE_URL` (mặc định `http://localhost:5200/api/v1`).
 
 ## Tech Stack
 
 Chi tiết version/packages xem `package.json` (nguồn đúng) + `docs/03-design/architecture.md` §5. Tóm tắt:
 
 - **Framework**: TanStack Start (Vite + React 19), file-based router (`src/routes/`)
-- **Language**: TypeScript 5 (`verbatimModuleSyntax`, `strict`, `noUnusedLocals`)
+- **Language**: TypeScript 6 (`verbatimModuleSyntax`, `strict`, `noUnusedLocals`)
 - **UI**: Ant Design 5 (`@ant-design/cssinjs` + `@ant-design/v5-patch-for-react-19`) + Tailwind CSS 4
 - **State**: Zustand (global) + TanStack Query (server state)
 - **i18n**: i18next / react-i18next (`en` / `vi`)
@@ -88,9 +88,9 @@ i18n: src/i18n/config.ts init i18next (side-effect import trong __root)
 ```
 
 - **API base**: mọi request qua `apiFetch<T>` (`src/libs/api.ts`); base `VITE_API_BASE_URL`. KHÔNG hard-code URL BE.
-- **Routing**: file-based (`src/routes/`). Route file chỉ wiring `createFileRoute(...)({ component })`, UI thật nằm ở `src/views/` (nội dung trang) và `src/layouts/` (shell bọc route — `_app.tsx` → `layouts/AppShell`). Route hiện có: `_app/{index,wizard,cv,jd,my-data}` → `/`, `/wizard`, `/cv`, `/jd`, `/my-data`.
+- **Routing**: file-based (`src/routes/`). Route file chỉ wiring `createFileRoute(...)({ component })`, UI thật nằm ở `src/views/` (nội dung trang) và `src/layouts/` (shell bọc route — `_app.tsx` → `layouts/AppShell`). Route hiện có: xem `src/routes/_app/` (không chép danh sách ở đây — nó lệch).
 - **Locales**: `en` (default) + `vi` qua i18next; JSON ở `src/locales/{en,vi}/translation.json`.
-- **Design token**: `src/styles.css` khai báo semantic color token bằng Tailwind 4 `@theme` + override `@media (prefers-color-scheme: dark)` (`bg-surface`, `border-line`, `text-body/muted/faint`, `bg-primary`, `text-accent`). Mọi UI dùng utility này thay cho cặp `slate-*` + `dark:slate-*` — xem rule `layout-primitives`.
+- **Design token**: `src/styles.css` khai báo semantic color token bằng Tailwind 4 `@theme` + override `@media (prefers-color-scheme: dark)` (`bg-surface`, `border-line`, `text-body/muted/faint`, `bg-primary`, `text-accent`). Mọi UI dùng utility này thay cho cặp `slate-*` + `dark:slate-*` — xem rule `layout-primitives`. Nguồn đúng của token là `docs/design-system/match-cv/MASTER.md` (+ `design-guide.md`, `icon-map.md`, `ux-copy.md`) — `styles.css` hiện thực nó.
 
 ## Folder Conventions
 
@@ -127,4 +127,4 @@ pnpm build        # build phải thành công
 
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
 - `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại file sau khi chạy.
-- E2E (`pnpm test:e2e`) chạy khi thay đổi behavior user thấy được (§4.3 root CLAUDE.md).
+- E2E (`pnpm test:e2e`) chạy khi thay đổi behavior user thấy được (xem skill `feature-flow`).

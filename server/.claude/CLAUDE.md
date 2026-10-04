@@ -1,6 +1,6 @@
 # Server — Backend API
 
-NestJS REST API cho web-app-match-cv (job-board 2 chiều; MVP = CV↔JD matching). Prisma/PostgreSQL, nestjs-i18n, Swagger; AI qua OpenRouter (`openai` SDK). Port **5200**, prefix `api/v1`.
+NestJS REST API cho web-app-match-cv (CV↔JD matching + CV rewrite, cover letter, so sánh). Prisma/PostgreSQL, nestjs-i18n, Swagger; AI qua OpenRouter (`openai` SDK). Port **5200**, prefix `api/v1`.
 
 > Yêu cầu chưa rõ → hỏi lại user trước khi làm. Tránh tự suy luận convention — đọc rule/skill.
 
@@ -66,7 +66,7 @@ pnpm format           # prettier --write .
 pnpm test             # jest (test:cov, test:watch, test:e2e)
 pnpm exec prisma migrate dev --name <name>   # tạo + apply migration
 pnpm exec prisma generate                    # regenerate client
-pnpm seed             # no-op: không còn default user (user đến từ đăng nhập Ducker ID)
+pnpm exec prisma db seed                     # no-op: không còn default user (user đến từ đăng nhập Ducker ID)
 pnpm recompute-scores                        # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
 pnpm recompute-scores --apply                # ghi thật
 pnpm seed:mock --user <email>   # dev only (user đã đăng nhập Ducker ID một lần): chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
@@ -81,7 +81,7 @@ main.ts  bootstrap: NestFactory → setGlobalPrefix('api/v1') → helmet → COR
 AppModule: ConfigModule.forRoot({isGlobal, validate: validateEnv})
          + ThrottlerModule (+ APP_GUARD ThrottlerGuard)
          + I18nModule (fallback 'en', QueryResolver 'lang' + AcceptLanguageResolver)
-         + PrismaModule + CurrentUserModule + feature modules (Documents, Matching, Me, Health)
+         + PrismaModule + CurrentUserModule + feature modules (xem `app.module.ts`)
 Request flow: Controller (thin, @Api* + pipes) → Service (@Injectable, business) → PrismaService (data)
 ```
 
@@ -113,4 +113,4 @@ pnpm build        # nest build phải thành công
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
 - `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại sau khi chạy.
 - Đổi Prisma schema → `pnpm exec prisma migrate dev` + cập nhật `seed.ts` idempotent; note ảnh hưởng data trong `design.md`.
-- **`pnpm test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `pnpm format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Case thật: `archiver@8` là pure ESM, Jest (CommonJS) không `require` được, nhưng không unit spec nào import service dùng nó và `pnpm build` chỉ compile nên không phát hiện ra; lỗi chỉ lộ khi chạy `pnpm test:e2e` thật.
+- **`pnpm test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `pnpm format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Lỗi kiểu này chỉ lộ khi chạy `pnpm test:e2e` thật (vd một dependency pure-ESM mà Jest CommonJS không `require` được).

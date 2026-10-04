@@ -24,9 +24,9 @@ From `client/`:
 - `pnpm test` (Vitest unit, serial) · `pnpm test:e2e` (Playwright; needs both servers up and `E2E_DATABASE_URL`; first run `pnpm exec playwright install chromium`)
 - `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
 
-## README (REQUIRED — keep in sync with features)
+## README — keep `## Features` in sync
 
-`README.md` describes what the app does for its users — it is not a boilerplate page. Every commit that adds or changes user-facing behaviour (`feat:`) MUST update the `## Features` section of `README.md` in the same branch, before merging — one short English bullet in the existing style.
+`README.md` describes what the app does for its users — it is not a boilerplate page. Every commit that adds or changes user-facing behaviour (`feat:`) also updates the `## Features` section of `README.md` in the same branch, before merging — one short English bullet in the existing style.
 
 While touching README, refresh any stale numbers you notice (test counts, stack versions).
 

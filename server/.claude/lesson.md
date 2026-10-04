@@ -31,3 +31,4 @@
 
 - Nhiều phiên cùng `prisma migrate dev` trên `matchcv` → migration của phiên khác làm Prisma đòi **reset**.
 - **Áp dụng**: mỗi worktree trỏ một DB riêng trong `.env` của worktree (`matchcv_<feature>`), `migrate deploy` + seed ở đó. Sau khi merge hết, chạy `migrate dev` một lượt trên `matchcv`.
+- **Dọn sau merge (2026-10-04)**: quy tắc trên thiếu bước cuối — `matchcv_rewrite` và `matchcv_compare` còn sót lại gần 2 tháng sau khi worktree đã xoá. Khi gỡ worktree thì `DROP DATABASE matchcv_<feature>` của nó luôn (hỏi user trước — không hoàn tác được).
