@@ -74,7 +74,10 @@ export class AuthController {
         new URL(target, this.auth.clientOrigin()).toString()
       );
     }
-    const { authorizeUrl, cookie } = await this.auth.beginLogin(target);
+    const { authorizeUrl, cookie } = await this.auth.beginLogin(
+      target,
+      ctx?.isGuest ? ctx.userId : null
+    );
     res.cookie(OAUTH_COOKIE, cookie, {
       httpOnly: true,
       sameSite: "lax",
@@ -98,8 +101,11 @@ export class AuthController {
     @Res() res: Response
   ): Promise<void> {
     const ctx = this.currentUser.peek();
-    // One attempt per state: the cookie goes whatever the outcome.
-    res.clearCookie(OAUTH_COOKIE, { path: OAUTH_COOKIE_PATH });
+    // One attempt per state: once the state matched, the cookie goes whatever
+    // the outcome. A request whose state did not match is a stranger's link —
+    // it must not wipe the login this browser has in progress.
+    const clearOAuth = () =>
+      res.clearCookie(OAUTH_COOKIE, { path: OAUTH_COOKIE_PATH });
     try {
       const result = await this.auth.completeLogin({
         code: single(query.code),
@@ -113,10 +119,12 @@ export class AuthController {
           sessionToken: ctx?.sessionToken ?? null
         }
       });
+      clearOAuth();
       this.sessions.setCookie(res, result.token, result.expiresAt);
       res.redirect(HttpStatus.FOUND, result.redirectTo);
     } catch (e) {
       const code = e instanceof AuthFlowError ? e.code : "server";
+      if (code !== "state") clearOAuth();
       // Only the failure class is logged — never code, tokens, cookies or email (NFR-SEC-02).
       this.logger.warn(
         `sign-in failed: ${code}${code === "server" && e instanceof Error ? ` (${e.name})` : ""}`

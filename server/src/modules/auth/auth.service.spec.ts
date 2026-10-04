@@ -41,6 +41,7 @@ const oauthState = (over: Partial<OAuthState> = {}): OAuthState => ({
   nonce: "n-1",
   verifier: "v-1",
   returnTo: "/wizard",
+  guestUserId: null,
   exp: Date.now() + 60_000,
   ...over
 });
@@ -75,7 +76,10 @@ describe("AuthService", () => {
   describe("beginLogin", () => {
     it("returns the client's authorize URL and a sealed state cookie that expires in 10 minutes", async () => {
       const before = Date.now();
-      const { authorizeUrl, cookie } = await service.beginLogin("/wizard");
+      const { authorizeUrl, cookie } = await service.beginLogin(
+        "/wizard",
+        "g-1"
+      );
       expect(authorizeUrl).toBe("http://idp.test/oauth/authorize?x=1");
       const saved = unseal<OAuthState>(cookie, SECRET);
       const args = (
@@ -86,7 +90,8 @@ describe("AuthService", () => {
       expect(saved).toMatchObject({
         state: args.state,
         nonce: args.nonce,
-        returnTo: "/wizard"
+        returnTo: "/wizard",
+        guestUserId: "g-1"
       });
       expect(saved?.verifier).toBeTruthy();
       expect(args.codeChallenge).not.toBe(saved?.verifier);
@@ -98,7 +103,7 @@ describe("AuthService", () => {
       const original = env.SESSION_SECRET;
       delete env.SESSION_SECRET;
       try {
-        await expect(service.beginLogin("/")).rejects.toBeInstanceOf(
+        await expect(service.beginLogin("/", null)).rejects.toBeInstanceOf(
           ServiceUnavailableException
         );
       } finally {
@@ -116,6 +121,21 @@ describe("AuthService", () => {
       }
       return "resolved";
     };
+
+    it("ignores an IdP error whose state does not match — it cannot cancel someone else's login", async () => {
+      expect(
+        await code(
+          service.completeLogin(input({ error: "access_denied", state: "x" }))
+        )
+      ).toBe("state");
+      expect(
+        await code(
+          service.completeLogin(
+            input({ error: "access_denied", state: undefined })
+          )
+        )
+      ).toBe("state");
+    });
 
     it("maps an IdP error to denied", async () => {
       expect(
@@ -224,11 +244,25 @@ describe("AuthService", () => {
       });
     });
 
-    it("stores null for profile claims the id_token does not carry", async () => {
+    it("leaves stored profile fields alone for claims the id_token does not carry", async () => {
       oidc.verifyIdToken.mockResolvedValueOnce({ sub: "sub-2" });
       await service.completeLogin(input());
+      const arg = (
+        prisma.user.upsert.mock.calls[0] as [{ create: object; update: object }]
+      )[0];
+      expect(arg.update).toEqual({});
+      expect(arg.create).toEqual({ role: "candidate", externalSub: "sub-2" });
+    });
+
+    it("keeps an explicit null picture as null", async () => {
+      oidc.verifyIdToken.mockResolvedValueOnce({
+        sub: "sub-3",
+        name: "Bo",
+        picture: null
+      });
+      await service.completeLogin(input());
       const arg = (prisma.user.upsert.mock.calls[0] as [{ update: object }])[0];
-      expect(arg.update).toEqual({ email: null, fullName: null, avatar: null });
+      expect(arg.update).toEqual({ fullName: "Bo", avatar: null });
     });
 
     it("claims the guest's work before purging, revokes the guest session, and flags the redirect", async () => {
@@ -237,7 +271,7 @@ describe("AuthService", () => {
           {
             current: { userId: "g-1", isGuest: true, sessionToken: "guest-tok" }
           },
-          oauthState({ returnTo: "/wizard?runId=r1" })
+          oauthState({ returnTo: "/wizard?runId=r1", guestUserId: "g-1" })
         )
       );
       expect(guests.claim).toHaveBeenCalledWith("g-1", "u-1");
@@ -251,12 +285,40 @@ describe("AuthService", () => {
     it("does not flag the redirect when the guest had already expired", async () => {
       guests.claim.mockResolvedValueOnce(false);
       const result = await service.completeLogin(
-        input({
-          current: { userId: "g-1", isGuest: true, sessionToken: "guest-tok" }
-        })
+        input(
+          {
+            current: { userId: "g-1", isGuest: true, sessionToken: "guest-tok" }
+          },
+          oauthState({ guestUserId: "g-1" })
+        )
       );
       expect(result.redirectTo).toBe(`${ORIGIN}/wizard`);
     });
+
+    it.each([
+      ["a different guest", "g-attacker"],
+      ["no guest", null]
+    ])(
+      "does not claim when the login was started by %s — but still signs in and replaces the session",
+      async (_label, startedBy) => {
+        const result = await service.completeLogin(
+          input(
+            {
+              current: {
+                userId: "g-1",
+                isGuest: true,
+                sessionToken: "guest-tok"
+              }
+            },
+            oauthState({ guestUserId: startedBy })
+          )
+        );
+        expect(guests.claim).not.toHaveBeenCalled();
+        expect(sessions.revoke).toHaveBeenCalledWith("guest-tok");
+        expect(sessions.create).toHaveBeenCalled();
+        expect(result.redirectTo).toBe(`${ORIGIN}/wizard`);
+      }
+    );
 
     it("never claims for a signed-in user but still replaces their session", async () => {
       await service.completeLogin(

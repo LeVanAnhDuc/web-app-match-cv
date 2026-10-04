@@ -24,6 +24,13 @@ export interface OAuthState {
   nonce: string;
   verifier: string;
   returnTo: string;
+  /**
+   * The guest the login was started from, or null. Only that guest may be
+   * claimed at callback: a same-site page can plant its own mcv_oauth and send
+   * a victim to the callback with the attacker's code, and without this binding
+   * the victim's guest work would land in the attacker's account.
+   */
+  guestUserId: string | null;
   /** seal() has no expiry of its own — this is the only thing that ends a login attempt. */
   exp: number;
 }
@@ -51,6 +58,19 @@ export interface CompleteLoginInput {
     userId: string | null;
     isGuest: boolean;
     sessionToken: string | null;
+  };
+}
+
+/** Only the claims the id_token carries — an absent claim must not wipe what is stored. */
+function mirroredProfile(claims: IdTokenClaims): {
+  email?: string;
+  fullName?: string;
+  avatar?: string | null;
+} {
+  return {
+    ...(claims.email !== undefined && { email: claims.email }),
+    ...(claims.name !== undefined && { fullName: claims.name }),
+    ...(claims.picture !== undefined && { avatar: claims.picture })
   };
 }
 
@@ -83,7 +103,8 @@ export class AuthService {
   }
 
   async beginLogin(
-    returnTo: string
+    returnTo: string,
+    guestUserId: string | null
   ): Promise<{ authorizeUrl: string; cookie: string }> {
     const { verifier, challenge } = createPkce();
     const state = randomToken();
@@ -99,6 +120,7 @@ export class AuthService {
       nonce,
       verifier,
       returnTo,
+      guestUserId,
       exp: Date.now() + OAUTH_TTL_MS
     };
     return { authorizeUrl, cookie: seal(payload, secret) };
@@ -108,7 +130,6 @@ export class AuthService {
   async completeLogin(
     input: CompleteLoginInput
   ): Promise<{ token: string; expiresAt: Date; redirectTo: string }> {
-    if (input.error) throw new AuthFlowError("denied");
     const saved = input.sealed
       ? unseal<OAuthState>(input.sealed, this.secret())
       : null;
@@ -117,11 +138,14 @@ export class AuthService {
       typeof saved.exp !== "number" ||
       saved.exp < Date.now() ||
       !input.state ||
-      input.state !== saved.state ||
-      !input.code
+      input.state !== saved.state
     ) {
       throw new AuthFlowError("state");
     }
+    // State first: an `error` without the matching state is just a stranger's
+    // link, and must not be able to cancel a login in progress.
+    if (input.error) throw new AuthFlowError("denied");
+    if (!input.code) throw new AuthFlowError("state");
     if (input.iss && input.iss.replace(/\/$/, "") !== this.issuer()) {
       throw new AuthFlowError("iss");
     }
@@ -139,11 +163,7 @@ export class AuthService {
       throw new AuthFlowError("token");
     }
 
-    const profile = {
-      email: claims.email ?? null,
-      fullName: claims.name ?? null,
-      avatar: claims.picture ?? null
-    };
+    const profile = mirroredProfile(claims);
     const user = await this.prisma.user.upsert({
       where: { externalSub: claims.sub },
       create: { role: Role.candidate, externalSub: claims.sub, ...profile },
@@ -154,10 +174,11 @@ export class AuthService {
     // place that decides whether a guest is still live — it refuses an expired
     // one itself — so the purge only sweeps up what is left behind.
     const { userId: currentId, isGuest, sessionToken } = input.current;
-    const claimed =
-      isGuest && currentId
-        ? await this.guests.claim(currentId, user.id)
-        : false;
+    const claimable =
+      isGuest && currentId !== null && currentId === saved.guestUserId;
+    const claimed = claimable
+      ? await this.guests.claim(currentId, user.id)
+      : false;
     await this.guests.purgeExpired();
     if (sessionToken) await this.sessions.revoke(sessionToken);
 

@@ -178,6 +178,43 @@ describe("Auth flow (e2e) — design §3.2–3.4", () => {
     expect(cb.status).toBe(302);
     expect(cb.headers.location).toBe(`${CLIENT}/?authError=state`);
     expect(liveCookie(cb, "mcv_session")).toBeUndefined();
+    // A stranger's link must not wipe the login in progress.
+    expect(setCookies(cb, "mcv_oauth")).toEqual([]);
+  });
+
+  it("an error with a forged state cannot cancel a pending login", async () => {
+    const { oauth } = await login("/wizard");
+    const cb = await http()
+      .get("/api/v1/auth/callback?error=access_denied&state=forged")
+      .set("Cookie", oauth!);
+    expect(cb.headers.location).toBe(`${CLIENT}/?authError=state`);
+    expect(setCookies(cb, "mcv_oauth")).toEqual([]);
+  });
+
+  it("a login planted from another browser signs in but never claims this browser's guest", async () => {
+    const created = await http()
+      .post("/api/v1/documents")
+      .send({ kind: "CV", sourceText: "Victim CV text.", save: false })
+      .expect(201);
+    const victimCookie = liveCookie(created, "mcv_session")!;
+    const victim = await sessions.resolve(
+      victimCookie.slice("mcv_session=".length)
+    );
+    users.push(victim!.userId);
+    const docId = (created.body as { id: string }).id;
+
+    // The attacker starts the login in their own browser (no guest)...
+    const { oauth: attackerOauth } = await login("/");
+    const state = fake.lastAuthorize!.state;
+    // ...then plants that mcv_oauth + their code/state on the victim.
+    const cb = await http()
+      .get(`/api/v1/auth/callback?code=c&state=${state}`)
+      .set("Cookie", [victimCookie, attackerOauth!].join("; "));
+
+    expect(cb.status).toBe(302);
+    expect(cb.headers.location).toBe(`${CLIENT}/`);
+    const doc = await prisma.document.findUnique({ where: { id: docId } });
+    expect(doc).toMatchObject({ userId: victim!.userId, isSaved: false });
   });
 
   it("a callback without the mcv_oauth cookie is rejected as state", async () => {
@@ -188,12 +225,15 @@ describe("Auth flow (e2e) — design §3.2–3.4", () => {
     expect(cb.headers.location).toBe(`${CLIENT}/?authError=state`);
   });
 
-  it("an IdP refusal ends at /?authError=denied", async () => {
+  it("an IdP refusal carrying our state ends at /?authError=denied", async () => {
     const { oauth } = await login("/");
     const cb = await http()
-      .get("/api/v1/auth/callback?error=access_denied")
+      .get(
+        `/api/v1/auth/callback?error=access_denied&state=${fake.lastAuthorize!.state}`
+      )
       .set("Cookie", oauth!);
     expect(cb.headers.location).toBe(`${CLIENT}/?authError=denied`);
+    expect(setCookies(cb, "mcv_oauth")).toEqual(["mcv_oauth="]);
   });
 
   it("an iss that is not OIDC_ISSUER ends at /?authError=iss", async () => {
