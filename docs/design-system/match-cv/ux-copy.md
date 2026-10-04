@@ -164,5 +164,7 @@ Nguồn runtime: `client/src/locales/{en,vi}/translation.json`. Key viết gọn
 | wizard.claimed.title | Saved to your account. | Đã lưu vào tài khoản của bạn. |
 | wizard.claimed.body | This result, its CV and its JD moved over from your guest session. | Kết quả này cùng CV và JD của nó đã được chuyển từ phiên khách sang. |
 
+`{{limit}}` là giá trị runtime của `GUEST_MATCH_LIMIT_PER_DAY` (mặc định 5) — nguồn NFR-COST-04; **không** viết cứng số vào chuỗi copy.
+
 Tone khách: không hứa thứ chưa có (không nói "miễn phí mãi mãi"), luôn nói rõ **24 giờ** và
 lý do (khoá hệ thống ⇒ giới hạn theo mạng). `action.saveReport` ở §4 không còn dùng — nút đã gỡ.

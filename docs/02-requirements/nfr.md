@@ -37,7 +37,7 @@ Tài liệu thiết kế của feature tham chiếu ID ở dòng `Liên quan:` �
 | --- | --- | --- |
 | NFR-SEC-01 | Mọi mutation kiểm quyền ở **server**. Không tin bất kỳ dữ liệu nào từ client | test cho từng endpoint |
 | NFR-SEC-02 | Không log PII, token, mật khẩu, hay nội dung tài liệu người dùng | review format log |
-| NFR-SEC-03 | ~~Rate limit endpoint đăng nhập / đăng ký / quên mật khẩu~~ **(bỏ — chưa có auth, FR-18)**. Thay bằng NFR-SEC-07 | — |
+| NFR-SEC-03 | ~~Rate limit endpoint đăng nhập / đăng ký / quên mật khẩu~~ **(bỏ — chưa có auth, FR-18)**. Thay bằng NFR-SEC-07 → thay bằng NFR-SEC-13 (FR-18 xong 2026-10-04) | — |
 | NFR-SEC-04 | Secret chỉ đọc từ biến môi trường. Không hardcode, không commit | grep + review |
 | NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `pnpm audit` |
 | NFR-SEC-06 | Lỗi trả về client không chứa stack trace, tên bảng, hay câu SQL | test |

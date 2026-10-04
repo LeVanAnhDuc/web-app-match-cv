@@ -1,7 +1,7 @@
 # Bất biến chịu lực
 
 > **Trả lời:** Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết quả vẫn sai?
-> **Trạng thái:** 🟢 đủ — đã rà theo dự án 2026-09-03
+> **Trạng thái:** 🟢 đủ — đã rà lại 2026-10-04 (thêm #20, #21 cho đăng nhập và khách)
 > **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** phát hiện một bất biến mới — thường là ngay sau khi ai đó vừa phá nó
 
