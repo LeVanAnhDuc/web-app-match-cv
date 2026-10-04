@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
+  HttpException,
   ServiceUnavailableException
 } from "@nestjs/common";
 import { AiProviderError } from "../ai/ai.service";
@@ -15,6 +17,7 @@ function makeService(): MatchingService {
     undefined as never,
     undefined as never,
     undefined as never,
+    undefined as never,
     undefined as never
   );
 }
@@ -23,6 +26,7 @@ const USER_ID = "00000000-0000-0000-0000-000000000001";
 const CV_ID = "11111111-1111-1111-1111-111111111111";
 const JD_ID = "22222222-2222-2222-2222-222222222222";
 const CRED_ID = "33333333-3333-3333-3333-333333333333";
+const CTX = { ip: "1.2.3.4" };
 const RUN_ID = "44444444-4444-4444-4444-444444444444";
 
 const SYSTEM_CFG = {
@@ -34,7 +38,7 @@ const SYSTEM_CFG = {
 };
 
 /** Harness for createMatch — every collaborator stubbed, no network, no DB. */
-function makeOrchestrator() {
+function makeOrchestrator(opts: { guest?: boolean; allowed?: boolean } = {}) {
   const ai = {
     systemRuntimeConfig: jest.fn().mockReturnValue(SYSTEM_CFG),
     embed: jest.fn().mockResolvedValue([1, 0, 0]),
@@ -93,20 +97,30 @@ function makeOrchestrator() {
   };
   const currentUser = {
     getUserId: jest.fn<string, []>().mockReturnValue(USER_ID),
-    isGuest: () => false,
+    isGuest: () => opts.guest ?? false,
     peek: () => undefined
   };
   const credentials = {
     getRuntimeConfig: jest.fn(),
     markUsed: jest.fn().mockResolvedValue(undefined)
   };
+  const resetsAt = new Date("2026-10-05T00:00:00Z");
+  const guestUsage = {
+    consume: jest.fn().mockResolvedValue({
+      allowed: opts.allowed ?? true,
+      used: 1,
+      limit: 5,
+      resetsAt
+    })
+  };
   const service = new MatchingService(
     ai as never,
     prisma as never,
     currentUser,
-    credentials as never
+    credentials as never,
+    guestUsage as never
   );
-  return { service, ai, prisma, credentials };
+  return { service, ai, prisma, credentials, guestUsage };
 }
 
 describe("MatchingService", () => {
@@ -219,10 +233,55 @@ describe("MatchingService", () => {
     });
   });
 
+  describe("createMatch() guest rules", () => {
+    const pair = { cvDocumentId: CV_ID, jdDocumentId: JD_ID };
+
+    it("forbids a guest from using a credential and never calls the AI", async () => {
+      const { service, ai, guestUsage } = makeOrchestrator({ guest: true });
+      const err = await service
+        .createMatch({ ...pair, credentialId: CRED_ID }, CTX)
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(ForbiddenException);
+      expect((err as ForbiddenException).getResponse()).toMatchObject({
+        code: "GUEST_FORBIDDEN_CREDENTIAL"
+      });
+      expect(guestUsage.consume).not.toHaveBeenCalled();
+      expect(ai.embed).not.toHaveBeenCalled();
+    });
+
+    it("answers 429 with resetsAt when the guest is over quota, before any AI call", async () => {
+      const { service, ai } = makeOrchestrator({ guest: true, allowed: false });
+      const err = await service.createMatch(pair, CTX).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(HttpException);
+      expect((err as HttpException).getStatus()).toBe(429);
+      expect((err as HttpException).getResponse()).toMatchObject({
+        code: "GUEST_QUOTA_EXCEEDED",
+        resetsAt: "2026-10-05T00:00:00.000Z"
+      });
+      expect(ai.embed).not.toHaveBeenCalled();
+      expect(ai.generateReport).not.toHaveBeenCalled();
+    });
+
+    it("consumes quota with the caller IP for a guest within quota", async () => {
+      const { service, guestUsage } = makeOrchestrator({ guest: true });
+      await service.createMatch(pair, CTX);
+      expect(guestUsage.consume).toHaveBeenCalledWith("1.2.3.4");
+    });
+
+    it("never touches the quota for a signed-in user", async () => {
+      const { service, guestUsage } = makeOrchestrator();
+      await service.createMatch(pair, CTX);
+      expect(guestUsage.consume).not.toHaveBeenCalled();
+    });
+  });
+
   describe("createMatch() provider snapshot", () => {
     it("uses the system config and stores a null credentialId when none is given", async () => {
       const { service, prisma, ai } = makeOrchestrator();
-      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      await service.createMatch(
+        { cvDocumentId: CV_ID, jdDocumentId: JD_ID },
+        CTX
+      );
       expect(ai.systemRuntimeConfig).toHaveBeenCalled();
       const { data } = prisma.matchResult.create.mock.calls[0][0];
       expect(data).toMatchObject({
@@ -243,11 +302,14 @@ describe("MatchingService", () => {
         embedModel: "gemini-embedding-001"
       });
 
-      await service.createMatch({
-        cvDocumentId: CV_ID,
-        jdDocumentId: JD_ID,
-        credentialId: CRED_ID
-      });
+      await service.createMatch(
+        {
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          credentialId: CRED_ID
+        },
+        CTX
+      );
 
       expect(ai.systemRuntimeConfig).not.toHaveBeenCalled();
       const { data } = prisma.matchResult.create.mock.calls[0][0];
@@ -262,7 +324,10 @@ describe("MatchingService", () => {
 
     it("does not stamp lastUsedAt when running on the system key", async () => {
       const { service, credentials } = makeOrchestrator();
-      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      await service.createMatch(
+        { cvDocumentId: CV_ID, jdDocumentId: JD_ID },
+        CTX
+      );
       expect(credentials.markUsed).not.toHaveBeenCalled();
     });
 
@@ -272,11 +337,14 @@ describe("MatchingService", () => {
         ...SYSTEM_CFG,
         apiKey: "sk-should-never-appear"
       });
-      const dto = await service.createMatch({
-        cvDocumentId: CV_ID,
-        jdDocumentId: JD_ID,
-        credentialId: CRED_ID
-      });
+      const dto = await service.createMatch(
+        {
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          credentialId: CRED_ID
+        },
+        CTX
+      );
       expect(JSON.stringify(dto)).not.toContain("sk-should-never-appear");
     });
   });
@@ -304,11 +372,14 @@ describe("MatchingService", () => {
         NotFoundException
       );
       await expect(
-        service.createMatch({
-          cvDocumentId: CV_ID,
-          jdDocumentId: JD_ID,
-          runId: RUN_ID
-        })
+        service.createMatch(
+          {
+            cvDocumentId: CV_ID,
+            jdDocumentId: JD_ID,
+            runId: RUN_ID
+          },
+          CTX
+        )
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
@@ -322,21 +393,27 @@ describe("MatchingService", () => {
         createdAt: new Date(0)
       });
       await expect(
-        service.createMatch({
-          cvDocumentId: CV_ID,
-          jdDocumentId: JD_ID,
-          runId: RUN_ID
-        })
+        service.createMatch(
+          {
+            cvDocumentId: CV_ID,
+            jdDocumentId: JD_ID,
+            runId: RUN_ID
+          },
+          CTX
+        )
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it("stamps the runId onto the result", async () => {
       const { service, prisma } = makeOrchestrator();
-      await service.createMatch({
-        cvDocumentId: CV_ID,
-        jdDocumentId: JD_ID,
-        runId: RUN_ID
-      });
+      await service.createMatch(
+        {
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          runId: RUN_ID
+        },
+        CTX
+      );
       const { data } = prisma.matchResult.create.mock.calls[0][0];
       expect(data.runId).toBe(RUN_ID);
       expect(data.status).toBe("succeeded");
@@ -349,11 +426,14 @@ describe("MatchingService", () => {
       const { service, ai, prisma } = makeOrchestrator();
       ai.embed.mockRejectedValue(new AiProviderError("no_quota"));
 
-      const dto = await service.createMatch({
-        cvDocumentId: CV_ID,
-        jdDocumentId: JD_ID,
-        runId: RUN_ID
-      });
+      const dto = await service.createMatch(
+        {
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          runId: RUN_ID
+        },
+        CTX
+      );
 
       const { data } = prisma.matchResult.create.mock.calls[0][0];
       expect(data).toMatchObject({
@@ -378,11 +458,14 @@ describe("MatchingService", () => {
       });
       ai.embed.mockRejectedValue(new AiProviderError("invalid_key"));
 
-      await service.createMatch({
-        cvDocumentId: CV_ID,
-        jdDocumentId: JD_ID,
-        credentialId: CRED_ID
-      });
+      await service.createMatch(
+        {
+          cvDocumentId: CV_ID,
+          jdDocumentId: JD_ID,
+          credentialId: CRED_ID
+        },
+        CTX
+      );
 
       const { data } = prisma.matchResult.create.mock.calls[0][0];
       expect(data).toMatchObject({
@@ -398,14 +481,17 @@ describe("MatchingService", () => {
         throw new ServiceUnavailableException("not configured");
       });
       await expect(
-        service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID })
+        service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID }, CTX)
       ).rejects.toBeInstanceOf(ServiceUnavailableException);
     });
 
     it("never lets a provider message reach errorCode", async () => {
       const { service, ai, prisma } = makeOrchestrator();
       ai.embed.mockRejectedValue(new AiProviderError("unreachable"));
-      await service.createMatch({ cvDocumentId: CV_ID, jdDocumentId: JD_ID });
+      await service.createMatch(
+        { cvDocumentId: CV_ID, jdDocumentId: JD_ID },
+        CTX
+      );
       const { data } = prisma.matchResult.create.mock.calls[0][0];
       expect([
         "invalid_key",

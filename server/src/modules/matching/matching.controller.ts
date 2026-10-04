@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Ip,
   Param,
   ParseUUIDPipe,
   Post
@@ -24,8 +25,11 @@ export class MatchingController {
   @Post()
   @AllowGuest()
   @ApiCreatedResponse({ type: MatchResultDto })
-  async create(@Body() dto: CreateMatchDto): Promise<MatchResultDto> {
-    return this.matchingService.createMatch(dto);
+  async create(
+    @Body() dto: CreateMatchDto,
+    @Ip() ip: string
+  ): Promise<MatchResultDto> {
+    return this.matchingService.createMatch(dto, { ip });
   }
 
   @Post("runs")

@@ -1,5 +1,8 @@
 import {
   BadRequestException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
@@ -14,6 +17,7 @@ import { MatchRunDto } from "./dto/match-run.dto";
 import { MatchSummaryDto } from "./dto/match-summary.dto";
 import { AiProviderError, AiService, MatchReport } from "../ai/ai.service";
 import { AiRuntimeConfig } from "../ai/providers";
+import { GuestUsageService } from "../auth/guest-usage.service";
 import { AiCredentialsService } from "../ai-credentials/ai-credentials.service";
 import { tMatch } from "./i18n-messages";
 import { tokenize } from "./tokenizer";
@@ -50,7 +54,8 @@ export class MatchingService {
     private readonly ai: AiService,
     private readonly prisma: PrismaService,
     private readonly currentUser: CurrentUserService,
-    private readonly credentials: AiCredentialsService
+    private readonly credentials: AiCredentialsService,
+    private readonly guestUsage: GuestUsageService
   ) {}
 
   /** |JD ∩ CV| / |JD| * 100, rounded, clamped to [0, 100]. 0 if JD has no meaningful tokens. */
@@ -205,7 +210,40 @@ export class MatchingService {
     }
   }
 
-  async createMatch(dto: CreateMatchDto): Promise<MatchResultDto> {
+  async createMatch(
+    dto: CreateMatchDto,
+    ctx: { ip: string }
+  ): Promise<MatchResultDto> {
+    // Guests: system key only, capped per IP per UTC day (NFR-COST-04). Consume
+    // BEFORE the AI call - the money is spent when we call, not when it succeeds.
+    if (this.currentUser.isGuest()) {
+      if (dto.credentialId) {
+        throw new ForbiddenException({
+          code: "GUEST_FORBIDDEN_CREDENTIAL",
+          message: tMatch(
+            "matching.errors.guestCredential",
+            "Guests can only use the system AI key."
+          )
+        });
+      }
+      const quota = await this.guestUsage.consume(ctx.ip);
+      if (!quota.allowed) {
+        throw new HttpException(
+          {
+            statusCode: 429,
+            code: "GUEST_QUOTA_EXCEEDED",
+            message: tMatch(
+              "matching.errors.guestQuota",
+              "You have used today's free matches."
+            ),
+            limit: quota.limit,
+            resetsAt: quota.resetsAt.toISOString()
+          },
+          HttpStatus.TOO_MANY_REQUESTS
+        );
+      }
+    }
+
     const { userId, cvDoc, jdDoc } = await this.requireOwnedPair(
       dto.cvDocumentId,
       dto.jdDocumentId

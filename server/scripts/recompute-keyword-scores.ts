@@ -16,6 +16,7 @@ const scoring = new MatchingService(
   undefined as never,
   undefined as never,
   undefined as never,
+  undefined as never,
   undefined as never
 );
 
