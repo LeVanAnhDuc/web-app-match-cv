@@ -63,4 +63,4 @@ FR-18 + FR-21 đã xong và rời bảng này; FR-16 / FR-17 dẫn đầu.
 | Cấu trúc `parsedContent` chuẩn hoá ra sao (section CV / JD)? | design của feature dùng tới nó |
 | Stopword tiếng Việt lấy từ danh sách công khai nào, hay tự soạn theo ngữ cảnh CV/JD? | design của feature |
 | `DataDisclosure` có thêm `credentialId` không (audit *"gửi bằng khoá cá nhân nào"*)? | design của FR-17 |
-| Deploy target — Docker Compose local? cloud nào? | chưa có mốc. [ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md) từng chặn deploy public cho tới khi FR-18 xong (đã xong); deploy sau proxy còn nợ #11 |
+| Deploy target — Docker Compose local? cloud nào? | chưa có mốc. [ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md) từng chặn deploy public cho tới khi FR-18 xong (đã xong); deploy sau proxy còn nợ #11. Thiết kế cookie (session cookie `SameSite=Lax` + `fetch` với `credentials: "include"`) **giả định client và API cùng site**; deploy khác site cần `SameSite=None; Secure` kèm CSRF token ([ADR-0022](../decisions/0022-dang-nhap-bff-session-rieng.md)) |
