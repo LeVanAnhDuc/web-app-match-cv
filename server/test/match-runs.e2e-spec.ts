@@ -4,8 +4,8 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 import { AiProviderError, AiService } from "../src/modules/ai/ai.service";
 import type { AiRuntimeConfig } from "../src/modules/ai/providers";
 
@@ -97,13 +97,16 @@ class FakeAiService {
 describe("MatchRuns (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const documentIds: string[] = [];
   const runIds: string[] = [];
   let cvDocId: string;
   let jdDocId: string;
 
   const createDoc = async (kind: "CV" | "JD", text: string) => {
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .post("/api/v1/documents")
       .send({ kind, sourceText: text, save: false });
     const { id } = res.body as IdBody;
@@ -112,7 +115,7 @@ describe("MatchRuns (e2e)", () => {
   };
 
   const openRun = async (cv = cvDocId, jd = jdDocId) => {
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .post(RUNS)
       .send({ cvDocumentId: cv, jdDocumentId: jd });
     if (res.status === 201) runIds.push((res.body as RunBody).id);
@@ -131,6 +134,7 @@ describe("MatchRuns (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
     cvDocId = await createDoc("CV", "Senior backend engineer with NestJS.");
     jdDocId = await createDoc("JD", "Hiring a senior backend engineer.");
@@ -149,6 +153,7 @@ describe("MatchRuns (e2e)", () => {
       where: { cvDocumentId: { in: documentIds } }
     });
     await prisma.document.deleteMany({ where: { id: { in: documentIds } } });
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
@@ -178,10 +183,10 @@ describe("MatchRuns (e2e)", () => {
     it("[EP] groups several providers under one run", async () => {
       const run = (await openRun()).body as RunBody;
 
-      const first = await request(app.getHttpServer())
+      const first = await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
-      const second = await request(app.getHttpServer())
+      const second = await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
 
@@ -190,9 +195,7 @@ describe("MatchRuns (e2e)", () => {
       expect((first.body as ResultBody).runId).toBe(run.id);
       expect((second.body as ResultBody).status).toBe("succeeded");
 
-      const detail = await request(app.getHttpServer()).get(
-        `${RUNS}/${run.id}`
-      );
+      const detail = await api().get(`${RUNS}/${run.id}`);
       expect(detail.status).toBe(200);
       expect((detail.body as RunBody).results).toHaveLength(2);
     });
@@ -212,7 +215,7 @@ describe("MatchRuns (e2e)", () => {
 
       try {
         const before = await prisma.matchResult.count();
-        const res = await request(app.getHttpServer()).post(MATCH).send({
+        const res = await api().post(MATCH).send({
           cvDocumentId: cvDocId,
           jdDocumentId: jdDocId,
           runId: foreign.id
@@ -230,7 +233,7 @@ describe("MatchRuns (e2e)", () => {
       const otherCv = await createDoc("CV", "Another CV entirely.");
       const run = (await openRun(otherCv, jdDocId)).body as RunBody;
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
 
@@ -243,7 +246,7 @@ describe("MatchRuns (e2e)", () => {
       const run = (await openRun()).body as RunBody;
       FakeAiService.failNext = new AiProviderError("no_quota");
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
 
@@ -261,7 +264,7 @@ describe("MatchRuns (e2e)", () => {
       const run = (await openRun()).body as RunBody;
       FakeAiService.failNext = new AiProviderError("unreachable");
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
 
@@ -274,16 +277,14 @@ describe("MatchRuns (e2e)", () => {
       const run = (await openRun()).body as RunBody;
 
       FakeAiService.failNext = new AiProviderError("invalid_key");
-      await request(app.getHttpServer())
+      await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
-      await request(app.getHttpServer())
+      await api()
         .post(MATCH)
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id });
 
-      const detail = await request(app.getHttpServer()).get(
-        `${RUNS}/${run.id}`
-      );
+      const detail = await api().get(`${RUNS}/${run.id}`);
       const results = (detail.body as RunBody).results ?? [];
       expect(results).toHaveLength(2);
       expect(results.filter((r) => r.status === "failed")).toHaveLength(1);
@@ -294,7 +295,7 @@ describe("MatchRuns (e2e)", () => {
   describe("GET /match/runs/:id", () => {
     it("[EP] is not shadowed by GET /match/:id", async () => {
       const run = (await openRun()).body as RunBody;
-      const res = await request(app.getHttpServer()).get(`${RUNS}/${run.id}`);
+      const res = await api().get(`${RUNS}/${run.id}`);
       // If the route order were wrong, "runs" would be parsed as a match id
       // and ParseUUIDPipe would answer 400.
       expect(res.status).toBe(200);
@@ -302,7 +303,7 @@ describe("MatchRuns (e2e)", () => {
 
     it("[EP] a run with no results yet returns an empty list, not a 404", async () => {
       const run = (await openRun()).body as RunBody;
-      const res = await request(app.getHttpServer()).get(`${RUNS}/${run.id}`);
+      const res = await api().get(`${RUNS}/${run.id}`);
 
       expect(res.status).toBe(200);
       expect((res.body as RunBody).results).toEqual([]);
@@ -322,9 +323,7 @@ describe("MatchRuns (e2e)", () => {
       });
 
       try {
-        const res = await request(app.getHttpServer()).get(
-          `${RUNS}/${foreign.id}`
-        );
+        const res = await api().get(`${RUNS}/${foreign.id}`);
         expect(res.status).toBe(404);
       } finally {
         await prisma.matchRun.delete({ where: { id: foreign.id } });
@@ -337,7 +336,7 @@ describe("MatchRuns (e2e)", () => {
     it("[EP] a runless result is still readable and reports succeeded", async () => {
       const legacy = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cvDocId,
           jdDocumentId: jdDocId,
           provider: "openrouter",
@@ -350,9 +349,7 @@ describe("MatchRuns (e2e)", () => {
         }
       });
 
-      const res = await request(app.getHttpServer()).get(
-        `${MATCH}/${legacy.id}`
-      );
+      const res = await api().get(`${MATCH}/${legacy.id}`);
 
       expect(res.status).toBe(200);
       const body = res.body as ResultBody;

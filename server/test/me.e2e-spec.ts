@@ -4,8 +4,8 @@ import AdmZip from "adm-zip";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 
 // Markers distinctive enough that a substring search over the WHOLE archive
 // (not just data.json) proves they never leaked, and specific enough that a
@@ -24,6 +24,9 @@ interface ExportManifestBody {
 describe("GET /me/export (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const otherUserIds: string[] = [];
 
   // supertest types `.parse()` as accepting a superagent Response, not a raw
@@ -51,18 +54,20 @@ describe("GET /me/export (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
   });
 
   afterAll(async () => {
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
   beforeEach(async () => {
     // Every test starts from an empty account: matchResult first (it holds
     // FKs into document), then document and aiCredential.
-    await prisma.matchResult.deleteMany({ where: { userId: STUB_USER_ID } });
-    await prisma.document.deleteMany({ where: { userId: STUB_USER_ID } });
-    await prisma.aiCredential.deleteMany({ where: { userId: STUB_USER_ID } });
+    await prisma.matchResult.deleteMany({ where: { userId: userId } });
+    await prisma.document.deleteMany({ where: { userId: userId } });
+    await prisma.aiCredential.deleteMany({ where: { userId: userId } });
   });
 
   afterEach(async () => {
@@ -79,7 +84,7 @@ describe("GET /me/export (e2e)", () => {
     const pdfBytes = Buffer.from("%PDF-1.4 fake pdf bytes");
     await prisma.document.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         kind: "CV",
         title: "CV Nguyen Van A",
         sourceFormat: "pdf",
@@ -90,7 +95,7 @@ describe("GET /me/export (e2e)", () => {
       }
     });
 
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .get("/api/v1/me/export")
       .buffer()
       .parse(binaryParser)
@@ -114,7 +119,7 @@ describe("GET /me/export (e2e)", () => {
   it("never leaks credential ciphertext into the archive", async () => {
     await prisma.aiCredential.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         provider: "openai",
         label: "Key ca nhan",
         encryptedKey: Buffer.from(CIPHERTEXT_MARKER),
@@ -124,7 +129,7 @@ describe("GET /me/export (e2e)", () => {
       }
     });
 
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .get("/api/v1/me/export")
       .buffer()
       .parse(binaryParser)
@@ -188,7 +193,7 @@ describe("GET /me/export (e2e)", () => {
       }
     });
 
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .get("/api/v1/me/export")
       .buffer()
       .parse(binaryParser)
@@ -211,7 +216,7 @@ describe("GET /me/export (e2e)", () => {
 
   it("returns a valid empty archive when the account has no data", async () => {
     // Table cleanup in beforeEach leaves the account empty.
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .get("/api/v1/me/export")
       .buffer()
       .parse(binaryParser)
@@ -229,14 +234,14 @@ describe("GET /me/export (e2e)", () => {
   });
 
   it("rejects a wrong method with 404", async () => {
-    await request(app.getHttpServer()).post("/api/v1/me/export").expect(404);
+    await api().post("/api/v1/me/export").expect(404);
   });
 
   it("ignores a Range header rather than serving a truncated archive", async () => {
     // The zip is a non-seekable stream. Serving a partial body with 200 would
     // hand the client a broken archive that looks like a complete download —
     // the worst outcome, since the client cannot tell it apart from success.
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .get("/api/v1/me/export")
       .set("Range", "bytes=0-100")
       .buffer()

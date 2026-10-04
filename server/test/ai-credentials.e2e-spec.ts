@@ -7,8 +7,8 @@ import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
 import { CredentialCryptoService } from "../src/common/crypto/credential-crypto.service";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 import { AiService } from "../src/modules/ai/ai.service";
 
 const BASE = "/api/v1/ai-credentials";
@@ -78,6 +78,9 @@ class UnconfiguredCryptoService {
 describe("AiCredentials (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const createdIds: string[] = [];
   let labelCounter = 0;
 
@@ -85,7 +88,7 @@ describe("AiCredentials (e2e)", () => {
   const uniqueLabel = () => `e2e-label-${(labelCounter += 1)}-${randomUUID()}`;
 
   const create = (over: Record<string, unknown> = {}) =>
-    request(app.getHttpServer())
+    api()
       .post(BASE)
       .send({
         provider: "openrouter",
@@ -114,6 +117,7 @@ describe("AiCredentials (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
   });
 
   afterAll(async () => {
@@ -122,6 +126,7 @@ describe("AiCredentials (e2e)", () => {
         where: { id: { in: createdIds } }
       });
     }
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
@@ -136,7 +141,7 @@ describe("AiCredentials (e2e)", () => {
 
   describe("GET /ai-credentials/providers", () => {
     it("[EP] returns the whitelist with human labels and default models", async () => {
-      const res = await request(app.getHttpServer()).get(`${BASE}/providers`);
+      const res = await api().get(`${BASE}/providers`);
 
       expect(res.status).toBe(200);
       const body = res.body as ProviderBody[];
@@ -150,7 +155,7 @@ describe("AiCredentials (e2e)", () => {
     it("[EP] is not shadowed by the :id route", async () => {
       // "providers" would otherwise be parsed as a credential id and rejected
       // by ParseUUIDPipe with a 400.
-      const res = await request(app.getHttpServer()).get(`${BASE}/providers`);
+      const res = await api().get(`${BASE}/providers`);
       expect(res.status).not.toBe(400);
     });
   });
@@ -260,14 +265,14 @@ describe("AiCredentials (e2e)", () => {
       const created = track(await create());
       const { id } = created.body as CredentialBody;
 
-      await request(app.getHttpServer()).post(`${BASE}/${id}/test`);
-      const tested = await request(app.getHttpServer()).get(BASE);
+      await api().post(`${BASE}/${id}/test`);
+      const tested = await api().get(BASE);
       expect(
         (tested.body as CredentialBody[]).find((c) => c.id === id)
           ?.lastTestStatus
       ).not.toBeNull();
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${id}`)
         .send({ apiKey: "sk-rotated-key-abcdefgh4321" });
 
@@ -281,9 +286,9 @@ describe("AiCredentials (e2e)", () => {
     it("[EP] renaming alone keeps the test verdict", async () => {
       const created = track(await create());
       const { id } = created.body as CredentialBody;
-      await request(app.getHttpServer()).post(`${BASE}/${id}/test`);
+      await api().post(`${BASE}/${id}/test`);
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${id}`)
         .send({ label: uniqueLabel() });
 
@@ -298,7 +303,7 @@ describe("AiCredentials (e2e)", () => {
 
       // This is exactly what the edit dialog sends for an empty field, so a
       // 400 here would break every save from the UI.
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${id}`)
         .send({ chatModel: "", embedModel: "" });
 
@@ -310,7 +315,7 @@ describe("AiCredentials (e2e)", () => {
       const created = track(await create());
       const { id } = created.body as CredentialBody;
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${id}`)
         .send({ provider: "gemini" });
 
@@ -321,7 +326,7 @@ describe("AiCredentials (e2e)", () => {
     it("[EP] a duplicate label → 409", async () => {
       const first = track(await create());
       const second = track(await create());
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${(second.body as CredentialBody).id}`)
         .send({ label: (first.body as CredentialBody).label });
       expect(res.status).toBe(409);
@@ -333,7 +338,7 @@ describe("AiCredentials (e2e)", () => {
       const created = track(await create());
       const { id } = created.body as CredentialBody;
 
-      const res = await request(app.getHttpServer()).post(`${BASE}/${id}/test`);
+      const res = await api().post(`${BASE}/${id}/test`);
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({
@@ -353,7 +358,7 @@ describe("AiCredentials (e2e)", () => {
   describe("GET /ai-credentials", () => {
     it("[EP] lists newest-first and leaks no secret material", async () => {
       track(await create());
-      const res = await request(app.getHttpServer()).get(BASE);
+      const res = await api().get(BASE);
 
       expect(res.status).toBe(200);
       const body = res.body as CredentialBody[];
@@ -369,15 +374,10 @@ describe("AiCredentials (e2e)", () => {
       const created = track(await create());
       const { id } = created.body as CredentialBody;
 
+      expect((await api().delete(`${BASE}/${id}`)).status).toBe(204);
       expect(
-        (await request(app.getHttpServer()).delete(`${BASE}/${id}`)).status
-      ).toBe(204);
-      expect(
-        (
-          await request(app.getHttpServer())
-            .patch(`${BASE}/${id}`)
-            .send({ label: uniqueLabel() })
-        ).status
+        (await api().patch(`${BASE}/${id}`).send({ label: uniqueLabel() }))
+          .status
       ).toBe(404);
     });
 
@@ -387,7 +387,7 @@ describe("AiCredentials (e2e)", () => {
 
       const cv = await prisma.document.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           kind: "CV",
           title: "e2e cred cv",
           sourceFormat: "text",
@@ -396,7 +396,7 @@ describe("AiCredentials (e2e)", () => {
       });
       const jd = await prisma.document.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           kind: "JD",
           title: "e2e cred jd",
           sourceFormat: "text",
@@ -405,7 +405,7 @@ describe("AiCredentials (e2e)", () => {
       });
       const match = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cv.id,
           jdDocumentId: jd.id,
           credentialId: id,
@@ -420,7 +420,7 @@ describe("AiCredentials (e2e)", () => {
       });
 
       try {
-        await request(app.getHttpServer()).delete(`${BASE}/${id}`);
+        await api().delete(`${BASE}/${id}`);
 
         const after = await prisma.matchResult.findUniqueOrThrow({
           where: { id: match.id }
@@ -471,7 +471,7 @@ describe("AiCredentials (e2e)", () => {
     });
 
     it("[authz] another user's credential is absent from the list", async () => {
-      const res = await request(app.getHttpServer()).get(BASE);
+      const res = await api().get(BASE);
       expect(
         (res.body as CredentialBody[]).some((c) => c.id === othersCredentialId)
       ).toBe(false);
@@ -481,38 +481,47 @@ describe("AiCredentials (e2e)", () => {
       const server = app.getHttpServer();
       expect(
         (
-          await request(server)
+          await request
+            .agent(server)
+            .set("Cookie", cookie)
             .patch(`${BASE}/${othersCredentialId}`)
             .send({ label: uniqueLabel() })
         ).status
       ).toBe(404);
       expect(
-        (await request(server).post(`${BASE}/${othersCredentialId}/test`))
-          .status
+        (
+          await request
+            .agent(server)
+            .set("Cookie", cookie)
+            .post(`${BASE}/${othersCredentialId}/test`)
+        ).status
       ).toBe(404);
       expect(
-        (await request(server).delete(`${BASE}/${othersCredentialId}`)).status
+        (
+          await request
+            .agent(server)
+            .set("Cookie", cookie)
+            .delete(`${BASE}/${othersCredentialId}`)
+        ).status
       ).toBe(404);
     });
 
     it("[authz] the 404 does not confirm the row exists", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${BASE}/${randomUUID()}`)
         .send({ label: uniqueLabel() });
-      const other = await request(app.getHttpServer())
+      const other = await api()
         .patch(`${BASE}/${othersCredentialId}`)
         .send({ label: uniqueLabel() });
       expect(res.status).toBe(other.status);
     });
 
     it("[authz] running a match with another user's credential → 404", async () => {
-      const res = await request(app.getHttpServer())
-        .post("/api/v1/match")
-        .send({
-          cvDocumentId: randomUUID(),
-          jdDocumentId: randomUUID(),
-          credentialId: othersCredentialId
-        });
+      const res = await api().post("/api/v1/match").send({
+        cvDocumentId: randomUUID(),
+        jdDocumentId: randomUUID(),
+        credentialId: othersCredentialId
+      });
       // The document check runs first and already rejects; either way the
       // caller learns nothing about the credential.
       expect([400, 404]).toContain(res.status);
@@ -543,10 +552,14 @@ describe("AiCredentials (e2e)", () => {
 
     it("[EP] every endpoint that touches a key → 503", async () => {
       const server = unconfigured.getHttpServer();
-      expect((await request(server).get(BASE)).status).toBe(503);
+      expect(
+        (await request.agent(server).set("Cookie", cookie).get(BASE)).status
+      ).toBe(503);
       expect(
         (
-          await request(server)
+          await request
+            .agent(server)
+            .set("Cookie", cookie)
             .post(BASE)
             .send({ provider: "openrouter", label: "x", apiKey: API_KEY })
         ).status
@@ -554,9 +567,9 @@ describe("AiCredentials (e2e)", () => {
     });
 
     it("[EP] listing providers still works — it needs no key", async () => {
-      const res = await request(unconfigured.getHttpServer()).get(
-        `${BASE}/providers`
-      );
+      const res = await request(unconfigured.getHttpServer())
+        .get(`${BASE}/providers`)
+        .set("Cookie", cookie);
       expect(res.status).toBe(200);
       expect((res.body as ProviderBody[]).length).toBe(3);
     });

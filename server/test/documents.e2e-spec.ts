@@ -5,8 +5,8 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 
 const PDF_FIXTURE = join(__dirname, "fixtures/sample.pdf");
 const DOCX_FIXTURE = join(__dirname, "fixtures/sample.docx");
@@ -38,6 +38,9 @@ interface DocumentSummaryResponseBody {
 describe("Documents (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const createdDocumentIds: string[] = [];
 
   beforeAll(async () => {
@@ -51,6 +54,7 @@ describe("Documents (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
   });
 
   afterAll(async () => {
@@ -59,6 +63,7 @@ describe("Documents (e2e)", () => {
         where: { id: { in: createdDocumentIds } }
       });
     }
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
@@ -71,7 +76,7 @@ describe("Documents (e2e)", () => {
   describe("POST /documents", () => {
     it("[EP] paste JD text (save=false) → 201 DocumentDto (sourceFormat=text)", async () => {
       const res = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "We are hiring a Senior Backend Engineer...",
           save: false
@@ -92,7 +97,7 @@ describe("Documents (e2e)", () => {
 
     it("[EP] paste CV text with save=true + title → 201, isSaved=true", async () => {
       const res = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "CV",
           sourceText: "Experienced software engineer with 5 years...",
           save: true,
@@ -111,7 +116,7 @@ describe("Documents (e2e)", () => {
 
     it("[EP] upload real PDF file → 201 DocumentDto (sourceFormat=pdf, rawText extracted)", async () => {
       const res = track(
-        await request(app.getHttpServer())
+        await api()
           .post("/api/v1/documents")
           .field("kind", "JD")
           .field("save", "false")
@@ -128,7 +133,7 @@ describe("Documents (e2e)", () => {
 
     it("[EP] upload real DOCX file → 201 DocumentDto (sourceFormat=docx, rawText extracted)", async () => {
       const res = track(
-        await request(app.getHttpServer())
+        await api()
           .post("/api/v1/documents")
           .field("kind", "CV")
           .field("save", "false")
@@ -145,7 +150,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] upload wrong type .txt → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/documents")
         .field("kind", "JD")
         .field("save", "false")
@@ -158,7 +163,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] upload wrong type .png → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/documents")
         .field("kind", "JD")
         .field("save", "false")
@@ -172,7 +177,7 @@ describe("Documents (e2e)", () => {
 
     it("[EP] oversize file (>10MB, correct type) → 400", async () => {
       const big = Buffer.alloc(11 * 1024 * 1024, "a");
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/documents")
         .field("kind", "JD")
         .field("save", "false")
@@ -185,7 +190,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] paste empty text (whitespace only) → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/documents")
         .send({ kind: "JD", sourceText: "   ", save: false });
 
@@ -193,20 +198,18 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] save=true without title → 400", async () => {
-      const res = await request(app.getHttpServer())
-        .post("/api/v1/documents")
-        .send({
-          kind: "CV",
-          sourceText: "Some CV content here",
-          save: true
-        });
+      const res = await api().post("/api/v1/documents").send({
+        kind: "CV",
+        sourceText: "Some CV content here",
+        save: true
+      });
 
       expect(res.status).toBe(400);
     });
 
     it("[DT] wrong-type + oversize combined → 400, type message wins (checked first)", async () => {
       const bigWrongType = Buffer.alloc(11 * 1024 * 1024, "b");
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/documents")
         .field("kind", "JD")
         .field("save", "false")
@@ -228,7 +231,7 @@ describe("Documents (e2e)", () => {
   describe("POST /documents (fileData/fileMime persistence)", () => {
     it("[EP] upload PDF → DB row has fileMime=application/pdf and fileData not null", async () => {
       const res = track(
-        await request(app.getHttpServer())
+        await api()
           .post("/api/v1/documents")
           .field("kind", "JD")
           .field("save", "false")
@@ -249,7 +252,7 @@ describe("Documents (e2e)", () => {
 
     it("[EP] paste text (no file) → DB row has fileData=null and fileMime=null", async () => {
       const res = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "Paste-only JD, no original file attached.",
           save: false
@@ -275,7 +278,7 @@ describe("Documents (e2e)", () => {
 
     beforeAll(async () => {
       const r1 = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD saved doc one content",
           save: true,
@@ -283,7 +286,7 @@ describe("Documents (e2e)", () => {
         })
       );
       const r2 = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD saved doc two content",
           save: true,
@@ -291,7 +294,7 @@ describe("Documents (e2e)", () => {
         })
       );
       const r3 = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD unsaved doc content",
           save: false
@@ -330,7 +333,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] lists saved JD docs for current user only, no rawText, ordered createdAt desc", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .get("/api/v1/documents")
         .query({ kind: "JD", saved: "true" });
 
@@ -355,7 +358,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] saved=false excludes the saved docs", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .get("/api/v1/documents")
         .query({ kind: "JD", saved: "false" });
 
@@ -367,9 +370,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] per-user isolation: second user document never appears for stub user, regardless of filter", async () => {
-      const res = await request(app.getHttpServer())
-        .get("/api/v1/documents")
-        .query({ kind: "JD" });
+      const res = await api().get("/api/v1/documents").query({ kind: "JD" });
 
       expect(res.status).toBe(200);
       const body = res.body as DocumentSummaryResponseBody[];
@@ -385,7 +386,7 @@ describe("Documents (e2e)", () => {
 
     beforeAll(async () => {
       const res = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD content for GET by id test",
           save: false
@@ -419,9 +420,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] returns the DocumentDto (with rawText) for the current user", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/documents/${ownDocId}`
-      );
+      const res = await api().get(`/api/v1/documents/${ownDocId}`);
       expect(res.status).toBe(200);
       const body = res.body as DocumentResponseBody;
       expect(body.id).toBe(ownDocId);
@@ -429,14 +428,12 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] per-user isolation: another user's document → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/documents/${otherUserDocId}`
-      );
+      const res = await api().get(`/api/v1/documents/${otherUserDocId}`);
       expect(res.status).toBe(404);
     });
 
     it("[boundary] non-existent (but valid uuid) id → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
+      const res = await api().get(
         "/api/v1/documents/00000000-0000-0000-0000-000000000001"
       );
       expect(res.status).toBe(404);
@@ -465,7 +462,7 @@ describe("Documents (e2e)", () => {
 
     beforeAll(async () => {
       const res = track(
-        await request(app.getHttpServer())
+        await api()
           .post("/api/v1/documents")
           .field("kind", "CV")
           .field("save", "true")
@@ -475,7 +472,7 @@ describe("Documents (e2e)", () => {
       pdfDocId = (res.body as DocumentResponseBody).id;
 
       const textRes = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "Paste-only JD, no original file attached.",
           save: false
@@ -511,7 +508,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] returns original PDF bytes, content-type application/pdf, inline by default", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .get(`/api/v1/documents/${pdfDocId}/file`)
         .buffer(true)
         .parse(binaryParser);
@@ -523,7 +520,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] ?download=1 → content-disposition contains attachment", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .get(`/api/v1/documents/${pdfDocId}/file`)
         .query({ download: "1" })
         .buffer(true)
@@ -534,16 +531,14 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] per-user isolation: another user's document → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/documents/${otherUserDocId}/file`
-      );
+      const res = await api().get(`/api/v1/documents/${otherUserDocId}/file`);
       expect(res.status).toBe(404);
     });
 
     it("[error-guessing] title with quotes/CRLF/semicolon → Content-Disposition filename is sanitized", async () => {
       const evilTitle = 'evil";x=1\r\nSet-Cookie: a';
       const res = track(
-        await request(app.getHttpServer())
+        await api()
           .post("/api/v1/documents")
           .field("kind", "CV")
           .field("save", "true")
@@ -552,7 +547,7 @@ describe("Documents (e2e)", () => {
       );
       const evilDocId = (res.body as DocumentResponseBody).id;
 
-      const fileRes = await request(app.getHttpServer())
+      const fileRes = await api()
         .get(`/api/v1/documents/${evilDocId}/file`)
         .buffer(true)
         .parse(binaryParser);
@@ -565,9 +560,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] paste-text doc (no original file) → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/documents/${textDocId}/file`
-      );
+      const res = await api().get(`/api/v1/documents/${textDocId}/file`);
       expect(res.status).toBe(404);
     });
   });
@@ -579,7 +572,7 @@ describe("Documents (e2e)", () => {
 
     beforeAll(async () => {
       const res = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD content for PATCH test",
           save: true,
@@ -614,7 +607,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] renames the document → 200, title updated", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${ownDocId}`)
         .send({ title: "New" });
 
@@ -624,7 +617,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[BVA] empty title → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${ownDocId}`)
         .send({ title: "" });
 
@@ -632,7 +625,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[BVA] whitespace-only title (trims to empty) → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${ownDocId}`)
         .send({ title: "   " });
 
@@ -640,7 +633,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[BVA] 201-char title → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${ownDocId}`)
         .send({ title: "a".repeat(201) });
 
@@ -649,7 +642,7 @@ describe("Documents (e2e)", () => {
 
     it("[BVA] 200-char title (max valid boundary) → 200, title accepted in full", async () => {
       const title = "a".repeat(200);
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${ownDocId}`)
         .send({ title });
 
@@ -659,7 +652,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] per-user isolation: another user's document → 404", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`/api/v1/documents/${otherUserDocId}`)
         .send({ title: "Hijacked" });
 
@@ -677,7 +670,7 @@ describe("Documents (e2e)", () => {
 
     beforeAll(async () => {
       const freeRes = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD content not referenced by any match",
           save: true,
@@ -687,7 +680,7 @@ describe("Documents (e2e)", () => {
       freeDocId = (freeRes.body as DocumentResponseBody).id;
 
       const cvRes = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "CV",
           sourceText: "CV content referenced by a match",
           save: true,
@@ -697,7 +690,7 @@ describe("Documents (e2e)", () => {
       inUseCvId = (cvRes.body as DocumentResponseBody).id;
 
       const jdRes = track(
-        await request(app.getHttpServer()).post("/api/v1/documents").send({
+        await api().post("/api/v1/documents").send({
           kind: "JD",
           sourceText: "JD content referenced by a match",
           save: true,
@@ -708,7 +701,7 @@ describe("Documents (e2e)", () => {
 
       const matchResult = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: inUseCvId,
           jdDocumentId: inUseJdId,
           overallScore: 80,
@@ -751,9 +744,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] deletes a document not referenced by any match → 204, row gone", async () => {
-      const res = await request(app.getHttpServer()).delete(
-        `/api/v1/documents/${freeDocId}`
-      );
+      const res = await api().delete(`/api/v1/documents/${freeDocId}`);
       expect(res.status).toBe(204);
 
       const stored = await prisma.document.findUnique({
@@ -763,9 +754,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[DT] CV-referencing document (cvDocumentId arm) → 409, row still present", async () => {
-      const res = await request(app.getHttpServer()).delete(
-        `/api/v1/documents/${inUseCvId}`
-      );
+      const res = await api().delete(`/api/v1/documents/${inUseCvId}`);
       expect(res.status).toBe(409);
 
       const stored = await prisma.document.findUnique({
@@ -775,9 +764,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[DT] JD-referencing document (jdDocumentId arm) → 409, row still present", async () => {
-      const res = await request(app.getHttpServer()).delete(
-        `/api/v1/documents/${inUseJdId}`
-      );
+      const res = await api().delete(`/api/v1/documents/${inUseJdId}`);
       expect(res.status).toBe(409);
 
       const stored = await prisma.document.findUnique({
@@ -787,9 +774,7 @@ describe("Documents (e2e)", () => {
     });
 
     it("[EP] per-user isolation: another user's document → 404", async () => {
-      const res = await request(app.getHttpServer()).delete(
-        `/api/v1/documents/${otherUserDocId}`
-      );
+      const res = await api().delete(`/api/v1/documents/${otherUserDocId}`);
       expect(res.status).toBe(404);
     });
   });

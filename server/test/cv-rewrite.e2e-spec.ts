@@ -4,8 +4,8 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 import { AiService, type RawCvRewrite } from "../src/modules/ai/ai.service";
 import type { AiRuntimeConfig } from "../src/modules/ai/providers";
 
@@ -91,13 +91,16 @@ class FakeAiService {
 describe("CvRewrite (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const documentIds: string[] = [];
   let cvDocId: string;
   let jdDocId: string;
   let matchId: string;
 
   const createDoc = async (kind: "CV" | "JD", text: string) => {
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .post(DOCUMENTS)
       .send({ kind, sourceText: text, save: false });
     const { id } = res.body as DocBody;
@@ -110,7 +113,7 @@ describe("CvRewrite (e2e)", () => {
   ) => {
     const row = await prisma.matchResult.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         cvDocumentId: cvDocId,
         jdDocumentId: jdDocId,
         provider: "openrouter",
@@ -142,6 +145,7 @@ describe("CvRewrite (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
     cvDocId = await createDoc("CV", CV_TEXT);
     jdDocId = await createDoc("JD", "Hiring a backend engineer with CI/CD.");
@@ -158,14 +162,13 @@ describe("CvRewrite (e2e)", () => {
       where: { cvDocumentId: { in: documentIds } }
     });
     await prisma.document.deleteMany({ where: { id: { in: documentIds } } });
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
   describe("POST /cv-rewrite", () => {
     it("[EP] proposes only changes anchored in the CV", async () => {
-      const res = await request(app.getHttpServer())
-        .post(REWRITE)
-        .send({ matchResultId: matchId });
+      const res = await api().post(REWRITE).send({ matchResultId: matchId });
 
       expect(res.status).toBe(201);
       const body = res.body as ProposalBody;
@@ -202,7 +205,7 @@ describe("CvRewrite (e2e)", () => {
       });
 
       try {
-        const res = await request(app.getHttpServer())
+        const res = await api()
           .post(REWRITE)
           .send({ matchResultId: foreign.id });
         expect(res.status).toBe(404);
@@ -213,7 +216,7 @@ describe("CvRewrite (e2e)", () => {
     });
 
     it("[EP] an unknown match id → 404", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(REWRITE)
         .send({ matchResultId: randomUUID() });
       expect(res.status).toBe(404);
@@ -221,20 +224,16 @@ describe("CvRewrite (e2e)", () => {
 
     it("[EP] a failed match has no report to rewrite → 400", async () => {
       const failedId = await createMatchRow("failed");
-      const res = await request(app.getHttpServer())
-        .post(REWRITE)
-        .send({ matchResultId: failedId });
+      const res = await api().post(REWRITE).send({ matchResultId: failedId });
       expect(res.status).toBe(400);
     });
   });
 
   describe("POST /cv-rewrite/accept", () => {
     it("[ST] saves a NEW document linked to the original, leaving it untouched", async () => {
-      const before = await request(app.getHttpServer()).get(
-        `${DOCUMENTS}/${cvDocId}`
-      );
+      const before = await api().get(`${DOCUMENTS}/${cvDocId}`);
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(ACCEPT)
         .send({
           matchResultId: matchId,
@@ -262,9 +261,7 @@ describe("CvRewrite (e2e)", () => {
       );
 
       // ADR #13: the original is never overwritten.
-      const after = await request(app.getHttpServer()).get(
-        `${DOCUMENTS}/${cvDocId}`
-      );
+      const after = await api().get(`${DOCUMENTS}/${cvDocId}`);
       expect((after.body as DocBody).rawText).toBe(
         (before.body as DocBody).rawText
       );
@@ -274,7 +271,7 @@ describe("CvRewrite (e2e)", () => {
     it("[DT] a change that is not anchored in the CV → 400 and nothing is created", async () => {
       const before = await prisma.document.count();
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(ACCEPT)
         .send({
           matchResultId: matchId,
@@ -289,7 +286,7 @@ describe("CvRewrite (e2e)", () => {
     });
 
     it("[DT] two changes editing the same excerpt → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(ACCEPT)
         .send({
           matchResultId: matchId,
@@ -306,14 +303,14 @@ describe("CvRewrite (e2e)", () => {
     });
 
     it("[BVA] an empty change list → 400 from validation", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(ACCEPT)
         .send({ matchResultId: matchId, title: "Empty", changes: [] });
       expect(res.status).toBe(400);
     });
 
     it("[BVA] a title longer than 200 characters → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post(ACCEPT)
         .send({
           matchResultId: matchId,
@@ -326,7 +323,7 @@ describe("CvRewrite (e2e)", () => {
     it("[ST] deleting the original leaves the rewrite in place, unlinked", async () => {
       const parent = await prisma.document.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           kind: "CV",
           title: "Disposable parent",
           sourceFormat: "text",
@@ -336,7 +333,7 @@ describe("CvRewrite (e2e)", () => {
       });
       const child = await prisma.document.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           kind: "CV",
           title: "Disposable child",
           sourceFormat: "text",
