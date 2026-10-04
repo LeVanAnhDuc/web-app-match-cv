@@ -2,7 +2,7 @@
 
 > **Trả lời:** Ngưỡng nào áp cho **mọi** feature, để không phải nhắc lại từng lần?
 > **Trạng thái:** 🟢 đủ — đã rà theo dự án 2026-09-03
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** thêm loại tài nguyên mới · thêm nhóm người dùng · sau sự cố sinh ra ngưỡng mới
 
 <!-- CÁCH ĐIỀN
@@ -29,6 +29,7 @@ Tài liệu thiết kế của feature tham chiếu ID ở dòng `Liên quan:` �
 | NFR-COST-01 | Một lần chạy N provider tốn **3N call AI** (2 embed + 1 chat mỗi provider). UI phải cho user thấy họ đang chọn mấy provider **trước khi** bấm chạy | thử tay |
 | NFR-COST-02 | Màn hình chỉ để **đọc lại** kết quả cũ (so sánh phiên bản, lịch sử, xem trước) **không được gọi AI** | review import graph của module |
 | NFR-COST-03 | Tính lại điểm cho dữ liệu cũ phải làm được **không tốn call AI** — `rawText` và `semanticScore` đã lưu | review script |
+| NFR-COST-04 | Người chưa đăng nhập chạy trên key hệ thống tối đa **`GUEST_MATCH_LIMIT_PER_DAY` match / IP / ngày UTC** (mặc định 5), trừ lượt **trước** call AI | test quota + đọc bảng `guest_usage` |
 
 ## Security
 
@@ -45,6 +46,8 @@ Tài liệu thiết kế của feature tham chiếu ID ở dòng `Liên quan:` �
 | NFR-SEC-09 | API **không bao giờ** trả lại plaintext token: response chỉ có provider + nhãn + `••••1234` + trạng thái test | test cho từng endpoint |
 | NFR-SEC-10 | Token AI không xuất hiện trong log, message lỗi, response `/match`, hay ví dụ Swagger | grep + review |
 | NFR-SEC-11 | File nạp lên được kiểm **size limit + type check** trước khi parse | test |
+| NFR-SEC-12 | Session chỉ nằm trong cookie **httpOnly + SameSite=Lax** (+ Secure ở production); DB chỉ lưu **hash** của token; đăng nhập luôn cấp session mới. Token của IdP không lưu, không tới trình duyệt | test + đọc DB |
+| NFR-SEC-13 | `/auth/login` và `/auth/callback` có rate limit chặt hơn mức toàn cục (NFR-SEC-07); `returnTo` chỉ nhận đường dẫn tương đối | test |
 
 ## Accessibility
 

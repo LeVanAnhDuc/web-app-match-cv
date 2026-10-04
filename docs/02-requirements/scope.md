@@ -2,7 +2,7 @@
 
 > **Trả lời:** Hệ thống có những chức năng nào, mỗi cái đang ở trạng thái gì?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** brainstorm ra chức năng mới (cấp FR mới) · một FR chuyển trạng thái
 
 <!-- CÁCH ĐIỀN
@@ -37,12 +37,15 @@ KHÔNG chứa: cách hiện thực, ngưỡng phi chức năng (-> nfr.md), lý 
 | FR-15 | Export toàn bộ dữ liệu của user (JSON + file gốc, khoá AI dạng masked) | US-08 | xong — `GET /me/export` + trang `/my-data` |
 | FR-16 | Xoá sạch dữ liệu của user, xác nhận hai bước | US-08 | chưa |
 | FR-17 | Nhật ký tiết lộ dữ liệu: ghi trước mỗi call AI, fail-closed | US-08 | chưa |
-| FR-18 | Auth / SSO qua `web-app-ducker-id` | — | chưa |
+| FR-18 | Auth / SSO qua `web-app-ducker-id` (OIDC, session riêng, bỏ mock user) | US-09 | đang — [ADR-0022](../decisions/0022-dang-nhap-bff-session-rieng.md) |
 | FR-19 | Batch ranking nhiều CV cho một JD | — | chưa |
 | FR-20 | Recruiter đăng job / list / search / apply flow | — | (bỏ) — [ADR-0012](../decisions/0012-bo-job-board.md) |
+| FR-21 | Chế độ khách: wizard trên key hệ thống, quota theo IP, dữ liệu sống 24 giờ, mang vào tài khoản khi đăng nhập | US-09 | đang — [ADR-0023](../decisions/0023-che-do-khach-user-tam-24h.md) |
 
 ## Thứ tự còn lại
 
-FR-16 và FR-17 là hai phần còn lại của chủ quyền dữ liệu (FR-15 đã xong) và xếp
-trước FR-18. FR-19 phải chờ pgvector + hàng đợi nền, xem
+FR-18 + FR-21 được kéo lên trước (user chốt 2026-10-04): không có đăng nhập thì app không
+deploy public được ([ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md)), và
+FR-16 "xoá dữ liệu của user" chỉ có nghĩa khi có user thật. FR-16, FR-17 đi ngay sau.
+FR-19 phải chờ pgvector + hàng đợi nền, xem
 [ADR-0017](../decisions/0017-semantic-khong-pgvector-o-mvp.md).
