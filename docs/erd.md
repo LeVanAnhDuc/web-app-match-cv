@@ -8,12 +8,15 @@
 > Cập nhật 2026-08-09 (feature `cv-rewrite-assistant` — Roadmap #6): `Document.parentId` **đã implement** (migration `add_document_parent`, self-FK `ON DELETE SET NULL`, ADR #15). Mục "Generated content 📝" **đã chốt phương án (a)** — không thêm model, xem cuối file.
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
 > Cập nhật 2026-08-09 (feature `cover-letter-generator`, Roadmap #8 / Goal 7b): thêm model **`CoverLetter`** + 4 enum (`CoverLetterTone`/`Length`/`Language`/`Status`), migration `add_cover_letter`. Đóng open question "cover letter có lưu không" — **có lưu, bảng riêng**. Mục "Generated content" gộp lại: **hai nửa Goal 7 chốt ngược hướng nhau, có chủ ý** — 7a không thêm model (đề xuất không lưu), 7b có bảng riêng (mọi lần sinh đều lưu); tiêu chí phân biệt là **output có chảy tiếp vào hệ thống hay không**.
+> Cập nhật 2026-10-04 (feature `ducker-id-sign-in`, FR-18/FR-21): thêm `Session` + `GuestUsage`, `User` nhận `isGuest`/`guestExpiresAt` và các cột mirror profile, bỏ `isMock`; mock user bị xoá; cascade xuống con của `User`. Sửa bullet Identity (còn nhắc mock user / `project-goals.md` §3).
 
 ## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08 — sau feature `ai-credentials`)
 
 | Model | Trong ERD | Trong Prisma | Ghi chú |
 |---|---|---|---|
-| `User` | ✅ | 🟡 **một phần** | Có `id`/`role`/`externalSub`/`createdAt`. **Thiếu**: `isMock`, `email`, `fullName`, `avatar`, `phone`, `updatedAt` (tất cả đánh 📝) |
+| `User` | ✅ | ✅ **đủ** | `id`/`role`/`externalSub` (unique)/`isGuest`/`guestExpiresAt`/`email`/`fullName`/`avatar`/`createdAt`/`updatedAt` (migration `auth_sessions_and_guests`, ADR-0023). `isMock` và `phone` đã bỏ |
+| `Session` | ✅ | ✅ **đủ** | Phiên đăng nhập phía server, cascade theo `User` (migration `auth_sessions_and_guests`) |
+| `GuestUsage` | ✅ | ✅ **đủ** | Bộ đếm theo `(ipHash, day)` cho khách (migration `auth_sessions_and_guests`) |
 | `Document` | ✅ | ✅ **đủ** | Kể cả `fileData`/`fileMime` (feature `home-dashboard-library`) và `parentId` (Roadmap **#6**, migration `add_document_parent`) |
 | `MatchResult` | ✅ | ✅ **đủ** | Scores + `report` + FK cv/jd, `credentialId`/`provider`/`chatModel`/`embedModel` (Roadmap #4), và `runId`/`status`/`errorCode` (Roadmap #9) |
 | `MatchRun` | ✅ | ✅ **đủ** | Roadmap **#9** đã merge — migration `add_match_run` |
@@ -26,7 +29,7 @@
 
 ## Module groups
 
-- **Identity**: `User` (mock user khi chưa auth — xem `project-goals.md` §3)
+- **Identity**: `User` (tài khoản Ducker ID qua `externalSub`, hoặc khách `isGuest` sống 24 giờ), `Session`, `GuestUsage` — [ADR-0022](decisions/0022-dang-nhap-bff-session-rieng.md), [ADR-0023](decisions/0023-che-do-khach-user-tam-24h.md)
 - **Documents**: `Document` (CV | JD, per-user, reusable)
 - **Matching**: `MatchRun` + `MatchResult`
 - **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)
@@ -35,22 +38,39 @@
 
 ## Schema
 
-### User (mock user khi chưa auth — SSO-ready)
+### User (đăng nhập qua Ducker ID hoặc khách — ADR-0023)
 
 | Field | Type | Note |
 |---|---|---|
 | id | uuid (PK) | |
 | role | enum(candidate, recruiter, admin) | |
-| externalSub | text (nullable) | subject từ IdP store-app (điền khi SSO) |
-| isMock | boolean 📝 | default `false`. `true` = mock user dùng khi chưa đăng nhập (`00000000-…-0001`, seed idempotent). Clean data: `DELETE FROM users WHERE is_mock = true` cascade |
-| email | text (nullable) 📝 | **mirror** claim từ IdP — không phải source of truth |
-| fullName | text (nullable) 📝 | mirror claim |
-| avatar | text (nullable) 📝 | mirror claim |
-| phone | text (nullable) 📝 | mirror claim |
+| externalSub | text (nullable, **unique**) | `sub` từ Ducker ID. `null` với khách |
+| isGuest | boolean | default `false`. `true` = khách, dọn khi `guestExpiresAt` qua |
+| guestExpiresAt | timestamptz (nullable) | hạn của khách; `null` với user thật. Index `(isGuest, guestExpiresAt)` |
+| email | text (nullable) | **mirror** claim từ IdP — không phải source of truth |
+| fullName | text (nullable) | mirror claim |
+| avatar | text (nullable) | mirror claim |
 | createdAt | timestamptz | |
-| updatedAt | timestamptz 📝 | phục vụ re-sync profile mỗi lần login |
+| updatedAt | timestamptz | phục vụ re-sync profile mỗi lần login |
 
-> **KHÔNG có** bảng credential/password ở đây — `store-app` (IdP) sở hữu `Authentication` + `OAuthConsent`; match-cv chỉ link qua `externalSub` (`project-goals.md` ADR #7).
+> `isMock` và `phone` đã bỏ (ADR-0023): mock user của ADR-0008 bị xoá khỏi DB (không migrate) và Ducker ID không có claim cho phone. **KHÔNG có** bảng credential/password ở đây — Ducker ID sở hữu xác thực; match-cv chỉ link qua `externalSub`.
+
+### Session
+
+| Field | Type | Note |
+|---|---|---|
+| id | text (PK) | id phiên (không phải uuid sinh tự động) |
+| userId | uuid (FK → User) | `ON DELETE CASCADE` |
+| expiresAt | timestamptz | index |
+| createdAt | timestamptz | |
+
+### GuestUsage
+
+| Field | Type | Note |
+|---|---|---|
+| ipHash | text | PK ghép `(ipHash, day)` |
+| day | date | PK ghép |
+| count | int | default `0` |
 
 ### Document
 
@@ -204,12 +224,12 @@ Ràng buộc chung (ADR #13): **không ghi đè CV gốc**; nội dung sinh ra p
 - **isSaved**: reuse ở wizard step 1/2 chỉ liệt kê `Document` có `isSaved=true` của user hiện tại (radio-select).
 - **embedding/pgvector**: DEFER — match 1 CV × 1 JD chỉ cần cosine 2 vector tính in-app (không lưu). pgvector + cột embedding chỉ thêm khi rank nhiều CV (**roadmap #11** — roadmap đánh số lại 2026-08-08, trước đó là #7).
 - **overallScore**: `round(0.6*semanticScore + 0.4*keywordScore)` (Plan 2). Đổi trọng số → cập nhật ở đây + code.
-- **mock user** 📝: khi chưa có auth, `userId` của mọi bảng trỏ về `User` có `isMock = true`. Đây là user **hợp lệ trong DB**, không phải id ảo → FK toàn vẹn, clean data 1 câu lệnh.
+- **mock user** đã bỏ (ADR-0023, FR-18): mọi `userId` trỏ về `User` thật hoặc khách (`isGuest`). Xoá một `User` cascade xuống `Document`, `MatchResult`, `MatchRun`, `AiCredential`, `CoverLetter`, `Session`.
 - **Lineage `Document.parentId`**: bản CV viết lại **luôn là row mới** — CV gốc không bao giờ bị ghi đè (ADR #13). `ON DELETE SET NULL` (ADR #15): xoá bản gốc thì bản cải tiến **vẫn còn**, chỉ mất liên kết. Bản viết lại có `sourceFormat=text` và `fileData=null` — **không** copy file PDF/DOCX của cha, vì file cũ không còn nói đúng nội dung mới. **`CoverLetter` không tham gia lineage này** — nó không phải một phiên bản của CV.
 - **Số phiên bản KHÔNG có cột riêng** *(chốt 2026-08-09, Roadmap #7)*: `version` (1 = bản gốc, 2 = bản viết lại của nó…) được **suy ra bằng cách đi ngược chuỗi `parentId`**, cap ở `MAX_LINEAGE_DEPTH = 20`. Lưu hẳn một cột sẽ drift ngay ở ca đầu tiên — `ON DELETE SET NULL` biến `v2` thành gốc mới khi xoá bản gốc, nhưng cột đã lưu vẫn nói "2". Đóng open question của `project-goals.md` §12.
 - **Vòng lineage bị chặn ở đường ghi**: `PATCH /documents/:id/parent` từ chối trỏ vào chính nó, vào tài liệu khác `kind`, hoặc vào bất kỳ hậu duệ nào (**400**). Cột tự nó cho phép vòng, nên bất biến này sống ở service chứ không ở schema.
 - **AiCredential ↔ MatchResult / CoverLetter**: quan hệ **soft** (`ON DELETE SET NULL`). Xoá credential không được xoá lịch sử; `provider`/`chatModel`(/`embedModel`) được **snapshot** vào row nên kết quả cũ vẫn đọc được sau khi credential bị xoá/đổi model.
-- **Thứ tự xoá (FK)** khi clean data: `CoverLetter` → `MatchResult` → `MatchRun` → `Document`. `CoverLetter` cascade theo `MatchResult`, nhưng `MatchResult`/`MatchRun` **restrict** trên `Document` nên vẫn phải xoá từ dưới lên.
+- **Thứ tự xoá (FK)** khi clean data: `CoverLetter` → `MatchResult` → `MatchRun` → `Document`. `CoverLetter` cascade theo `MatchResult`. FK `MatchResult`/`MatchRun` → `Document` là **`ON DELETE NO ACTION`** (không phải RESTRICT): xoá `User` cascade sang cả `Document` lẫn `MatchResult` trong một câu lệnh — RESTRICT kiểm ngay nên chết giữa chừng, NO ACTION kiểm cuối câu lệnh nên qua. Xoá lẻ một document đang được dùng vẫn lỗi FK (FR-07 trả 409).
 - **So sánh được giữa các provider** 📝: mọi provider trong whitelist đều chạy **cùng công thức điểm** (0.6 semantic + 0.4 keyword) nên điểm giữa các card trong 1 `MatchRun` là so sánh được. Đây là lý do provider không có embeddings API bị loại khỏi enum (`project-goals.md` ADR #10) — nếu sau này nới ra thì `semanticScore` phải thành nullable và tính so sánh mất đi.
 
 ## How to update

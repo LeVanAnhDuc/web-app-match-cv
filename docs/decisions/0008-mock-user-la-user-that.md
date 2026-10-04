@@ -1,7 +1,7 @@
 # ADR-0008 · Mock user là một `User` thật trong DB, có cờ `isMock`
 
 > **Ngày:** 2026-08-06
-> **Trạng thái:** accepted
+> **Trạng thái:** superseded by [ADR-0023](0023-che-do-khach-user-tam-24h.md)
 > **Liên quan:** FR-18 · ADR-0006 · ADR-0007
 
 ## 1. Bối cảnh

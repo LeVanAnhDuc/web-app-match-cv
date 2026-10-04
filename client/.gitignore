@@ -24,3 +24,6 @@ coverage
 # stray debug/log files
 *.log
 repro.mjs
+
+# e2e seeded session (never commit tokens)
+/e2e/.auth/

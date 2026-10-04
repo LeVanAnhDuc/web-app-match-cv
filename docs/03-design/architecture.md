@@ -2,7 +2,7 @@
 
 > **Trả lời:** Hệ thống ghép lại thế nào, ranh giới giữa các phần ở đâu?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** thêm/bỏ một module hoặc service · đổi cách hai module nói chuyện
 
 <!-- CÁCH ĐIỀN
@@ -19,12 +19,12 @@ graph LR
   User[Người dùng] --> App[Match CV]
   App --> DB[(PostgreSQL)]
   App --> AI[Provider AI<br/>OpenRouter · OpenAI · Gemini]
-  IdP[Ducker ID<br/>chưa nối - FR-18] -. roadmap .-> App
+  IdP[Ducker ID<br/>OIDC · :3000] --> App
 ```
 
-Chỉ có **một** hệ thống ngoài đang thật sự được gọi: provider AI, qua SDK `openai`,
-phân biệt nhau bằng `baseURL` + tên model. Ducker ID là roadmap, chưa có đường nào
-trong code chạm tới nó.
+Có **hai** hệ thống ngoài: provider AI, qua SDK `openai`, phân biệt nhau bằng `baseURL` +
+tên model; và Ducker ID, IdP OIDC (issuer `http://localhost:3000`) — chỉ `auth` nói chuyện với
+nó ([ADR-0022](../decisions/0022-dang-nhap-bff-session-rieng.md)).
 
 ## 2. Container — hệ thống gồm những khối chạy được nào
 
@@ -59,24 +59,35 @@ request (NFR-PERF-06). Không dùng Docker — PostgreSQL chạy local.
 | `cover-letters` | Sinh / sửa / xoá thư ứng tuyển | `prisma`, `ai` | — |
 | `comparison` | So hai phiên bản CV trên một JD, ghép gap bằng `gap-diff.ts` | `prisma`, `matching` (chỉ tokenizer) | **`ai`** — xem invariant #19 |
 | `me` | Export toàn bộ dữ liệu của user | `prisma` | `ai` |
-| `common/current-user` | Nguồn duy nhất của `userId` (hiện là mock user) | — | — |
+| `auth` | Đăng nhập OIDC qua Ducker ID, phiên `mcv_session`, chế độ khách (tạo / dọn / claim), quota khách theo IP | `prisma`, Ducker ID | `ai` |
+| `common/current-user` | Nguồn duy nhất của `userId`, đọc từ request context do `auth` dựng | — | — |
 | `prisma` · `config` · `i18n` | Hạ tầng | — | — |
 
-Hạ tầng dùng chung: Swagger, helmet, `ThrottlerGuard` (100 req/60s), `nestjs-i18n`.
+Hạ tầng dùng chung: `AuthGuard` global (route nào cũng cần user, trừ `@Public` / `@AllowGuest`), Swagger, helmet, `ThrottlerGuard` (100 req/60s), `nestjs-i18n`.
 
 ### client (`client/src/`) — layer-first, không feature-first
 
 | Lớp | Trách nhiệm | Được phép gọi |
 | --- | --- | --- |
 | `routes/_app/*` | Khai báo route, không chứa logic | `views` |
-| `layouts/AppShell` | Vỏ app: sidebar, nav | `components` |
+| `layouts/AppShell` | Vỏ app theo trạng thái auth (khách / user), sidebar, nav | `components` |
+| `components/SignInGate` · `RequireAuth` | Chặn 6 route cần tài khoản bằng màn mời đăng nhập | `requests` |
 | `views/<Màn>` | Một màn hình, chia `mains/` + hook riêng | `requests`, `stores`, `components`, `hooks` |
 | `requests/` | Gọi API, nơi **duy nhất** biết đường dẫn endpoint | `libs` |
 | `stores/` · `types/` · `constants/` · `locales/` | State, kiểu, hằng, chuỗi i18n | — |
 
 ## 4. Luồng dữ liệu của đường đi quan trọng nhất
 
-Một lần chấm (US-01), khi user chọn N provider:
+**Đăng nhập (FR-18) và khách (FR-21).** `SessionMiddleware` đọc cookie `mcv_session` vào một
+request context (`AsyncLocalStorage`) cho `CurrentUserService` đọc; `AuthGuard` từ chối mọi
+route không gắn `@Public` / `@AllowGuest`. Khách được tạo tại guard khi gọi endpoint
+`@AllowGuest({ createGuest })`, sống 24 giờ, và `GuestUsageService` trừ quota theo IP **trước**
+call AI. `/auth/login` → Ducker ID (code + PKCE S256) → `/auth/callback` kiểm `id_token` qua JWKS,
+tạo phiên, và nếu người gọi là khách đã khởi động lần đăng nhập đó thì `GuestService.claim`
+chuyển dữ liệu của khách sang tài khoản. Chi tiết:
+[`specs/ducker-id-sign-in/design.md`](../specs/ducker-id-sign-in/design.md) §3.2.
+
+**Một lần chấm (US-01)**, khi user chọn N provider:
 
 1. `POST /match` nhận `{ cvDocumentId, jdDocumentId, credentialIds[] }` — **không nhận
    nội dung tài liệu**, chỉ nhận id; nội dung lấy từ DB, đã cô lập theo user.
@@ -106,6 +117,7 @@ con số version chép tay là nguồn thứ hai và nó sẽ lệch.
 | Datastore | PostgreSQL local, không Docker; pgvector hoãn | [ADR-0002](../decisions/0002-be-nestjs-postgres-prisma.md) · [ADR-0017](../decisions/0017-semantic-khong-pgvector-o-mvp.md) |
 | AI | SDK `openai` → OpenRouter / OpenAI / Gemini | [ADR-0005](../decisions/0005-ai-qua-openrouter-sdk-openai.md) · [ADR-0010](../decisions/0010-provider-whitelist-chat-va-embed.md) |
 | Mã hoá secret | `node:crypto` AES-256-GCM — **không thêm dependency** | [ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md) |
+| Đăng nhập | OIDC client viết tay bằng `node:crypto` (PKCE, JWKS RS256) + session cookie riêng — không thêm dependency | [ADR-0022](../decisions/0022-dang-nhap-bff-session-rieng.md) · [ADR-0023](../decisions/0023-che-do-khach-user-tam-24h.md) |
 | Validation | `class-validator` + `class-transformer` (DTO) | — |
 | API docs | `@nestjs/swagger` | — |
 | Bảo mật | `helmet` · `cors` · `@nestjs/throttler` | NFR-SEC-07 |

@@ -1,10 +1,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PropsWithChildren } from "react";
 import "#/i18n/config";
+import { useAuth } from "#/hooks/useAuth";
+import { signInUrl } from "#/libs/api";
 import type { DocumentSummaryDto } from "#/types/Documents";
 import DocumentInputStep from "../index";
+
+vi.mock("#/hooks/useAuth");
+
+const auth = (status: "guest" | "user") => ({
+  status,
+  user: null,
+  guestQuota: null,
+  isUser: status === "user"
+});
 
 function Wrapper({ children }: PropsWithChildren) {
   const queryClient = new QueryClient({
@@ -23,6 +34,10 @@ function stubSavedDocs(docs: Array<DocumentSummaryDto>) {
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
+
+beforeEach(() => {
+  vi.mocked(useAuth).mockReturnValue(auth("user"));
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -178,5 +193,59 @@ describe("DocumentInputStep", () => {
     const heading = await screen.findByRole("heading", { name: /saved/i });
     expect(heading.className).toContain("text-muted");
     expect(heading.className).not.toContain("text-faint");
+  });
+
+  it("touch-sizes both footer buttons and stretches them below md", async () => {
+    stubSavedDocs([]);
+    render(<DocumentInputStep kind="CV" onNext={vi.fn()} onBack={vi.fn()} />, {
+      wrapper: Wrapper
+    });
+
+    for (const name of [/next/i, /back/i]) {
+      const button = await screen.findByRole("button", { name });
+      expect(button.className).toContain("!h-11");
+      expect(button.className).toContain("max-md:w-full");
+    }
+  });
+});
+
+describe("DocumentInputStep as a guest", () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+  });
+
+  it("offers upload/paste only — no saved list, no save-for-reuse, no library request", async () => {
+    const fetchMock = stubSavedDocs([]);
+    render(<DocumentInputStep kind="JD" onNext={vi.fn()} />, {
+      wrapper: Wrapper
+    });
+
+    fireEvent.click(await screen.findByText(/paste text/i));
+    fireEvent.change(
+      await screen.findByPlaceholderText(/paste the text content here/i),
+      { target: { value: "We are hiring." } }
+    );
+
+    expect(screen.queryByRole("heading", { name: /saved/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /save for reuse/i })
+    ).toBeNull();
+    // GET /documents (the library) 401s for a guest, so it must never fire.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("says the document is kept for 24 hours and links to sign in", async () => {
+    stubSavedDocs([]);
+    render(<DocumentInputStep kind="JD" onNext={vi.fn()} />, {
+      wrapper: Wrapper
+    });
+
+    expect(
+      await screen.findByText(/As a guest, this document is kept for 24 hours/)
+    ).toBeDefined();
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      signInUrl("/wizard")
+    );
   });
 });

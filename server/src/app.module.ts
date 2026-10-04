@@ -1,5 +1,10 @@
 import { join } from "path";
-import { Module } from "@nestjs/common";
+import {
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+  RequestMethod
+} from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
@@ -14,6 +19,8 @@ import { CoverLettersModule } from "./modules/cover-letters/cover-letters.module
 import { CvRewriteModule } from "./modules/cv-rewrite/cv-rewrite.module";
 import { ComparisonModule } from "./modules/comparison/comparison.module";
 import { MeModule } from "./modules/me/me.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { SessionMiddleware } from "./modules/auth/session.middleware";
 import { validateEnv } from "./config/env.validation";
 
 @Module({
@@ -30,6 +37,7 @@ import { validateEnv } from "./config/env.validation";
     }),
     PrismaModule,
     CurrentUserModule,
+    AuthModule,
     HealthModule,
     DocumentsModule,
     MatchingModule,
@@ -42,4 +50,10 @@ import { validateEnv } from "./config/env.validation";
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(SessionMiddleware)
+      .forRoutes({ path: "{*splat}", method: RequestMethod.ALL });
+  }
+}

@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import { Button, Drawer } from "antd";
 import {
   Menu,
@@ -8,7 +9,10 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PropsWithChildren, ReactNode } from "react";
+import { useAuth } from "#/hooks/useAuth";
+import { signInUrl } from "#/libs/api";
 import { useUiStore } from "#/stores";
+import AccountMenu from "./components/AccountMenu";
 import Sidebar from "./components/Sidebar";
 
 const AppShell = ({
@@ -16,6 +20,10 @@ const AppShell = ({
   actionBar
 }: PropsWithChildren<{ actionBar?: ReactNode }>) => {
   const { t } = useTranslation();
+  const { status, isUser } = useAuth();
+  const returnTo = useRouterState({
+    select: (s) => s.location.pathname + s.location.searchStr
+  });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isCollapsed = useUiStore((s) => s.isSidebarCollapsed);
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
@@ -73,11 +81,17 @@ const AppShell = ({
             aria-label={t("nav.openMenu")}
             icon={<Menu size={20} />}
             onClick={() => setIsDrawerOpen(true)}
-            className="text-muted"
+            className="!size-11 text-muted"
           />
-          <span className="truncate text-base font-bold tracking-tight text-body">
+          <span className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-body">
             {t("appName")}
           </span>
+          {isUser && <AccountMenu />}
+          {(status === "guest" || status === "anonymous") && (
+            <Button href={signInUrl(returnTo)} className="!h-11">
+              {t("auth.signIn")}
+            </Button>
+          )}
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
         {actionBar && (
@@ -93,7 +107,9 @@ const AppShell = ({
         onClose={() => setIsDrawerOpen(false)}
         title={t("appName")}
         width={256}
-        styles={{ body: { padding: 0 } }}
+        styles={{
+          body: { padding: 0, display: "flex", flexDirection: "column" }
+        }}
       >
         <Sidebar />
       </Drawer>

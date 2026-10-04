@@ -4,6 +4,8 @@
     "invalidDocumentKind": "Document kind does not match (expected CV/JD as specified).",
     "matchNotFound": "Match result not found.",
     "runNotFound": "Match run not found.",
-    "runDocumentMismatch": "This run is for a different pair of documents."
+    "runDocumentMismatch": "This run is for a different pair of documents.",
+    "guestCredential": "Guests can only use the system AI key.",
+    "guestQuota": "You have used today's free matches."
   }
 }

@@ -38,11 +38,13 @@ con số **giải thích được** cho câu "CV này khớp JD này tới đâu
 | `recruiter` | Có JD, muốn chấm một CV nhận được. **Không** đăng tin, **không** nhận đơn ứng tuyển |
 | `admin` | Quản trị hệ thống |
 
-MVP **chưa có auth thật**. App chạy như thể đã đăng nhập bằng một `User` hợp lệ trong
-DB (`STUB_USER_ID = 00000000-0000-0000-0000-000000000001`, seed idempotent), lấy qua
-`CurrentUserService.getUserId()`. Không có màn login, không có mode khách, không tính
-năng nào bị khoá vì chưa auth — xem [ADR-0006](../decisions/0006-defer-auth-mock-user.md)
-và [ADR-0008](../decisions/0008-mock-user-la-user-that.md).
+Đăng nhập qua Ducker ID (OIDC), phiên riêng của app — [ADR-0022](../decisions/0022-dang-nhap-bff-session-rieng.md).
+Người chưa đăng nhập vẫn chạy được wizard ở **chế độ khách**: upload / dán text, key hệ thống,
+quota theo IP mỗi ngày UTC, dữ liệu sống 24 giờ rồi bị xoá, và được mang vào tài khoản khi
+đăng nhập — [ADR-0023](../decisions/0023-che-do-khach-user-tam-24h.md) (thay
+[ADR-0006](../decisions/0006-defer-auth-mock-user.md) và
+[ADR-0008](../decisions/0008-mock-user-la-user-that.md)). Thư viện, lịch sử, viết lại CV,
+thư ứng tuyển, khoá AI riêng chỉ dành cho tài khoản.
 
 ## 4. Non-Goals — dứt khoát không làm
 
@@ -76,9 +78,10 @@ và [ADR-0008](../decisions/0008-mock-user-la-user-that.md).
 | Trả bằng gì | — |
 | **Trần chi phí hạ tầng / tháng** | 🔴 chưa chốt. Cái đang ràng buộc thật là **cost mỗi lần match**: 3N call AI (2 embed + 1 chat mỗi provider), nên UI phải cho user thấy họ đang chọn mấy provider |
 
-> App **chưa deploy public** và không được deploy trước khi Auth/SSO xong — precondition
-> cứng của [ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md): mock user dùng
-> chung nghĩa là mọi caller đọc được cùng credential.
+> Precondition cứng của [ADR-0009](../decisions/0009-byo-token-luu-server-ma-hoa.md) (không
+> deploy khi mọi caller đọc được cùng credential) đã được FR-18 gỡ: mỗi credential giờ thuộc
+> một user thật. Deploy sau reverse proxy còn vướng nợ #11 (`trust proxy`) trong
+> [`backlog.md`](../04-state/backlog.md).
 
 ## 6. Thế nào là thành công
 

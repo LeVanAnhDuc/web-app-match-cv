@@ -1,3 +1,4 @@
+import { sessionCookieHeader } from "../auth-state";
 import { Client } from "pg";
 import { expect, type Page } from "@playwright/test";
 import {
@@ -99,7 +100,7 @@ export async function stubMatches(
 export async function createCredential(label: string, provider = "openrouter") {
   const res = await fetch(`${API_BASE}/ai-credentials`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...sessionCookieHeader() },
     body: JSON.stringify({ provider, label, apiKey: VALID_KEY })
   });
   if (!res.ok) throw new Error(`seed credential failed: ${res.status}`);

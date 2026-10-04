@@ -1,3 +1,4 @@
+import { sessionCookieHeader } from "../auth-state";
 import { expect, test } from "@playwright/test";
 import { cleanDocuments } from "../db-cleanup";
 import {
@@ -131,7 +132,7 @@ test.describe("ai-credentials failure states", () => {
     // Delete it behind the wizard's back, exactly as a second tab would.
     const deleted = await fetch(
       `${process.env.E2E_API_BASE ?? "http://localhost:5200/api/v1"}/ai-credentials/${doomed.id}`,
-      { method: "DELETE" }
+      { method: "DELETE", headers: sessionCookieHeader() }
     );
     expect(deleted.status).toBe(204);
 

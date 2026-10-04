@@ -36,6 +36,34 @@
       "jd": "JD",
       "score": "Điểm",
       "date": "Ngày"
+    },
+    "guest": {
+      "eyebrow": "Ghép CV ↔ JD",
+      "title": "CV của bạn khớp công việc này đến đâu?",
+      "subtitle": "Dán mô tả công việc và CV của bạn. Bạn nhận một điểm có thể truy ngược — 60% theo ý nghĩa, 40% theo từ khoá — cùng điểm mạnh và điểm còn thiếu.",
+      "cta": "Bắt đầu ghép →",
+      "signIn": "Đăng nhập",
+      "note": "Không cần tài khoản: {{limit}} lượt ghép mỗi ngày bằng khoá AI của hệ thống. CV và JD của bạn được giữ 24 giờ rồi bị xoá."
+    },
+    "perks": {
+      "eyebrow": "Với tài khoản Ducker ID",
+      "title": "Mọi thứ nằm cùng một chỗ",
+      "documents": {
+        "title": "CV & JD đã lưu",
+        "meta": "Dùng lại tài liệu cho nhiều lần ghép"
+      },
+      "history": {
+        "title": "Lịch sử ghép",
+        "meta": "Mọi kết quả bạn đã chạy đều được giữ"
+      },
+      "rewrite": {
+        "title": "Viết lại CV & thư xin việc",
+        "meta": "Tạo từ những điểm còn thiếu của một lần ghép"
+      },
+      "keys": {
+        "title": "Khoá AI của riêng bạn",
+        "meta": "OpenAI, Gemini hoặc OpenRouter — được mã hoá"
+      }
     }
   },
   "step": {
@@ -69,7 +97,11 @@
     "stepResult": {
       "badge": "Đã hoàn tất so khớp"
     },
-    "comingSoon": "Sẽ có ở Plan 2"
+    "comingSoon": "Sẽ có ở Plan 2",
+    "claimed": {
+      "title": "Đã lưu vào tài khoản của bạn.",
+      "body": "Kết quả này cùng CV và JD của nó đã được chuyển từ phiên khách sang."
+    }
   },
   "review": {
     "hint": "Dữ liệu có thể chỉnh sửa. Sửa lỗi trước khi chạy so khớp.",
@@ -80,7 +112,8 @@
     "tab": {
       "upload": "Tải file",
       "paste": "Dán văn bản"
-    }
+    },
+    "guestNote": "Với tư cách khách, tài liệu này được giữ 24 giờ và không được thêm vào thư viện. <signin>Đăng nhập</signin> để lưu lại dùng tiếp."
   },
   "dropzone": {
     "title": "Kéo thả file vào đây hoặc <highlight>chọn file</highlight>",
@@ -182,11 +215,11 @@
     "cancel": "Huỷ",
     "runMatch": "Chạy so khớp",
     "startOver": "Làm lại",
-    "saveReport": "Lưu báo cáo",
     "runMatchCount": "Chạy so khớp · {{count}} provider",
     "tryAgain": "Thử lại",
     "improveCv": "Cải thiện CV",
-    "compareVersions": "So sánh phiên bản"
+    "compareVersions": "So sánh phiên bản",
+    "dismiss": "Đóng"
   },
   "rewrite": {
     "title": "Cải thiện CV này",
@@ -259,6 +292,11 @@
       "model_unavailable": "Nhà cung cấp không có model đó.",
       "timeout": "Nhà cung cấp phản hồi quá lâu.",
       "unreachable": "Không kết nối được tới nhà cung cấp."
+    },
+    "keep": {
+      "title": "Giữ trong 24 giờ, sau đó bị xoá",
+      "body": "Đăng nhập bằng Ducker ID và kết quả này chuyển vào tài khoản của bạn cùng CV và JD của nó. Khi đó bạn có thể viết lại CV theo các điểm thiếu này hoặc soạn thư xin việc.",
+      "cta": "Đăng nhập để giữ lại"
     }
   },
   "err": {
@@ -448,5 +486,42 @@
     "notComparable": "Không so được",
     "scaleMin": "0",
     "scaleMax": "100"
+  },
+  "auth": {
+    "error": {
+      "denied": "Đã huỷ đăng nhập.",
+      "state": "Phiên đăng nhập đã hết hạn — vui lòng thử lại.",
+      "iss": "Không xác minh được lần đăng nhập. Vui lòng thử lại.",
+      "exchange": "Không thể hoàn tất đăng nhập. Vui lòng thử lại.",
+      "token": "Không xác minh được đăng nhập của bạn. Vui lòng thử lại.",
+      "server": "Hiện chưa thể đăng nhập. Vui lòng thử lại sau.",
+      "generic": "Đăng nhập thất bại. Vui lòng thử lại."
+    },
+    "signIn": "Đăng nhập",
+    "signInWithDucker": "Đăng nhập bằng Ducker ID",
+    "signOut": "Đăng xuất",
+    "account": "Tài khoản",
+    "guest": {
+      "eyebrow": "Chế độ khách",
+      "pitch": "Đăng nhập để giữ CV, lịch sử đối chiếu và kết quả — đồng thời viết lại CV, soạn thư xin việc và dùng khoá AI của riêng bạn."
+    },
+    "quota": {
+      "label": "Lượt đối chiếu miễn phí hôm nay",
+      "left": "Còn {{left}} / {{limit}}"
+    }
+  },
+  "gate": {
+    "cv": "Đăng nhập để xem các CV đã lưu",
+    "jd": "Đăng nhập để xem các mô tả công việc đã lưu",
+    "aiCredentials": "Đăng nhập để quản lý khoá AI của bạn",
+    "myData": "Đăng nhập để tải dữ liệu của bạn",
+    "compare": "Đăng nhập để so sánh các phiên bản CV",
+    "cvRewrite": "Đăng nhập để viết lại CV này",
+    "description": "Trang này lưu dữ liệu trong tài khoản của bạn. Đăng nhập bằng Ducker ID để mở.",
+    "quotaTitle": "Bạn đã dùng hết {{limit}} lượt đối chiếu miễn phí hôm nay",
+    "quotaDescription": "Lượt của khách chạy bằng khoá AI của hệ thống nên bị giới hạn theo mạng. Đăng nhập để tiếp tục — với khoá AI của riêng bạn nếu bạn thêm.",
+    "resetsIn": "Đặt lại sau <time>{{time}}</time>",
+    "backHome": "Về trang chủ",
+    "backMatching": "Quay lại đối chiếu"
   }
 }

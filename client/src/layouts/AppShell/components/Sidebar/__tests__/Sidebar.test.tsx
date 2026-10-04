@@ -5,9 +5,25 @@ import {
   createRouter
 } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "#/i18n/config";
+import { useAuth, useSignOut } from "#/hooks/useAuth";
 import Sidebar from "../index";
+
+vi.mock("#/hooks/useAuth");
+
+beforeEach(() => {
+  vi.mocked(useSignOut).mockReturnValue({
+    mutate: vi.fn(),
+    isPending: false
+  } as unknown as ReturnType<typeof useSignOut>);
+  vi.mocked(useAuth).mockReturnValue({
+    status: "user",
+    user: { id: "u", email: "a@b.c", fullName: "A B", avatar: null },
+    guestQuota: null,
+    isUser: true
+  });
+});
 
 function renderSidebar(collapsed = false, initialPath = "/") {
   const rootRoute = createRootRoute({
@@ -21,7 +37,7 @@ function renderSidebar(collapsed = false, initialPath = "/") {
 }
 
 describe("Sidebar", () => {
-  it("renders the 4 nav links with accessible names (en)", async () => {
+  it("renders the first 4 nav links with accessible names (en)", async () => {
     renderSidebar();
 
     expect(

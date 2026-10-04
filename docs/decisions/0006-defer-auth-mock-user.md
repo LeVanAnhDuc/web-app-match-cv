@@ -1,7 +1,7 @@
 # ADR-0006 · Hoãn auth, chạy bằng mock user, schema SSO-ready
 
 > **Ngày:** 2026-07-14
-> **Trạng thái:** accepted
+> **Trạng thái:** superseded by [ADR-0022](0022-dang-nhap-bff-session-rieng.md)
 > **Liên quan:** FR-18 · ADR-0008 · ADR-0009
 
 ## 1. Bối cảnh

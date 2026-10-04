@@ -36,6 +36,34 @@
       "jd": "JD",
       "score": "Score",
       "date": "Date"
+    },
+    "guest": {
+      "eyebrow": "CV ↔ JD matching",
+      "title": "How well does your CV fit this job?",
+      "subtitle": "Paste a job description and your CV. You get one score you can trace back — 60% meaning, 40% keywords — plus what is strong and what is missing.",
+      "cta": "Start matching →",
+      "signIn": "Sign in",
+      "note": "No account needed: {{limit}} matches a day on the system AI key. Your CV and JD are kept for 24 hours, then deleted."
+    },
+    "perks": {
+      "eyebrow": "With a Ducker ID account",
+      "title": "Everything stays in one place",
+      "documents": {
+        "title": "Saved CVs & JDs",
+        "meta": "Reuse documents across matches"
+      },
+      "history": {
+        "title": "Match history",
+        "meta": "Every result you ran, kept"
+      },
+      "rewrite": {
+        "title": "CV rewrite & cover letters",
+        "meta": "Generated from the gaps of a match"
+      },
+      "keys": {
+        "title": "Your own AI keys",
+        "meta": "OpenAI, Gemini or OpenRouter — encrypted"
+      }
     }
   },
   "step": {
@@ -69,7 +97,11 @@
     "stepResult": {
       "badge": "Matching complete"
     },
-    "comingSoon": "Coming in Plan 2"
+    "comingSoon": "Coming in Plan 2",
+    "claimed": {
+      "title": "Saved to your account.",
+      "body": "This result, its CV and its JD moved over from your guest session."
+    }
   },
   "review": {
     "hint": "Data is editable. Fix any mistakes before running the match.",
@@ -80,7 +112,8 @@
     "tab": {
       "upload": "Upload file",
       "paste": "Paste text"
-    }
+    },
+    "guestNote": "As a guest, this document is kept for 24 hours and is not added to a library. <signin>Sign in</signin> to save it for reuse."
   },
   "dropzone": {
     "title": "Drop your file here or <highlight>browse</highlight>",
@@ -182,11 +215,11 @@
     "cancel": "Cancel",
     "runMatch": "Run match",
     "startOver": "Start over",
-    "saveReport": "Save report",
     "runMatchCount": "Run match · {{count}} providers",
     "tryAgain": "Try again",
     "improveCv": "Improve my CV",
-    "compareVersions": "Compare versions"
+    "compareVersions": "Compare versions",
+    "dismiss": "Dismiss"
   },
   "rewrite": {
     "title": "Improve this CV",
@@ -259,6 +292,11 @@
       "model_unavailable": "The provider does not offer that model.",
       "timeout": "The provider took too long to answer.",
       "unreachable": "Could not reach the provider."
+    },
+    "keep": {
+      "title": "Kept for 24 hours, then deleted",
+      "body": "Sign in with Ducker ID and this result moves into your account with its CV and JD. Then you can rewrite the CV against these gaps or draft a cover letter.",
+      "cta": "Sign in to keep it"
     }
   },
   "err": {
@@ -448,5 +486,42 @@
     "notComparable": "Not comparable",
     "scaleMin": "0",
     "scaleMax": "100"
+  },
+  "auth": {
+    "error": {
+      "denied": "Sign-in was cancelled.",
+      "state": "Sign-in expired — please try again.",
+      "iss": "Sign-in could not be verified. Please try again.",
+      "exchange": "Could not complete sign-in. Please try again.",
+      "token": "Could not verify your sign-in. Please try again.",
+      "server": "Sign-in is unavailable right now. Please try again later.",
+      "generic": "Sign-in failed. Please try again."
+    },
+    "signIn": "Sign in",
+    "signInWithDucker": "Sign in with Ducker ID",
+    "signOut": "Sign out",
+    "account": "Account",
+    "guest": {
+      "eyebrow": "Guest mode",
+      "pitch": "Sign in to keep your CVs, match history and results — and to rewrite CVs, draft cover letters and use your own AI key."
+    },
+    "quota": {
+      "label": "Free matches today",
+      "left": "{{left}} / {{limit}} left"
+    }
+  },
+  "gate": {
+    "cv": "Sign in to see your saved CVs",
+    "jd": "Sign in to see your saved job descriptions",
+    "aiCredentials": "Sign in to manage your AI keys",
+    "myData": "Sign in to download your data",
+    "compare": "Sign in to compare CV versions",
+    "cvRewrite": "Sign in to rewrite this CV",
+    "description": "This page keeps things in your account. Sign in with Ducker ID to open it.",
+    "quotaTitle": "You have used today's {{limit}} free matches",
+    "quotaDescription": "Guest matches run on the system AI key, so they are capped per network. Sign in to keep going — with your own AI key if you add one.",
+    "resetsIn": "Resets in <time>{{time}}</time>",
+    "backHome": "Back to home",
+    "backMatching": "Back to matching"
   }
 }

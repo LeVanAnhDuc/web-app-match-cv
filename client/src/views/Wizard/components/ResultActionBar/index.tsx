@@ -8,18 +8,15 @@ const ResultActionBar = () => {
   const reset = useWizardStore((s) => s.reset);
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center">
       <Button
         type="text"
         size="large"
         icon={<RotateCcw size={16} />}
         onClick={reset}
-        className="!text-muted"
+        className="!h-11 !text-muted max-md:w-full"
       >
         {t("action.startOver")}
-      </Button>
-      <Button type="primary" size="large">
-        {t("action.saveReport")}
       </Button>
     </div>
   );

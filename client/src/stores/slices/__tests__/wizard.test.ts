@@ -47,4 +47,24 @@ describe("wizardStore", () => {
     useWizardStore.getState().jumpTo(4);
     expect(useWizardStore.getState().step).toBe(1);
   });
+
+  it("openRun lands on step 4 for a run reopened from the URL, with no live providers", () => {
+    useWizardStore.setState({
+      step: 1,
+      matchId: "match-old",
+      pendingCredentialIds: ["cred-a"]
+    });
+
+    useWizardStore
+      .getState()
+      .openRun({ runId: "run-9", cvDocId: "cv-9", jdDocId: "jd-9" });
+
+    const s = useWizardStore.getState();
+    expect(s.step).toBe(4);
+    expect(s.runId).toBe("run-9");
+    expect(s.cvDocId).toBe("cv-9");
+    expect(s.jdDocId).toBe("jd-9");
+    expect(s.matchId).toBeNull();
+    expect(s.pendingCredentialIds).toEqual([]);
+  });
 });

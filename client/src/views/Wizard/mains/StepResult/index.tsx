@@ -1,12 +1,15 @@
 import { Alert, Button } from "antd";
 import { Loader2, RotateCcw } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
+import { useAuth } from "#/hooks/useAuth";
 import { useMatchResult, useMatchRun } from "#/hooks/useMatch";
 import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
+import KeepResultCallout from "../../components/KeepResultCallout";
 import MatchResultCard from "../../components/MatchResultCard";
+import type { CardOutcome } from "../../components/MatchResultCard";
 
 type ResultPhase =
   | "single-loading"
@@ -19,6 +22,7 @@ type ResultPhase =
 
 const StepResult = () => {
   const { t } = useTranslation();
+  const { status, isUser } = useAuth();
   const runId = useWizardStore((s) => s.runId);
   const matchId = useWizardStore((s) => s.matchId);
   const cvDocId = useWizardStore((s) => s.cvDocId);
@@ -26,6 +30,15 @@ const StepResult = () => {
   const pending = useWizardStore((s) => s.pendingCredentialIds);
   const reset = useWizardStore((s) => s.reset);
   const setResultReady = useWizardStore((s) => s.setResultReady);
+
+  const [outcomes, setOutcomes] = useState<Record<string, CardOutcome>>({});
+  const onOutcome = useCallback(
+    (key: string, outcome: CardOutcome) =>
+      setOutcomes((prev) =>
+        prev[key] === outcome ? prev : { ...prev, [key]: outcome }
+      ),
+    []
+  );
 
   const isLive = pending.length > 0;
   const isSingle = !runId && matchId !== null;
@@ -35,7 +48,7 @@ const StepResult = () => {
   const singleQuery = useMatchResult(isSingle ? matchId : null);
 
   // One priority chain drives both what renders below AND whether the shell
-  // may show its pinned "Start over" / "Save report" bar — only the two
+  // may show its pinned "Start over" bar — only the two
   // "-success" phases have an actual report, and only those phases keep no
   // inline "Start over" of their own (see the branches below), so the shell
   // bar never ends up doubled with this component's own recovery button.
@@ -66,7 +79,7 @@ const StepResult = () => {
       size="large"
       icon={<RotateCcw size={16} />}
       onClick={reset}
-      className="!text-muted"
+      className="!h-11 !text-muted max-md:w-full"
     >
       {t("action.startOver")}
     </Button>
@@ -161,6 +174,12 @@ const StepResult = () => {
       }));
 
   const expanded = cards.length <= 1;
+  // The "kept for 24 hours" pitch only makes sense once there is a result to
+  // keep: nothing still running, and at least one card that actually finished.
+  const hasKeepableResult =
+    cards.length > 0 &&
+    cards.every((c) => (outcomes[c.key] ?? "pending") !== "pending") &&
+    cards.some((c) => outcomes[c.key] === "done");
 
   return (
     <div aria-live="polite" className="flex flex-1 flex-col gap-4">
@@ -184,8 +203,14 @@ const StepResult = () => {
           autoRun={isLive}
           initialResult={card.initialResult}
           expanded={expanded}
+          cardKey={card.key}
+          onOutcome={onOutcome}
         />
       ))}
+      {!isUser &&
+        status !== "loading" &&
+        isReportReady &&
+        hasKeepableResult && <KeepResultCallout runId={runId} />}
     </div>
   );
 };

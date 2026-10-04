@@ -145,7 +145,11 @@ function makeHarness(
       delete: jest.fn().mockResolvedValue(undefined)
     }
   };
-  const currentUser = { getUserId: jest.fn().mockReturnValue(USER_ID) };
+  const currentUser = {
+    getUserId: jest.fn().mockReturnValue(USER_ID),
+    isGuest: () => false,
+    peek: () => undefined
+  };
 
   const service = new CoverLettersService(
     prisma as never,

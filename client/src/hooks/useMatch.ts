@@ -1,4 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { AUTH_QUERY_KEY } from "#/requests/auth";
 import {
   createMatchRun,
   fetchMatchHistory,
@@ -12,8 +14,14 @@ import {
 
 /** POST /match — run the hybrid (semantic + keyword) matching engine. */
 export function useRunMatch() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: runMatch
+    mutationFn: runMatch,
+    // Guest quota changes on success and on a 429 — refresh either way.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+    }
   });
 }
 
@@ -49,4 +57,22 @@ export function useMatchRun(id: string | null, enabled = true) {
     queryFn: () => fetchMatchRun(id as string),
     enabled: id !== null && enabled
   });
+}
+
+/**
+ * Imperative GET /match/runs/:id for `/wizard?runId=` — the wizard needs the
+ * document pair before it can even pick a step, so this is a one-shot read,
+ * not a subscription. Shares the key with `useMatchRun`, so step 4 starts warm.
+ */
+export function useFetchMatchRun() {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    (id: string) =>
+      queryClient.fetchQuery({
+        queryKey: matchRunQueryKey(id),
+        queryFn: () => fetchMatchRun(id)
+      }),
+    [queryClient]
+  );
 }

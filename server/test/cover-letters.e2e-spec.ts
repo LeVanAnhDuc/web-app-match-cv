@@ -4,8 +4,8 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 import {
   AiProviderError,
   AiService,
@@ -102,13 +102,16 @@ class FakeAiService {
 describe("CoverLetters (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const documentIds: string[] = [];
   let cvDocId: string;
   let jdDocId: string;
   let matchId: string;
 
   const createDoc = async (kind: "CV" | "JD", text: string) => {
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .post("/api/v1/documents")
       .send({ kind, sourceText: text, save: false });
     const { id } = res.body as IdBody;
@@ -117,7 +120,7 @@ describe("CoverLetters (e2e)", () => {
   };
 
   const generate = (body: Record<string, unknown> = {}) =>
-    request(app.getHttpServer())
+    api()
       .post(LETTERS)
       .send({
         matchResultId: matchId,
@@ -138,7 +141,7 @@ describe("CoverLetters (e2e)", () => {
   const seedLetter = (over: Record<string, unknown> = {}) =>
     prisma.coverLetter.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         matchResultId: matchId,
         tone: "formal",
         length: "standard",
@@ -170,11 +173,12 @@ describe("CoverLetters (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
     cvDocId = await createDoc("CV", "Six years of Node.js and PostgreSQL.");
     jdDocId = await createDoc("JD", "Senior engineer, Kubernetes required.");
 
-    const match = await request(app.getHttpServer())
+    const match = await api()
       .post("/api/v1/match")
       .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId });
     matchId = (match.body as IdBody).id;
@@ -187,12 +191,13 @@ describe("CoverLetters (e2e)", () => {
   afterAll(async () => {
     // Letters cascade with their match; matches must go before the documents.
     await prisma.coverLetter.deleteMany({
-      where: { userId: STUB_USER_ID, matchResultId: matchId }
+      where: { userId: userId, matchResultId: matchId }
     });
     await prisma.matchResult.deleteMany({
       where: { cvDocumentId: { in: documentIds } }
     });
     await prisma.document.deleteMany({ where: { id: { in: documentIds } } });
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
@@ -235,7 +240,7 @@ describe("CoverLetters (e2e)", () => {
     it("[EP] a failed match → 400, there is no report to write from", async () => {
       const failed = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cvDocId,
           jdDocumentId: jdDocId,
           provider: "openrouter",
@@ -272,7 +277,7 @@ describe("CoverLetters (e2e)", () => {
       });
       const failed = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cvDocId,
           jdDocumentId: jdDocId,
           provider: "openrouter",
@@ -363,9 +368,7 @@ describe("CoverLetters (e2e)", () => {
     it("[EP] lists the letters of one match, newest first", async () => {
       await seedLetter({ language: "vi", tone: "friendly", length: "short" });
 
-      const res = await request(app.getHttpServer())
-        .get(LETTERS)
-        .query({ matchResultId: matchId });
+      const res = await api().get(LETTERS).query({ matchResultId: matchId });
 
       expect(res.status).toBe(200);
       const rows = res.body as LetterBody[];
@@ -375,7 +378,7 @@ describe("CoverLetters (e2e)", () => {
     });
 
     it("[EP] matchResultId is required", async () => {
-      const res = await request(app.getHttpServer()).get(LETTERS);
+      const res = await api().get(LETTERS);
       expect(res.status).toBe(400);
     });
 
@@ -414,7 +417,7 @@ describe("CoverLetters (e2e)", () => {
       });
 
       try {
-        const res = await request(app.getHttpServer())
+        const res = await api()
           .get(LETTERS)
           .query({ matchResultId: foreignMatch.id });
 
@@ -422,14 +425,12 @@ describe("CoverLetters (e2e)", () => {
         expect(res.body).toEqual([]);
 
         // and the row itself is unreachable by id
-        const patch = await request(app.getHttpServer())
+        const patch = await api()
           .patch(`${LETTERS}/${foreignLetter.id}`)
           .send({ content: "hijacked" });
         expect(patch.status).toBe(404);
 
-        const del = await request(app.getHttpServer()).delete(
-          `${LETTERS}/${foreignLetter.id}`
-        );
+        const del = await api().delete(`${LETTERS}/${foreignLetter.id}`);
         expect(del.status).toBe(404);
       } finally {
         await prisma.coverLetter.delete({ where: { id: foreignLetter.id } });
@@ -443,7 +444,7 @@ describe("CoverLetters (e2e)", () => {
     it("[ST] an edit marks the row as edited", async () => {
       const created = await seedLetter();
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${LETTERS}/${created.id}`)
         .send({ content: "My own words." });
 
@@ -456,12 +457,12 @@ describe("CoverLetters (e2e)", () => {
     it("[BVA] empty content → 400; one character → 200", async () => {
       const created = await seedLetter();
 
-      const empty = await request(app.getHttpServer())
+      const empty = await api()
         .patch(`${LETTERS}/${created.id}`)
         .send({ content: "" });
       expect(empty.status).toBe(400);
 
-      const one = await request(app.getHttpServer())
+      const one = await api()
         .patch(`${LETTERS}/${created.id}`)
         .send({ content: "x" });
       expect(one.status).toBe(200);
@@ -470,12 +471,12 @@ describe("CoverLetters (e2e)", () => {
     it("[BVA] 20000 chars accepted, 20001 rejected", async () => {
       const created = await seedLetter();
 
-      const max = await request(app.getHttpServer())
+      const max = await api()
         .patch(`${LETTERS}/${created.id}`)
         .send({ content: "a".repeat(20_000) });
       expect(max.status).toBe(200);
 
-      const over = await request(app.getHttpServer())
+      const over = await api()
         .patch(`${LETTERS}/${created.id}`)
         .send({ content: "a".repeat(20_001) });
       expect(over.status).toBe(400);
@@ -488,7 +489,7 @@ describe("CoverLetters (e2e)", () => {
         content: ""
       });
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${LETTERS}/${failed.id}`)
         .send({ content: "anything" });
 
@@ -501,23 +502,17 @@ describe("CoverLetters (e2e)", () => {
       const keep = await seedLetter();
       const drop = await seedLetter();
 
-      const res = await request(app.getHttpServer()).delete(
-        `${LETTERS}/${drop.id}`
-      );
+      const res = await api().delete(`${LETTERS}/${drop.id}`);
       expect(res.status).toBe(204);
 
-      const list = await request(app.getHttpServer())
-        .get(LETTERS)
-        .query({ matchResultId: matchId });
+      const list = await api().get(LETTERS).query({ matchResultId: matchId });
       const ids = (list.body as LetterBody[]).map((row) => row.id);
       expect(ids).not.toContain(drop.id);
       expect(ids).toContain(keep.id);
     });
 
     it("[EP] an unknown id → 404", async () => {
-      const res = await request(app.getHttpServer()).delete(
-        `${LETTERS}/${randomUUID()}`
-      );
+      const res = await api().delete(`${LETTERS}/${randomUUID()}`);
       expect(res.status).toBe(404);
     });
   });

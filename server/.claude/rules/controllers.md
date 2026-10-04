@@ -28,6 +28,8 @@ Controller là **HTTP boundary** của module — mỏng, chỉ khai báo route 
 7. **Return type luôn là output DTO** (`DocumentDto`, `DocumentSummaryDto`, `MatchResultDto`) — không trả Prisma entity thô. Việc map entity→DTO nằm ở service (`Dto.fromEntity`), controller chỉ chuyển tiếp.
 8. Import decorator từ `@nestjs/common` (route/param/pipe) và `@nestjs/swagger` (Api*). File upload interceptor từ `@nestjs/platform-express`.
 
+> **Ngoại lệ có chủ đích:** OIDC callback là một lần điều hướng của trình duyệt, không phải API call — `AuthController.callback` bắt `AuthFlowError` và redirect về `/?authError=<code>` thay vì ném `HttpException`.
+
 ## Tham chiếu thực tế
 
 `DocumentsController` (upload + list + findOne), `MatchingController` (create + findOne). Service tương ứng: `DocumentsService`, `MatchingService`.

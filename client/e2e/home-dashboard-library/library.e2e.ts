@@ -1,3 +1,4 @@
+import { readE2eUserId, sessionCookieHeader } from "../auth-state";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { expect, test, type Page } from "@playwright/test";
@@ -14,7 +15,7 @@ const API_BASE = process.env.E2E_API_BASE ?? "http://localhost:5200/api/v1";
 const DB_URL =
   process.env.E2E_DATABASE_URL ??
   "postgresql://postgres:postgres@localhost:5432/matchcv";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001";
+const E2E_USER_ID = readE2eUserId();
 
 const MATCHED_CV = "E2E Matched CV";
 const MATCHED_JD = "E2E Matched JD";
@@ -28,7 +29,7 @@ async function createDoc(
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/documents`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...sessionCookieHeader() },
     body: JSON.stringify({ kind, sourceText: text, save: true, title })
   });
   if (!res.ok) throw new Error(`seed ${kind} "${title}" failed: ${res.status}`);
@@ -59,7 +60,7 @@ async function insertMatch(cvId: string, jdId: string): Promise<void> {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'openrouter','openai/gpt-4o-mini','openai/text-embedding-3-small',now())`,
       [
         randomUUID(),
-        STUB_USER_ID,
+        E2E_USER_ID,
         cvId,
         jdId,
         73,

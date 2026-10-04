@@ -1,3 +1,4 @@
+export { useAuth, useSignOut } from "./useAuth";
 export {
   useDocument,
   useSavedDocuments,
@@ -14,7 +15,8 @@ export {
   useMatchResult,
   useMatchHistory,
   useCreateMatchRun,
-  useMatchRun
+  useMatchRun,
+  useFetchMatchRun
 } from "./useMatch";
 export { useGenerateCvRewrite, useAcceptCvRewrite } from "./useCvRewrite";
 export { useDownloadMyData } from "./useMyData";
@@ -32,3 +34,4 @@ export {
   useUpdateCoverLetter,
   useDeleteCoverLetter
 } from "./useCoverLetters";
+export { useReturnTo } from "./useReturnTo";

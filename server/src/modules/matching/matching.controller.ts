@@ -2,11 +2,13 @@ import {
   Body,
   Controller,
   Get,
+  Ip,
   Param,
   ParseUUIDPipe,
   Post
 } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { AllowGuest } from "../auth/decorators";
 import { CreateMatchDto } from "./dto/create-match.dto";
 import { CreateMatchRunDto } from "./dto/create-match-run.dto";
 import { MatchRunDetailDto } from "./dto/match-run-detail.dto";
@@ -21,12 +23,17 @@ export class MatchingController {
   constructor(private readonly matchingService: MatchingService) {}
 
   @Post()
+  @AllowGuest()
   @ApiCreatedResponse({ type: MatchResultDto })
-  async create(@Body() dto: CreateMatchDto): Promise<MatchResultDto> {
-    return this.matchingService.createMatch(dto);
+  async create(
+    @Body() dto: CreateMatchDto,
+    @Ip() ip: string
+  ): Promise<MatchResultDto> {
+    return this.matchingService.createMatch(dto, { ip });
   }
 
   @Post("runs")
+  @AllowGuest()
   @ApiCreatedResponse({ type: MatchRunDto })
   async createRun(@Body() dto: CreateMatchRunDto): Promise<MatchRunDto> {
     return this.matchingService.createRun(dto);
@@ -34,6 +41,7 @@ export class MatchingController {
 
   // Declared BEFORE the ":id" route so "runs" is not captured as a match id.
   @Get("runs/:id")
+  @AllowGuest()
   @ApiOkResponse({ type: MatchRunDetailDto })
   async findRun(
     @Param("id", new ParseUUIDPipe()) id: string
@@ -48,6 +56,7 @@ export class MatchingController {
   }
 
   @Get(":id")
+  @AllowGuest()
   @ApiOkResponse({ type: MatchResultDto })
   async findOne(
     @Param("id", new ParseUUIDPipe()) id: string

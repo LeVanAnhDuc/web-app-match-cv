@@ -29,6 +29,8 @@ Báo lỗi bằng **NestJS built-in `HttpException` subclass** + message i18n. K
 5. **Lỗi validation DTO do global `ValidationPipe` lo** (`main.ts`, `whitelist + transform`) — tự trả `400` khi class-validator fail. KHÔNG tự validate + throw thủ công cho field mà decorator DTO đã cover (xem `dto.md`).
 6. File-upload validator (`ParseFilePipe` → `FileTypeValidator` / `MaxFileSizeValidator`) đặt `errorMessage` = thunk i18n (`tDoc(...)`) để giữ thông điệp đa ngôn ngữ nhất quán.
 
+> **Ngoại lệ có chủ đích:** OIDC callback là một lần điều hướng của trình duyệt, không phải API call — `AuthController.callback` bắt `AuthFlowError` và redirect về `/?authError=<code>` thay vì ném `HttpException`.
+
 ## Ví dụ thực tế
 
 `DocumentsService` (Bad/NotFound + `tDoc`), `MatchingService` (Bad/NotFound + `tMatch`), `parsing.ts` (`parseFailedError()` bọc `BadRequestException`).

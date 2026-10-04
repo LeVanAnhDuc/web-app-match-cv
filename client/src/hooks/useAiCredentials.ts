@@ -19,12 +19,16 @@ export function useAiCredentials() {
   });
 }
 
-/** GET /ai-credentials/providers — a static whitelist, so never refetch it. */
-export function useProviders() {
+/**
+ * GET /ai-credentials/providers — a static whitelist, so never refetch it.
+ * Pass `enabled: false` for a guest: the endpoint 401s without an account.
+ */
+export function useProviders(enabled = true) {
   return useQuery({
     queryKey: aiProvidersQueryKey(),
     queryFn: fetchAiProviders,
-    staleTime: Infinity
+    staleTime: Infinity,
+    enabled
   });
 }
 

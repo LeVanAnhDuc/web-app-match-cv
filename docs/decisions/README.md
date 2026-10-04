@@ -13,9 +13,9 @@
 | [ADR-0003](0003-fe-tanstack-start-antd-tailwind.md) | Frontend dùng TanStack Start + Ant Design + Tailwind | 2026-07-14 | accepted |
 | [ADR-0004](0004-matching-hybrid-llm-khong-cham-diem.md) | Matching hybrid, và LLM không tham gia chấm điểm | 2026-07-14 (làm rõ 2026-08-08) | accepted |
 | [ADR-0005](0005-ai-qua-openrouter-sdk-openai.md) | Gọi AI qua OpenRouter bằng SDK `openai` | 2026-07-24 (thay quyết định Gemini ngày 2026-07-14) | accepted |
-| [ADR-0006](0006-defer-auth-mock-user.md) | Hoãn auth, chạy bằng mock user, schema SSO-ready | 2026-07-14 | accepted |
+| [ADR-0006](0006-defer-auth-mock-user.md) | Hoãn auth, chạy bằng mock user, schema SSO-ready | 2026-07-14 | superseded by [ADR-0022](0022-dang-nhap-bff-session-rieng.md) |
 | [ADR-0007](0007-match-cv-so-huu-bang-user.md) | Match CV sở hữu bảng `User` riêng; IdP chỉ cấp claim | 2026-08-06 | accepted |
-| [ADR-0008](0008-mock-user-la-user-that.md) | Mock user là một `User` thật trong DB, có cờ `isMock` | 2026-08-06 | accepted |
+| [ADR-0008](0008-mock-user-la-user-that.md) | Mock user là một `User` thật trong DB, có cờ `isMock` | 2026-08-06 | superseded by [ADR-0023](0023-che-do-khach-user-tam-24h.md) |
 | [ADR-0009](0009-byo-token-luu-server-ma-hoa.md) | Token AI của user lưu server-side, mã hoá AES-256-GCM | 2026-08-06 | accepted |
 | [ADR-0010](0010-provider-whitelist-chat-va-embed.md) | Chỉ nhận provider có **cả** chat lẫn embeddings | 2026-08-06 (xác nhận 2026-08-08) | accepted |
 | [ADR-0011](0011-multi-provider-n-request-doc-lap.md) | Multi-provider = N request độc lập + hiện dần | 2026-08-06 | accepted |
@@ -29,6 +29,8 @@
 | [ADR-0019](0019-preview-tai-lieu-chay-client-side.md) | Xem trước tài liệu render client-side, không qua dịch vụ ngoài | 2026-08-08 (ghi lại thành ADR 2026-09-03; trước đó chỉ nằm trong `.claude/techstack/frontend.md`) | accepted |
 | [ADR-0020](0020-pin-prisma-6.md) | Pin Prisma ở 6.x, chưa lên 7 | 2026-08-08 (ghi lại thành ADR 2026-09-03; trước đó chỉ nằm trong `.claude/techstack/backend.md`) | accepted |
 | [ADR-0021](0021-token-zinc-cyan-ba-typeface.md) | Bootstrap lại design token: zinc + cyan, ba typeface tự host | 2026-09-03 | accepted |
+| [ADR-0022](0022-dang-nhap-bff-session-rieng.md) | Đăng nhập qua Ducker ID theo mẫu BFF, Match CV tự cấp session | 2026-10-04 | accepted |
+| [ADR-0023](0023-che-do-khach-user-tam-24h.md) | Chế độ khách là một `User` tạm 24 giờ, quota theo IP, mang vào tài khoản khi đăng nhập | 2026-10-04 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

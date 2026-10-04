@@ -13,9 +13,12 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
+import SignInGate from "#/components/SignInGate";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
+import { ApiError } from "#/libs/api";
 import type { MatchResultDto } from "#/types/Matching";
 import CoverLetterModal from "../CoverLetterModal";
 
@@ -59,6 +62,8 @@ function ReportList({
   );
 }
 
+export type CardOutcome = "pending" | "done" | "other";
+
 const MatchResultCard = ({
   runId,
   cvDocumentId,
@@ -66,7 +71,9 @@ const MatchResultCard = ({
   credentialId,
   autoRun,
   initialResult,
-  expanded
+  expanded,
+  cardKey,
+  onOutcome
 }: {
   runId: string;
   cvDocumentId: string;
@@ -78,10 +85,17 @@ const MatchResultCard = ({
   initialResult?: MatchResultDto;
   /** Report sections open by default — true when this is the only card. */
   expanded: boolean;
+  /** Lets the parent know when this card settles (see StepResult's callout). */
+  cardKey?: string;
+  onOutcome?: (key: string, outcome: CardOutcome) => void;
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const providersQuery = useProviders();
+  const { isUser } = useAuth();
+  // The provider list, the rewrite page, cover letters and comparison all
+  // need an account (they 401 for a guest), so a guest's card is scores and
+  // report only — the sign-in pitch sits below the cards (KeepResultCallout).
+  const providersQuery = useProviders(isUser);
   // Only to learn whether this CV descends from an earlier version. React Query
   // dedupes by key, so N provider cards on the same run share one request.
   const cvQuery = useDocument(cvDocumentId);
@@ -90,12 +104,17 @@ const MatchResultCard = ({
     initialResult
   );
   const [failed, setFailed] = useState(false);
+  const [quota, setQuota] = useState<{
+    limit: number | string;
+    resetsAt: string;
+  } | null>(null);
   const [running, setRunning] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
   const firedRef = useRef(false);
 
   const fire = async () => {
     setFailed(false);
+    setQuota(null);
     setRunning(true);
     try {
       setResult(
@@ -107,7 +126,15 @@ const MatchResultCard = ({
           credentialId: credentialId ?? undefined
         })
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "GUEST_QUOTA_EXCEEDED") {
+        const body = error.body as
+          { limit?: number; resetsAt?: string } | undefined;
+        setQuota({
+          limit: body?.limit ?? "",
+          resetsAt: body?.resetsAt ?? new Date().toISOString()
+        });
+      }
       setFailed(true);
     } finally {
       setRunning(false);
@@ -122,8 +149,21 @@ const MatchResultCard = ({
     void fire();
   }, [autoRun, initialResult]);
 
+  // Guests have no provider list (it 401s), so a system-key result would show
+  // the raw provider id — name it by what it is instead.
   const providerLabel = (provider: string) =>
-    providersQuery.data?.find((p) => p.id === provider)?.label ?? provider;
+    providersQuery.data?.find((p) => p.id === provider)?.label ??
+    (credentialId === null ? t("credentials.systemKey") : provider);
+
+  const outcome: CardOutcome =
+    running || (!result && !failed)
+      ? "pending"
+      : quota || failed || result?.status === "failed"
+        ? "other"
+        : "done";
+  useEffect(() => {
+    if (cardKey !== undefined) onOutcome?.(cardKey, outcome);
+  }, [onOutcome, cardKey, outcome]);
 
   const title = result
     ? `${providerLabel(result.provider)} · ${result.chatModel}`
@@ -136,6 +176,18 @@ const MatchResultCard = ({
       <SectionCard title={title} aria-busy="true">
         <Skeleton active paragraph={{ rows: 4 }} />
       </SectionCard>
+    );
+  }
+
+  if (quota) {
+    return (
+      <SignInGate
+        variant="quota"
+        title={t("gate.quotaTitle", { limit: quota.limit })}
+        description={t("gate.quotaDescription")}
+        resetsAt={quota.resetsAt}
+        backTo="/"
+      />
     );
   }
 
@@ -220,43 +272,45 @@ const MatchResultCard = ({
       // `Space` is not used here: it wraps each child in a fixed-width item, so
       // `w-full` on the button would never reach the row.
       extra={
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:gap-2">
-          <Button
-            className={HEADER_ACTION_CLASS}
-            icon={<Wand2 size={16} />}
-            onClick={() =>
-              void navigate({
-                to: "/cv-rewrite/$matchResultId",
-                params: { matchResultId: result.id }
-              })
-            }
-          >
-            {t("action.improveCv")}
-          </Button>
-          <Button
-            className={HEADER_ACTION_CLASS}
-            icon={<Mail size={16} />}
-            onClick={() => setLetterOpen(true)}
-          >
-            {t("coverLetter.open")}
-          </Button>
-          {cvQuery.data?.parentId && (
+        isUser && (
+          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:gap-2">
             <Button
               className={HEADER_ACTION_CLASS}
-              icon={<GitCompareArrows size={16} />}
+              icon={<Wand2 size={16} />}
               onClick={() =>
                 void navigate({
-                  to: "/compare/$documentId",
-                  params: { documentId: result.cvDocumentId },
-                  // Compare on the JD the user is looking at right now.
-                  search: { jd: result.jdDocumentId }
+                  to: "/cv-rewrite/$matchResultId",
+                  params: { matchResultId: result.id }
                 })
               }
             >
-              {t("action.compareVersions")}
+              {t("action.improveCv")}
             </Button>
-          )}
-        </div>
+            <Button
+              className={HEADER_ACTION_CLASS}
+              icon={<Mail size={16} />}
+              onClick={() => setLetterOpen(true)}
+            >
+              {t("coverLetter.open")}
+            </Button>
+            {cvQuery.data?.parentId && (
+              <Button
+                className={HEADER_ACTION_CLASS}
+                icon={<GitCompareArrows size={16} />}
+                onClick={() =>
+                  void navigate({
+                    to: "/compare/$documentId",
+                    params: { documentId: result.cvDocumentId },
+                    // Compare on the JD the user is looking at right now.
+                    search: { jd: result.jdDocumentId }
+                  })
+                }
+              >
+                {t("action.compareVersions")}
+              </Button>
+            )}
+          </div>
+        )
       }
     >
       <div className="grid grid-cols-1 gap-4 border-b border-line bg-surface-subtle p-4 md:grid-cols-3 md:gap-6 md:p-6">

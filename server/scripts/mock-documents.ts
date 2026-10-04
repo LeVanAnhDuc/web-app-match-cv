@@ -13,12 +13,12 @@ import { DocumentKind } from "@prisma/client";
 // Mock rows are recognised by a constant id prefix — the "dial" — NOT by a
 // column or a title prefix. seed-mock.ts deletes by dial, which is what makes
 // the clean command incapable of touching a real document while still being
-// able to remove rows seeded by an OLDER version of this file. Mock and real
-// data currently share the same owner (STUB_USER_ID, auth deferred), so the id
-// is the only thing that separates them.
+// able to remove rows seeded by an OLDER version of this file. Mock rows are
+// attached to a real signed-in user (`seed:mock --user <email>`) and live next
+// to that user's real documents, so the id is the only thing that separates them.
 //
 // The ids MUST be well-formed UUIDv4, which is why `4` and `8` appear in
-// groups 3 and 4 rather than the flat zeros of STUB_USER_ID. Every write
+// groups 3 and 4 rather than flat zeros. Every write
 // endpoint validates document ids with class-validator's `@IsUUID()`
 // (`CreateMatchDto`, `CreateMatchRunDto`, `CreateCoverLetterDto`,
 // `GenerateCvRewriteDto`, `SetDocumentParentDto`, `ComparisonQueryDto`), and
@@ -28,12 +28,11 @@ import { DocumentKind } from "@prisma/client";
 // "Run match". assertFixturesValid() now checks this with the very same
 // validator so the trap cannot be re-set.
 //
-// Do NOT copy STUB_USER_ID's `00000000-0000-0000-0000-000000000001` shape as a
-// precedent — it is not a valid UUID either; it simply never crosses a
-// validated boundary, so it proves nothing about what the API accepts.
+// Do NOT use flat-zero ids such as `00000000-0000-0000-0000-000000000001`:
+// they are not valid UUIDs either.
 // Exported so seed-mock.ts can delete by dial rather than by the CURRENT id
 // list: renumbering or removing a fixture must not strand the row already in
-// the database, which — sharing STUB_USER_ID with real data — would then be
+// the database, which — sitting beside the user's real data — would then be
 // indistinguishable from a real document and unreachable by the tool meant to
 // remove it.
 export const CV_ID_DIAL = "10000000-0000-4000-8000-";

@@ -113,7 +113,7 @@ describe("useMatchResult", () => {
     expect(result.current.data).toEqual(sampleResult);
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/match/match-1"),
-      undefined
+      { credentials: "include" }
     );
   });
 
@@ -160,9 +160,8 @@ describe("useMatchHistory", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(history);
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("/match"),
-      undefined
-    );
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/match"), {
+      credentials: "include"
+    });
   });
 });

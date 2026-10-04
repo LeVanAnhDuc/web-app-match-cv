@@ -4,8 +4,8 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 
 const COMPARISONS = "/api/v1/comparisons";
 const DOCUMENTS = "/api/v1/documents";
@@ -35,6 +35,9 @@ interface DocBody {
 describe("Comparison (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const documentIds: string[] = [];
   let v1: string;
   let v2: string;
@@ -48,7 +51,7 @@ describe("Comparison (e2e)", () => {
   ) => {
     const created = await prisma.document.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         kind,
         title,
         sourceFormat: "text",
@@ -73,7 +76,7 @@ describe("Comparison (e2e)", () => {
   }) => {
     const row = await prisma.matchResult.create({
       data: {
-        userId: STUB_USER_ID,
+        userId: userId,
         cvDocumentId: input.cvDocumentId,
         jdDocumentId: input.jdDocumentId ?? jdId,
         provider: "openrouter",
@@ -101,6 +104,7 @@ describe("Comparison (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
     v1 = await createDoc("CV", "Backend Resume", "Node.js and Express.");
     v2 = await createDoc(
@@ -133,14 +137,13 @@ describe("Comparison (e2e)", () => {
       where: { parentId: { in: documentIds } }
     });
     await prisma.document.deleteMany({ where: { id: { in: documentIds } } });
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
   describe("GET /comparisons/:documentId", () => {
     it("[EP] reports the delta, the gap diff and the version numbers", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `${COMPARISONS}/${v2}`
-      );
+      const res = await api().get(`${COMPARISONS}/${v2}`);
 
       expect(res.status).toBe(200);
       const body = res.body as ComparisonBody;
@@ -173,9 +176,7 @@ describe("Comparison (e2e)", () => {
       });
 
       try {
-        const res = await request(app.getHttpServer()).get(
-          `${COMPARISONS}/${v2}`
-        );
+        const res = await api().get(`${COMPARISONS}/${v2}`);
         // A failed row stores 0/0/0; picking it would render -61%.
         expect((res.body as ComparisonBody).delta?.overall).toBe(14);
       } finally {
@@ -186,9 +187,7 @@ describe("Comparison (e2e)", () => {
     it("[EP] a version that was never matched gets no invented zeroes", async () => {
       const lonely = await createDoc("CV", "Unmatched v2", "Fresh text.", v1);
 
-      const res = await request(app.getHttpServer()).get(
-        `${COMPARISONS}/${lonely}`
-      );
+      const res = await api().get(`${COMPARISONS}/${lonely}`);
 
       expect(res.status).toBe(200);
       const body = res.body as ComparisonBody;
@@ -202,28 +201,22 @@ describe("Comparison (e2e)", () => {
     });
 
     it("[EP] a CV with no declared previous version → 400", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `${COMPARISONS}/${v1}`
-      );
+      const res = await api().get(`${COMPARISONS}/${v1}`);
       expect(res.status).toBe(400);
     });
 
     it("[EP] a JD → 400", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `${COMPARISONS}/${jdId}`
-      );
+      const res = await api().get(`${COMPARISONS}/${jdId}`);
       expect(res.status).toBe(400);
     });
 
     it("[EP] an unknown id → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `${COMPARISONS}/${randomUUID()}`
-      );
+      const res = await api().get(`${COMPARISONS}/${randomUUID()}`);
       expect(res.status).toBe(404);
     });
 
     it("[EP] a JD neither version was matched against → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .get(`${COMPARISONS}/${v2}`)
         .query({ jdDocumentId: randomUUID() });
       expect(res.status).toBe(400);
@@ -257,9 +250,7 @@ describe("Comparison (e2e)", () => {
       });
 
       try {
-        const res = await request(app.getHttpServer()).get(
-          `${COMPARISONS}/${foreign.id}`
-        );
+        const res = await api().get(`${COMPARISONS}/${foreign.id}`);
         expect(res.status).toBe(404);
       } finally {
         await prisma.document.deleteMany({
@@ -274,13 +265,13 @@ describe("Comparison (e2e)", () => {
     it("[ST] declares, then clears, a manual lineage link", async () => {
       const manual = await createDoc("CV", "Hand edited", "Edited by hand.");
 
-      const linked = await request(app.getHttpServer())
+      const linked = await api()
         .patch(`${DOCUMENTS}/${manual}/parent`)
         .send({ parentId: v1 });
       expect(linked.status).toBe(200);
       expect((linked.body as DocBody).parentId).toBe(v1);
 
-      const cleared = await request(app.getHttpServer())
+      const cleared = await api()
         .patch(`${DOCUMENTS}/${manual}/parent`)
         .send({ parentId: null });
       expect(cleared.status).toBe(200);
@@ -288,7 +279,7 @@ describe("Comparison (e2e)", () => {
     });
 
     it("[ST] a link that would close a loop → 400 and nothing changes", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${DOCUMENTS}/${v1}/parent`)
         .send({ parentId: v2 });
 
@@ -298,21 +289,21 @@ describe("Comparison (e2e)", () => {
     });
 
     it("[DT] a parent of the other kind → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${DOCUMENTS}/${v2}/parent`)
         .send({ parentId: jdId });
       expect(res.status).toBe(400);
     });
 
     it("[DT] a document pointed at itself → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${DOCUMENTS}/${v2}/parent`)
         .send({ parentId: v2 });
       expect(res.status).toBe(400);
     });
 
     it("[EP] a non-uuid parent → 400 from validation", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .patch(`${DOCUMENTS}/${v2}/parent`)
         .send({ parentId: "not-a-uuid" });
       expect(res.status).toBe(400);

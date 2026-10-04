@@ -69,22 +69,50 @@ enum CoverLetterStatus {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  role        Role
-  externalSub String?
-  createdAt   DateTime @default(now())
+  id             String    @id @default(uuid())
+  role           Role
+  externalSub    String?   @unique
+  isGuest        Boolean   @default(false)
+  guestExpiresAt DateTime?
+  email          String?
+  fullName       String?
+  avatar         String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   documents     Document[]
   matchResults  MatchResult[]
   matchRuns     MatchRun[]
   aiCredentials AiCredential[]
   coverLetters  CoverLetter[]
+  sessions      Session[]
+
+  @@index([isGuest, guestExpiresAt])
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model GuestUsage {
+  ipHash String
+  day    DateTime @db.Date
+  count  Int      @default(0)
+
+  @@id([ipHash, day])
 }
 
 model Document {
   id            String       @id @default(uuid())
   userId        String
-  user          User         @relation(fields: [userId], references: [id])
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   kind          DocumentKind
   title         String
   sourceFormat  SourceFormat
@@ -115,11 +143,11 @@ model Document {
 model MatchResult {
   id            String   @id @default(uuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   cvDocumentId  String
-  cvDocument    Document @relation("MatchResultCvDocument", fields: [cvDocumentId], references: [id])
+  cvDocument    Document @relation("MatchResultCvDocument", fields: [cvDocumentId], references: [id], onDelete: NoAction)
   jdDocumentId  String
-  jdDocument    Document @relation("MatchResultJdDocument", fields: [jdDocumentId], references: [id])
+  jdDocument    Document @relation("MatchResultJdDocument", fields: [jdDocumentId], references: [id], onDelete: NoAction)
   overallScore  Int
   semanticScore Int
   keywordScore  Int
@@ -159,9 +187,9 @@ model MatchRun {
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   cvDocumentId String
-  cvDocument   Document @relation("MatchRunCvDocument", fields: [cvDocumentId], references: [id])
+  cvDocument   Document @relation("MatchRunCvDocument", fields: [cvDocumentId], references: [id], onDelete: NoAction)
   jdDocumentId String
-  jdDocument   Document @relation("MatchRunJdDocument", fields: [jdDocumentId], references: [id])
+  jdDocument   Document @relation("MatchRunJdDocument", fields: [jdDocumentId], references: [id], onDelete: NoAction)
   createdAt    DateTime @default(now())
 
   results MatchResult[]

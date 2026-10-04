@@ -2,7 +2,7 @@
 
 > **Trả lời:** Người dùng đi qua những luồng nào từ đầu đến cuối?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** có luồng người dùng mới · một luồng cũ đổi bản chất
 
 <!-- CÁCH ĐIỀN
@@ -174,3 +174,29 @@ biết và muốn rút lại.
 - Ghi nhật ký hỏng thì **không được gọi AI** — thà không chạy còn hơn chạy mà không ghi lại.
 
 **Chức năng liên quan:** FR-15 (xong) · FR-16 · FR-17 (🔴 chưa hiện thực) — xem `02-requirements/scope.md`.
+
+## US-09 · Thử trước, đăng nhập sau
+
+**Bối cảnh:** Người dùng lần đầu ghé app, chưa muốn tạo tài khoản — chỉ muốn biết CV của
+mình hợp một tin tuyển dụng tới đâu.
+
+**Các bước:**
+1. Vào app, không đăng nhập, chấm một CV với một JD như US-01 — chỉ bằng file tải lên
+   hoặc chữ dán vào, chạy trên khoá AI của hệ thống.
+2. Thấy kết quả, kèm lời nhắc: kết quả chỉ giữ 24 giờ.
+3. Bấm đăng nhập bằng tài khoản Ducker ID, quay về đúng kết quả đó.
+4. Kết quả, CV và JD giờ nằm trong tài khoản; dùng tiếp viết lại CV, thư ứng tuyển,
+   khoá AI riêng.
+
+**Kết quả mong đợi:** Không phải đăng nhập mới thử được, và đăng nhập rồi không mất gì
+vừa làm.
+
+**Điều gì có thể sai:**
+- Hết lượt miễn phí trong ngày → phải thấy khi nào có lượt lại, và lối đăng nhập.
+- Mở thẳng trang chỉ dành cho người đã đăng nhập → thấy lời mời đăng nhập, không phải trang
+  trắng hay lỗi.
+- Đăng nhập thất bại hoặc bị từ chối ở Ducker ID → quay về app với thông báo, dữ liệu khách
+  còn nguyên.
+- Quá 24 giờ mới đăng nhập → dữ liệu khách đã bị xoá; đăng nhập vẫn thành công.
+
+**Chức năng liên quan:** FR-18 · FR-21 — xem `02-requirements/scope.md`.

@@ -52,7 +52,7 @@ describe("useSavedDocuments", () => {
     expect(result.current.data).toEqual(summaries);
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/documents?kind=JD&saved=true"),
-      undefined
+      { credentials: "include" }
     );
   });
 });
@@ -196,7 +196,7 @@ describe("useDocument", () => {
     expect(result.current.data).toEqual(dto);
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/documents/jd-1"),
-      undefined
+      { credentials: "include" }
     );
   });
 

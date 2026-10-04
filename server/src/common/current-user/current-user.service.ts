@@ -1,12 +1,30 @@
-import { Injectable } from "@nestjs/common";
-
-// Stub current-user: auth deferred (see Plan 1 Global Constraints).
-// TODO(auth): replace with real SSO-derived userId once auth is implemented.
-export const STUB_USER_ID = "00000000-0000-0000-0000-000000000001";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { I18nContext } from "nestjs-i18n";
+import {
+  requestContext,
+  type RequestContextStore
+} from "../request-context/request-context";
 
 @Injectable()
 export class CurrentUserService {
   getUserId(): string {
-    return STUB_USER_ID;
+    const userId = requestContext.getStore()?.userId;
+    if (!userId) {
+      throw new UnauthorizedException({
+        code: "SIGN_IN_REQUIRED",
+        message:
+          I18nContext.current()?.t("auth.errors.signInRequired" as never) ??
+          "Sign in required."
+      });
+    }
+    return userId;
+  }
+
+  isGuest(): boolean {
+    return requestContext.getStore()?.isGuest ?? false;
+  }
+
+  peek(): RequestContextStore | undefined {
+    return requestContext.getStore();
   }
 }

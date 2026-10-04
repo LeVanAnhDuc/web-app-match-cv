@@ -1,3 +1,4 @@
+import { sessionCookieHeader } from "../auth-state";
 import { Client } from "pg";
 import { expect, type Page } from "@playwright/test";
 
@@ -31,7 +32,7 @@ export async function createCredential(body: {
 }): Promise<SeededCredential> {
   const res = await fetch(`${API_BASE}/ai-credentials`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...sessionCookieHeader() },
     body: JSON.stringify({
       provider: "openrouter",
       apiKey: VALID_KEY,

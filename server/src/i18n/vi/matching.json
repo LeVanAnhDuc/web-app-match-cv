@@ -4,6 +4,8 @@
     "invalidDocumentKind": "Loại tài liệu không khớp (yêu cầu đúng CV/JD tương ứng).",
     "matchNotFound": "Không tìm thấy kết quả ghép nối.",
     "runNotFound": "Không tìm thấy lần chạy so khớp.",
-    "runDocumentMismatch": "Lần chạy này thuộc về một cặp tài liệu khác."
+    "runDocumentMismatch": "Lần chạy này thuộc về một cặp tài liệu khác.",
+    "guestCredential": "Khách chỉ dùng được khoá AI của hệ thống.",
+    "guestQuota": "Bạn đã dùng hết lượt match miễn phí hôm nay."
   }
 }

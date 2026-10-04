@@ -25,6 +25,7 @@ import {
   ApiOkResponse,
   ApiTags
 } from "@nestjs/swagger";
+import { AllowGuest } from "../auth/decorators";
 import { CreateDocumentDto } from "./dto/create-document.dto";
 import { DocumentDto } from "./dto/document.dto";
 import { DocumentSummaryDto } from "./dto/document-summary.dto";
@@ -44,6 +45,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post()
+  @AllowGuest({ createGuest: true })
   @ApiConsumes("multipart/form-data", "application/json")
   @ApiCreatedResponse({ type: DocumentDto })
   @UseInterceptors(FileInterceptor("file"))
@@ -87,6 +89,7 @@ export class DocumentsController {
   }
 
   @Get(":id")
+  @AllowGuest()
   @ApiOkResponse({ type: DocumentDto })
   async findOne(
     @Param("id", new ParseUUIDPipe()) id: string
@@ -120,6 +123,7 @@ export class DocumentsController {
   }
 
   @Get(":id/file")
+  @AllowGuest()
   async file(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Query("download") download: string | undefined,

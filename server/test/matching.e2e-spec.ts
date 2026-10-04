@@ -9,9 +9,9 @@ import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
+import { createSignedInUser, deleteUsers } from "./helpers/auth";
 import { AiService } from "../src/modules/ai/ai.service";
 import type { AiRuntimeConfig } from "../src/modules/ai/providers";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
 
 interface DocumentResponseBody {
   id: string;
@@ -121,6 +121,9 @@ class UnconfiguredAiService {
 describe("Matching (e2e)", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const createdDocumentIds: string[] = [];
   const createdMatchIds: string[] = [];
   let cvDocId: string;
@@ -140,21 +143,18 @@ describe("Matching (e2e)", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
-    const cvRes = await request(app.getHttpServer())
-      .post("/api/v1/documents")
-      .send({
-        kind: "CV",
-        sourceText: "Experienced TypeScript NestJS backend engineer, 5 years.",
-        save: false
-      });
-    const jdRes = await request(app.getHttpServer())
-      .post("/api/v1/documents")
-      .send({
-        kind: "JD",
-        sourceText: "Looking for a TypeScript NestJS backend engineer.",
-        save: false
-      });
+    const cvRes = await api().post("/api/v1/documents").send({
+      kind: "CV",
+      sourceText: "Experienced TypeScript NestJS backend engineer, 5 years.",
+      save: false
+    });
+    const jdRes = await api().post("/api/v1/documents").send({
+      kind: "JD",
+      sourceText: "Looking for a TypeScript NestJS backend engineer.",
+      save: false
+    });
     cvDocId = (cvRes.body as DocumentResponseBody).id;
     jdDocId = (jdRes.body as DocumentResponseBody).id;
     createdDocumentIds.push(cvDocId, jdDocId);
@@ -171,12 +171,13 @@ describe("Matching (e2e)", () => {
         where: { id: { in: createdDocumentIds } }
       });
     }
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
   describe("POST /match", () => {
     it("[happy] matches CV+JD → 201 with scores + report shape", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/match")
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId });
 
@@ -206,7 +207,7 @@ describe("Matching (e2e)", () => {
     });
 
     it("[EP] missing jdDocumentId → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/match")
         .send({ cvDocumentId: cvDocId });
       expect(res.status).toBe(400);
@@ -228,7 +229,7 @@ describe("Matching (e2e)", () => {
         }
       });
 
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/match")
         .send({ cvDocumentId: otherDoc.id, jdDocumentId: jdDocId });
       expect(res.status).toBe(400);
@@ -238,7 +239,7 @@ describe("Matching (e2e)", () => {
     });
 
     it("[DT] cv/jd kind swapped → 400", async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/match")
         .send({ cvDocumentId: jdDocId, jdDocumentId: cvDocId });
       expect(res.status).toBe(400);
@@ -249,7 +250,7 @@ describe("Matching (e2e)", () => {
     let matchId: string;
 
     beforeAll(async () => {
-      const res = await request(app.getHttpServer())
+      const res = await api()
         .post("/api/v1/match")
         .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId });
       matchId = (res.body as MatchResultBody).id;
@@ -257,9 +258,7 @@ describe("Matching (e2e)", () => {
     });
 
     it("[EP] returns the match result for the current (stub) user", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/match/${matchId}`
-      );
+      const res = await api().get(`/api/v1/match/${matchId}`);
       expect(res.status).toBe(200);
       expect((res.body as MatchResultBody).id).toBe(matchId);
     });
@@ -284,9 +283,7 @@ describe("Matching (e2e)", () => {
         }
       });
 
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/match/${otherMatch.id}`
-      );
+      const res = await api().get(`/api/v1/match/${otherMatch.id}`);
       expect(res.status).toBe(404);
 
       await prisma.matchResult.delete({ where: { id: otherMatch.id } });
@@ -294,47 +291,37 @@ describe("Matching (e2e)", () => {
     });
 
     it("[boundary] non-existent (but valid uuid) id → 404", async () => {
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/match/${randomUUID()}`
-      );
+      const res = await api().get(`/api/v1/match/${randomUUID()}`);
       expect(res.status).toBe(404);
     });
   });
 
   describe("GET /match (list)", () => {
     it("[happy] lists own matches newest-first with cvTitle/jdTitle, excludes other users and detail fields", async () => {
-      const cv1Res = await request(app.getHttpServer())
-        .post("/api/v1/documents")
-        .send({
-          kind: "CV",
-          sourceText: "CV Alpha content",
-          save: true,
-          title: "CV Alpha"
-        });
-      const jd1Res = await request(app.getHttpServer())
-        .post("/api/v1/documents")
-        .send({
-          kind: "JD",
-          sourceText: "JD Alpha content",
-          save: true,
-          title: "JD Alpha"
-        });
-      const cv2Res = await request(app.getHttpServer())
-        .post("/api/v1/documents")
-        .send({
-          kind: "CV",
-          sourceText: "CV Beta content",
-          save: true,
-          title: "CV Beta"
-        });
-      const jd2Res = await request(app.getHttpServer())
-        .post("/api/v1/documents")
-        .send({
-          kind: "JD",
-          sourceText: "JD Beta content",
-          save: true,
-          title: "JD Beta"
-        });
+      const cv1Res = await api().post("/api/v1/documents").send({
+        kind: "CV",
+        sourceText: "CV Alpha content",
+        save: true,
+        title: "CV Alpha"
+      });
+      const jd1Res = await api().post("/api/v1/documents").send({
+        kind: "JD",
+        sourceText: "JD Alpha content",
+        save: true,
+        title: "JD Alpha"
+      });
+      const cv2Res = await api().post("/api/v1/documents").send({
+        kind: "CV",
+        sourceText: "CV Beta content",
+        save: true,
+        title: "CV Beta"
+      });
+      const jd2Res = await api().post("/api/v1/documents").send({
+        kind: "JD",
+        sourceText: "JD Beta content",
+        save: true,
+        title: "JD Beta"
+      });
       const cv1 = (cv1Res.body as DocumentResponseBody).id;
       const jd1 = (jd1Res.body as DocumentResponseBody).id;
       const cv2 = (cv2Res.body as DocumentResponseBody).id;
@@ -343,7 +330,7 @@ describe("Matching (e2e)", () => {
 
       const older = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cv1,
           jdDocumentId: jd1,
           overallScore: 40,
@@ -358,7 +345,7 @@ describe("Matching (e2e)", () => {
       });
       const newer = await prisma.matchResult.create({
         data: {
-          userId: STUB_USER_ID,
+          userId: userId,
           cvDocumentId: cv2,
           jdDocumentId: jd2,
           overallScore: 80,
@@ -395,7 +382,7 @@ describe("Matching (e2e)", () => {
       // assertion below throws, it MUST still be deleted here, otherwise the
       // outer afterAll's document cleanup fails with a FK RESTRICT violation.
       try {
-        const res = await request(app.getHttpServer()).get("/api/v1/match");
+        const res = await api().get("/api/v1/match");
         expect(res.status).toBe(200);
         const body = res.body as MatchSummaryBody[];
 
@@ -451,6 +438,9 @@ describe("Matching (e2e)", () => {
 describe("Matching (e2e) — AI provider not configured", () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let userId: string;
+  let cookie: string;
+  const api = () => request.agent(app.getHttpServer()).set("Cookie", cookie);
   const createdDocumentIds: string[] = [];
   let cvDocId: string;
   let jdDocId: string;
@@ -469,21 +459,18 @@ describe("Matching (e2e) — AI provider not configured", () => {
     );
     await app.init();
     prisma = moduleRef.get(PrismaService);
+    ({ userId, cookie } = await createSignedInUser(prisma));
 
-    const cvRes = await request(app.getHttpServer())
-      .post("/api/v1/documents")
-      .send({
-        kind: "CV",
-        sourceText: "CV text for unconfigured test",
-        save: false
-      });
-    const jdRes = await request(app.getHttpServer())
-      .post("/api/v1/documents")
-      .send({
-        kind: "JD",
-        sourceText: "JD text for unconfigured test",
-        save: false
-      });
+    const cvRes = await api().post("/api/v1/documents").send({
+      kind: "CV",
+      sourceText: "CV text for unconfigured test",
+      save: false
+    });
+    const jdRes = await api().post("/api/v1/documents").send({
+      kind: "JD",
+      sourceText: "JD text for unconfigured test",
+      save: false
+    });
     cvDocId = (cvRes.body as DocumentResponseBody).id;
     jdDocId = (jdRes.body as DocumentResponseBody).id;
     createdDocumentIds.push(cvDocId, jdDocId);
@@ -493,11 +480,12 @@ describe("Matching (e2e) — AI provider not configured", () => {
     await prisma.document.deleteMany({
       where: { id: { in: createdDocumentIds } }
     });
+    await deleteUsers(prisma, [userId]);
     await app.close();
   });
 
   it("[EP] POST /match → 503 when AiService.isConfigured() is false", async () => {
-    const res = await request(app.getHttpServer())
+    const res = await api()
       .post("/api/v1/match")
       .send({ cvDocumentId: cvDocId, jdDocumentId: jdDocId });
     expect(res.status).toBe(503);
