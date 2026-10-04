@@ -1,4 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter
+} from "@tanstack/react-router";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
@@ -562,6 +568,47 @@ describe("StepResult", () => {
     expect(
       screen.getByRole("link", { name: "Sign in to keep it" })
     ).toHaveAttribute("href", signInUrl(`/wizard?runId=${RUN_ID}`));
+  });
+
+  it("holds the keep-it callout back while the run is still loading", async () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    setStore({ pendingCredentialIds: [null] });
+    mockRunMatch({ isPending: true });
+
+    render(<StepResult />);
+
+    await act(async () => {});
+    expect(screen.queryByText("Kept for 24 hours, then deleted")).toBeNull();
+  });
+
+  it("does not show the keep-it callout beside a quota gate", async () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    setStore({ pendingCredentialIds: [null] });
+    const mutateAsync = vi.fn(async (_input: CreateMatchInput) => {
+      throw new ApiError(429, "Too many", "GUEST_QUOTA_EXCEEDED", {
+        code: "GUEST_QUOTA_EXCEEDED",
+        limit: 5,
+        resetsAt: "2026-10-05T00:00:00.000Z"
+      });
+    });
+    vi.mocked(useRunMatch).mockReturnValue({
+      mutateAsync,
+      isPending: false
+    } as unknown as UseMutationResult<MatchResultDto, Error, CreateMatchInput>);
+
+    // SignInGate renders router links, so the view needs a router around it.
+    const router = createRouter({
+      routeTree: createRootRoute({ component: StepResult }),
+      history: createMemoryHistory({ initialEntries: ["/wizard"] })
+    });
+    render(<RouterProvider router={router} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "You have used today's 5 free matches"
+      })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Kept for 24 hours, then deleted")).toBeNull();
   });
 
   it("does not show the keep-it callout to a signed-in user", async () => {

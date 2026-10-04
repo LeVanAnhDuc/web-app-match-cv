@@ -62,6 +62,8 @@ function ReportList({
   );
 }
 
+export type CardOutcome = "pending" | "done" | "other";
+
 const MatchResultCard = ({
   runId,
   cvDocumentId,
@@ -69,7 +71,9 @@ const MatchResultCard = ({
   credentialId,
   autoRun,
   initialResult,
-  expanded
+  expanded,
+  cardKey,
+  onOutcome
 }: {
   runId: string;
   cvDocumentId: string;
@@ -81,6 +85,9 @@ const MatchResultCard = ({
   initialResult?: MatchResultDto;
   /** Report sections open by default — true when this is the only card. */
   expanded: boolean;
+  /** Lets the parent know when this card settles (see StepResult's callout). */
+  cardKey?: string;
+  onOutcome?: (key: string, outcome: CardOutcome) => void;
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -142,8 +149,21 @@ const MatchResultCard = ({
     void fire();
   }, [autoRun, initialResult]);
 
+  // Guests have no provider list (it 401s), so a system-key result would show
+  // the raw provider id — name it by what it is instead.
   const providerLabel = (provider: string) =>
-    providersQuery.data?.find((p) => p.id === provider)?.label ?? provider;
+    providersQuery.data?.find((p) => p.id === provider)?.label ??
+    (credentialId === null ? t("credentials.systemKey") : provider);
+
+  const outcome: CardOutcome =
+    running || (!result && !failed)
+      ? "pending"
+      : quota || failed || result?.status === "failed"
+        ? "other"
+        : "done";
+  useEffect(() => {
+    if (cardKey !== undefined) onOutcome?.(cardKey, outcome);
+  }, [onOutcome, cardKey, outcome]);
 
   const title = result
     ? `${providerLabel(result.provider)} · ${result.chatModel}`

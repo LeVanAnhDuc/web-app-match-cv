@@ -1,6 +1,6 @@
 import { Alert, Button } from "antd";
 import { Loader2, RotateCcw } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
 import { useAuth } from "#/hooks/useAuth";
@@ -9,6 +9,7 @@ import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
 import KeepResultCallout from "../../components/KeepResultCallout";
 import MatchResultCard from "../../components/MatchResultCard";
+import type { CardOutcome } from "../../components/MatchResultCard";
 
 type ResultPhase =
   | "single-loading"
@@ -29,6 +30,15 @@ const StepResult = () => {
   const pending = useWizardStore((s) => s.pendingCredentialIds);
   const reset = useWizardStore((s) => s.reset);
   const setResultReady = useWizardStore((s) => s.setResultReady);
+
+  const [outcomes, setOutcomes] = useState<Record<string, CardOutcome>>({});
+  const onOutcome = useCallback(
+    (key: string, outcome: CardOutcome) =>
+      setOutcomes((prev) =>
+        prev[key] === outcome ? prev : { ...prev, [key]: outcome }
+      ),
+    []
+  );
 
   const isLive = pending.length > 0;
   const isSingle = !runId && matchId !== null;
@@ -164,6 +174,12 @@ const StepResult = () => {
       }));
 
   const expanded = cards.length <= 1;
+  // The "kept for 24 hours" pitch only makes sense once there is a result to
+  // keep: nothing still running, and at least one card that actually finished.
+  const hasKeepableResult =
+    cards.length > 0 &&
+    cards.every((c) => (outcomes[c.key] ?? "pending") !== "pending") &&
+    cards.some((c) => outcomes[c.key] === "done");
 
   return (
     <div aria-live="polite" className="flex flex-1 flex-col gap-4">
@@ -187,11 +203,14 @@ const StepResult = () => {
           autoRun={isLive}
           initialResult={card.initialResult}
           expanded={expanded}
+          cardKey={card.key}
+          onOutcome={onOutcome}
         />
       ))}
-      {!isUser && status !== "loading" && isReportReady && (
-        <KeepResultCallout runId={runId} />
-      )}
+      {!isUser &&
+        status !== "loading" &&
+        isReportReady &&
+        hasKeepableResult && <KeepResultCallout runId={runId} />}
     </div>
   );
 };

@@ -23,7 +23,13 @@ const OpenRunFromUrl = () => {
   const handled = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!searchRunId || handled.current === searchRunId) return;
+    // Forget the handled run once it leaves the URL, so the same id can be
+    // reopened later instead of sticking on the skeleton.
+    if (!searchRunId) {
+      handled.current = undefined;
+      return;
+    }
+    if (handled.current === searchRunId) return;
     handled.current = searchRunId;
     const dropRunId = () =>
       void navigate({

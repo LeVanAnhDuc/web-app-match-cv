@@ -21,9 +21,10 @@ export const timeUntil = (
   resetsAt: string,
   now: number = Date.now()
 ): { hours: number; minutes: number } => {
-  const totalMinutes = Math.max(
-    1,
-    Math.ceil((new Date(resetsAt).getTime() - now) / 60_000)
-  );
+  const minutesLeft = Math.ceil((new Date(resetsAt).getTime() - now) / 60_000);
+  // An unparseable resetsAt gives NaN — fall back to the same 1-minute floor.
+  const totalMinutes = Number.isFinite(minutesLeft)
+    ? Math.max(1, minutesLeft)
+    : 1;
   return { hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60 };
 };

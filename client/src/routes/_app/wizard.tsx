@@ -7,15 +7,15 @@ export const Route = createFileRoute("/_app/wizard")({
   // `claimed=1` is appended by the OAuth callback once the guest's data moved.
   validateSearch: (
     search: Record<string, unknown>
-  ): { runId?: string; claimed?: "1" } => ({
+  ): { runId?: string; claimed?: 1 } => ({
     runId:
       typeof search.runId === "string" && search.runId
         ? search.runId
         : undefined,
     claimed:
-      search.claimed === "1" || search.claimed === 1
-        ? ("1" as const)
-        : undefined
+      // A number, so the router re-serializes it as `claimed=1` (a string
+      // "1" would come back as `claimed=%221%22`).
+      search.claimed === "1" || search.claimed === 1 ? (1 as const) : undefined
   }),
   component: Wizard
 });

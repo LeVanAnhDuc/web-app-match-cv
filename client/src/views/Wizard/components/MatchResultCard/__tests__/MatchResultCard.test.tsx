@@ -135,6 +135,27 @@ describe("MatchResultCard", () => {
     expect(screen.queryByText("82%")).toBeNull();
   });
 
+  it("titles a system-key result by key and model when the provider list is unavailable (guest)", () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    vi.mocked(useProviders).mockReturnValue(
+      asQuery<Array<ProviderInfoDto>>(undefined)
+    );
+    renderCard();
+
+    expect(
+      screen.getByText("System key · openai/gpt-4o-mini")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/openrouter/i)).toBeNull();
+  });
+
+  it("keeps the provider display name for a signed-in user", () => {
+    renderCard();
+
+    expect(
+      screen.getByText("OpenRouter · openai/gpt-4o-mini")
+    ).toBeInTheDocument();
+  });
+
   it("keeps the three scores as one grid, 3 columns from md up", () => {
     renderCard();
 

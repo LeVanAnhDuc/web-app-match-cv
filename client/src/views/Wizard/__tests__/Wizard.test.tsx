@@ -214,7 +214,7 @@ describe("reopening a run from the URL (design §6.3)", () => {
     expect(s.pendingCredentialIds).toEqual([]);
 
     await waitFor(() =>
-      expect(router.state.location.search).toEqual({ claimed: "1" })
+      expect(router.state.location.search).toEqual({ claimed: 1 })
     );
   });
 
@@ -260,6 +260,22 @@ describe("reopening a run from the URL (design §6.3)", () => {
     expect(useWizardStore.getState().step).toBe(1);
     expect(useWizardStore.getState().runId).toBeNull();
     await waitFor(() => expect(router.state.location.search).toEqual({}));
+  });
+
+  it("reopens the same run when it comes back to the URL after being dropped", async () => {
+    vi.mocked(fetchMatchRun).mockResolvedValue(storedRun);
+    const router = renderWizard("/wizard?runId=r1");
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    await waitFor(() => expect(useWizardStore.getState().runId).toBe("r1"));
+
+    act(() => useWizardStore.getState().reset());
+    await act(async () => {
+      await router.navigate({ to: "/wizard", search: { runId: "r1" } });
+    });
+
+    // Only OpenRunFromUrl puts the run back after a reset, so this proves the
+    // second visit was handled rather than ignored as "already handled".
+    await waitFor(() => expect(useWizardStore.getState().runId).toBe("r1"));
   });
 
   it("does not refetch a run the store already holds", async () => {
