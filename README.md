@@ -17,6 +17,15 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
   - Jump back by clicking a step you already finished. A step you have no data for yet is not clickable and says what is missing.
   - Changing the CV or the JD after jumping back drops the result of the previous pair, so step 4 never shows a report for documents you replaced.
 
+- **Sign in with Ducker ID**
+  - One button sends you through Ducker ID (OpenID Connect) and back; Match CV then keeps its own session, so your documents, matches and AI keys belong to your account.
+  - Sign out only signs you out of Match CV, not out of Ducker ID.
+
+- **Try it as a guest**
+  - Anyone can run the CV↔JD wizard without an account, on the system AI key, up to 5 matches per network per day (`GUEST_MATCH_LIMIT_PER_DAY`).
+  - Guest documents and results are kept for 24 hours; signing in carries your guest result, CV and JD into your account.
+  - Saved CVs/JDs, match history, your own AI keys, CV rewrite, cover letters, version comparison and data export need a signed-in account.
+
 - **Match score with a breakdown**
   - Three readouts — overall, semantic match and keyword/skills match — each a large number against a 0–100 scale (overall = 60% semantic + 40% keyword; the LLM does not score, it only explains).
   - Report sections: matched strengths, gaps / missing, and how to improve your CV.
@@ -69,9 +78,8 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 ### Not built yet
 
-- **No sign-in.** Auth/SSO is deferred; the whole app runs as one fixed stub user, so every visitor shares the same documents and credentials. Do not deploy it publicly.
+- **Sign-in is Ducker ID only.** There is no email/password or other provider, and no default user — every account comes from a Ducker ID sign-in.
 - **No match history page.** The API can list and reopen matches, but the client only has the *Recent matches* widget on the dashboard — the "View all" label is inert text. No `/history` route, no filtering or sorting, and no way to delete a match.
-- **"Save report" does nothing.** The button sits on the step 4 action bar but has no handler wired to it; the match itself is persisted by the API regardless, and reachable again from *Recent matches*. *Start over* next to it works.
 - **No UI language switcher.** Vietnamese translations exist for the client but the interface is fixed to English (`VITE_DEFAULT_LOCALE` is not wired up yet).
 - **Data sovereignty is only half done.** Export works; deleting all your data and the data-disclosure log (which document went to which provider, when) are not implemented.
 - **Keyword scores are not comparable across languages.** Because Vietnamese is tokenized per syllable, any two Vietnamese documents share a noise floor of roughly 30–43%, versus roughly 5% for English. The UI shows both as plain percentages. See `docs/04-state/backlog.md`, technical debt #1.
@@ -95,7 +103,7 @@ pnpm install
 cp .env.example .env          # set DATABASE_URL for your local Postgres
 createdb matchcv              # or: psql -c "CREATE DATABASE matchcv"
 pnpm exec prisma migrate dev  # create the tables
-pnpm exec prisma db seed      # seed the stub current-user (auth is deferred)
+pnpm exec prisma db seed      # no-op — there is no default user, accounts come from sign-in
 pnpm start:dev                # http://localhost:5200 — Swagger at /api/v1/docs
 ```
 
@@ -106,7 +114,14 @@ Env vars (see `server/.env.example`):
 - `OPENROUTER_API_KEY` — the system fallback key. Without it, and without a credential of your own, running a match returns 503. `OPENROUTER_BASE_URL` / `OPENROUTER_CHAT_MODEL` / `OPENROUTER_EMBED_MODEL` are optional overrides.
 - `CREDENTIAL_ENCRYPTION_KEY` — base64 of exactly 32 bytes (`openssl rand -base64 32`). Required for `/ai-credentials`; missing or wrong length makes those endpoints return 503 while everything else keeps working. Changing or losing it makes stored credentials undecryptable.
 
-Optional dev data: `pnpm seed:mock` inserts 3 CV + 3 JD mock documents (Vietnamese and English), `pnpm seed:mock:clean` removes them.
+- Sign-in through Ducker ID — optional at boot; without the `OIDC_*` group `/auth/login` and `/auth/callback` return 503 and the rest keeps working:
+  - `OIDC_ISSUER` (`http://localhost:3000`, the Ducker ID client origin — not the API port `5000`), `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` (`http://localhost:5200/api/v1/auth/callback`).
+  - `SESSION_SECRET` — at least 32 characters (`openssl rand -base64 48`). `SESSION_TTL_DAYS` (default `7`).
+  - `GUEST_TTL_HOURS` (default `24`), `GUEST_MATCH_LIMIT_PER_DAY` (default `5`) — guest mode.
+
+To sign in locally: start Ducker ID (client `:3000`, API `:5000`), register Match CV in its `/admin/apps` page with the redirect URI above (it must match exactly), then put the client id and secret in `server/.env`. Step by step: `server/README.md`.
+
+Optional dev data: `pnpm seed:mock --user <email>` inserts 3 CV + 3 JD mock documents (Vietnamese and English) for a user who has signed in once; `pnpm seed:mock:clean` removes them.
 
 **2. Client** (from `client/`)
 
@@ -145,15 +160,16 @@ cd client && pnpm test:e2e    # Playwright; both servers must be running, and
 │       ├── types/              Shared DTO types
 │       └── views/              One folder per screen (Wizard, CvRewrite, CvComparison, …)
 ├── server/                     NestJS REST API (port 5200)
-│   ├── prisma/                 schema.prisma, migrations, stub-user seed
+│   ├── prisma/                 schema.prisma, migrations, no-op seed
 │   ├── scripts/                seed-mock, recompute-keyword-scores
 │   ├── src/
 │   │   ├── common/crypto/      AES-256-GCM credential encryption
-│   │   ├── common/current-user/ Stub current user (auth deferred)
+│   │   ├── common/current-user/ Current user from the request (session or guest)
 │   │   ├── config/             Env validation
 │   │   ├── i18n/               en + vi API messages
 │   │   ├── modules/ai/         OpenAI-compatible provider client + whitelist
 │   │   ├── modules/ai-credentials/  BYO key CRUD + connection test
+│   │   ├── modules/auth/       Ducker ID sign-in (OIDC), session, guest limits
 │   │   ├── modules/comparison/ Version comparison + gap diffing
 │   │   ├── modules/cover-letters/   Cover letter generation and drafts
 │   │   ├── modules/cv-rewrite/ Anchored rewrite proposals + grounding checks
