@@ -12,6 +12,8 @@ describe("Access matrix (e2e) — design §5.2", () => {
   let ctx: Awaited<ReturnType<typeof createTestApp>>;
   let guestCookie: string;
   let userCookie: string;
+  let guestId: string;
+  let userId: string;
   const users: string[] = [];
 
   beforeAll(async () => {
@@ -20,6 +22,8 @@ describe("Access matrix (e2e) — design §5.2", () => {
     const u = await createSignedInUser(ctx.prisma);
     guestCookie = g.cookie;
     userCookie = u.cookie;
+    guestId = g.userId;
+    userId = u.userId;
     users.push(g.userId, u.userId);
   });
 
@@ -45,7 +49,9 @@ describe("Access matrix (e2e) — design §5.2", () => {
     ["get", `/documents/${UNKNOWN}`],
     ["get", `/documents/${UNKNOWN}/file`],
     ["get", `/match/runs/${UNKNOWN}`],
-    ["get", `/match/${UNKNOWN}`]
+    ["get", `/match/${UNKNOWN}`],
+    ["post", "/match"],
+    ["post", "/match/runs"]
   ] as const)(
     "%s %s: anonymous 401, guest and user pass the guard",
     async (m, p) => {
@@ -63,7 +69,18 @@ describe("Access matrix (e2e) — design §5.2", () => {
     ["get", "/me/export"],
     ["patch", `/documents/${UNKNOWN}`],
     ["delete", `/documents/${UNKNOWN}`],
-    ["get", `/comparisons/${UNKNOWN}`]
+    ["get", `/comparisons/${UNKNOWN}`],
+    ["get", "/ai-credentials/providers"],
+    ["post", "/ai-credentials"],
+    ["patch", `/ai-credentials/${UNKNOWN}`],
+    ["delete", `/ai-credentials/${UNKNOWN}`],
+    ["post", `/ai-credentials/${UNKNOWN}/test`],
+    ["post", "/cover-letters"],
+    ["patch", `/cover-letters/${UNKNOWN}`],
+    ["delete", `/cover-letters/${UNKNOWN}`],
+    ["post", "/cv-rewrite"],
+    ["post", "/cv-rewrite/accept"],
+    ["patch", `/documents/${UNKNOWN}/parent`]
   ] as const)("%s %s: user only", async (m, p) => {
     await call(m, p).expect(401);
     await call(m, p, guestCookie).expect(401);
@@ -78,16 +95,41 @@ describe("Access matrix (e2e) — design §5.2", () => {
         save: false
       })
       .expect(201);
-    const setCookie = String(res.headers["set-cookie"]);
-    expect(setCookie).toMatch(/mcv_session=/);
-    expect(setCookie).toMatch(/HttpOnly/i);
     const owner = await ctx.prisma.document.findUnique({
       where: { id: (res.body as { id: string }).id },
       include: { user: true }
     });
+    if (owner) users.push(owner.userId);
+    const setCookie = String(res.headers["set-cookie"]);
+    expect(setCookie).toMatch(/mcv_session=/);
+    expect(setCookie).toMatch(/HttpOnly/i);
     expect(owner?.user.isGuest).toBe(true);
-    users.push(owner!.userId);
+    const newCookie = /mcv_session=[^;]+/.exec(setCookie)![0];
+    await call("get", "/documents", newCookie).expect(401);
   });
+
+  it.each([
+    ["guest", () => guestCookie, () => guestId],
+    ["signed-in user", () => userCookie, () => userId]
+  ] as const)(
+    "POST /documents as %s passes the guard and creates no new guest",
+    async (_who, cookie, id) => {
+      const res = await call("post", "/documents", cookie())
+        .send({
+          kind: "JD",
+          sourceText: "Senior Frontend Engineer — React, TypeScript",
+          save: false
+        })
+        .expect(201);
+      const doc = await ctx.prisma.document.findUnique({
+        where: { id: (res.body as { id: string }).id }
+      });
+      expect(doc?.userId).toBe(id());
+      expect(String(res.headers["set-cookie"] ?? "")).not.toMatch(
+        /mcv_session=[^;]+/
+      );
+    }
+  );
 
   it("a 401 body carries code SIGN_IN_REQUIRED", async () => {
     const res = await call("get", "/documents").expect(401);
