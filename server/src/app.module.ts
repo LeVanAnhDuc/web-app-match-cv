@@ -2,7 +2,8 @@ import { join } from "path";
 import {
   type MiddlewareConsumer,
   Module,
-  type NestModule
+  type NestModule,
+  RequestMethod
 } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
@@ -51,6 +52,8 @@ import { validateEnv } from "./config/env.validation";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(SessionMiddleware).forRoutes("*");
+    consumer
+      .apply(SessionMiddleware)
+      .forRoutes({ path: "{*splat}", method: RequestMethod.ALL });
   }
 }

@@ -1,13 +1,14 @@
 import { GuestService } from "./guest.service";
 
 const tx = {
-  user: { findUnique: jest.fn(), delete: jest.fn() },
+  user: { findUnique: jest.fn(), deleteMany: jest.fn() },
   document: { updateMany: jest.fn() },
   matchRun: { updateMany: jest.fn() },
   matchResult: { updateMany: jest.fn() }
 };
 const prisma = {
   user: { create: jest.fn(), deleteMany: jest.fn() },
+  guestUsage: { deleteMany: jest.fn() },
   $transaction: jest.fn((fn: (t: typeof tx) => unknown) => fn(tx))
 };
 const sessions = { create: jest.fn().mockResolvedValue("raw-token") };
@@ -50,6 +51,7 @@ describe("GuestService", () => {
       isGuest: true,
       guestExpiresAt: new Date(Date.now() + 60_000)
     });
+    tx.user.deleteMany.mockResolvedValue({ count: 1 });
     await expect(service.claim("g-1", "u-1")).resolves.toBe(true);
     expect(tx.document.updateMany).toHaveBeenCalledWith({
       where: { userId: "g-1" },
@@ -63,7 +65,33 @@ describe("GuestService", () => {
       where: { userId: "g-1" },
       data: { userId: "u-1" }
     });
-    expect(tx.user.delete).toHaveBeenCalledWith({ where: { id: "g-1" } });
+    expect(tx.user.deleteMany).toHaveBeenCalledWith({
+      where: { id: "g-1", isGuest: true }
+    });
+  });
+
+  it("returns false instead of throwing when a concurrent claim already deleted the guest", async () => {
+    tx.user.findUnique.mockResolvedValue({
+      id: "g-1",
+      isGuest: true,
+      guestExpiresAt: new Date(Date.now() + 60_000)
+    });
+    tx.user.deleteMany.mockResolvedValue({ count: 0 });
+    await expect(service.claim("g-1", "u-1")).resolves.toBe(false);
+  });
+
+  it("purgeExpired also drops GuestUsage rows older than today (UTC)", async () => {
+    prisma.user.deleteMany.mockResolvedValue({ count: 0 });
+    await service.purgeExpired();
+    const arg = (
+      prisma.guestUsage.deleteMany.mock.calls[0] as [
+        { where: { day: { lt: Date } } }
+      ]
+    )[0];
+    const lt = arg.where.day.lt;
+    expect(lt.toISOString()).toBe(
+      `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`
+    );
   });
 
   it("skips an expired guest without failing", async () => {

@@ -112,6 +112,20 @@ describe("Auth flow (e2e) — design §3.2–3.4", () => {
     expect(header).toMatch(/Max-Age=600/);
   });
 
+  it("GET /auth/login redirects to /?authError=server when the IdP cannot be reached", async () => {
+    const spy = jest
+      .spyOn(fake, "authorizeUrl")
+      .mockRejectedValue(new Error("discovery down"));
+    try {
+      const { res, oauth } = await login("/wizard");
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe(`${CLIENT}/?authError=server`);
+      expect(oauth).toBeUndefined();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("signs a guest in, carries the guest work into the account, and kills the guest session", async () => {
     const created = await http()
       .post("/api/v1/documents")

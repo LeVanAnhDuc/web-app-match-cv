@@ -74,10 +74,24 @@ export class AuthController {
         new URL(target, this.auth.clientOrigin()).toString()
       );
     }
-    const { authorizeUrl, cookie } = await this.auth.beginLogin(
-      target,
-      ctx?.isGuest ? ctx.userId : null
-    );
+    let begun: { authorizeUrl: string; cookie: string };
+    try {
+      begun = await this.auth.beginLogin(
+        target,
+        ctx?.isGuest ? ctx.userId : null
+      );
+    } catch (e) {
+      // A full-page navigation must never land on raw JSON: discovery down or
+      // OIDC_* missing becomes the same /?authError=server the callback uses.
+      this.logger.warn(
+        `sign-in could not start${e instanceof Error ? ` (${e.name})` : ""}`
+      );
+      return res.redirect(
+        HttpStatus.FOUND,
+        `${this.auth.clientOrigin()}/?authError=server`
+      );
+    }
+    const { authorizeUrl, cookie } = begun;
     res.cookie(OAUTH_COOKIE, cookie, {
       httpOnly: true,
       sameSite: "lax",

@@ -19,6 +19,11 @@ export class GuestService {
     const { count } = await this.prisma.user.deleteMany({
       where: { isGuest: true, guestExpiresAt: { lt: new Date() } }
     });
+    // Quota counters of past days are dead weight - keep only today's (UTC).
+    const today = new Date(
+      `${new Date().toISOString().slice(0, 10)}T00:00:00Z`
+    );
+    await this.prisma.guestUsage.deleteMany({ where: { day: { lt: today } } });
     return count;
   }
 
@@ -56,8 +61,11 @@ export class GuestService {
         where: { userId: guestUserId },
         data: { userId }
       });
-      await tx.user.delete({ where: { id: guestUserId } });
-      return true;
+      // deleteMany, not delete: a concurrent double claim must not surface P2025.
+      const { count } = await tx.user.deleteMany({
+        where: { id: guestUserId, isGuest: true }
+      });
+      return count > 0;
     });
   }
 }

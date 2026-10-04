@@ -1,5 +1,11 @@
 import { plainToInstance } from "class-transformer";
-import { IsInt, IsOptional, IsString, validateSync } from "class-validator";
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  MinLength,
+  validateSync
+} from "class-validator";
 
 class EnvVars {
   @IsInt() PORT: number = 5200;
@@ -25,7 +31,7 @@ class EnvVars {
   @IsOptional() @IsString() OIDC_CLIENT_SECRET?: string;
   @IsOptional() @IsString() OIDC_REDIRECT_URI?: string;
   // >=32 chars. Seals the mcv_oauth cookie and keys the guest IP HMAC.
-  @IsOptional() @IsString() SESSION_SECRET?: string;
+  @IsOptional() @IsString() @MinLength(32) SESSION_SECRET?: string;
   @IsInt() SESSION_TTL_DAYS: number = 7;
   @IsInt() GUEST_TTL_HOURS: number = 24;
   @IsInt() GUEST_MATCH_LIMIT_PER_DAY: number = 5;
