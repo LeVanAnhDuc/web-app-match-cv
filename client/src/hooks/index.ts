@@ -15,7 +15,8 @@ export {
   useMatchResult,
   useMatchHistory,
   useCreateMatchRun,
-  useMatchRun
+  useMatchRun,
+  useFetchMatchRun
 } from "./useMatch";
 export { useGenerateCvRewrite, useAcceptCvRewrite } from "./useCvRewrite";
 export { useDownloadMyData } from "./useMyData";

@@ -5,7 +5,7 @@ import { useWizardStore } from "#/stores";
 import ResultActionBar from "#/views/Wizard/components/ResultActionBar";
 
 // Step 4 of the wizard is a COLUMN of provider cards, not a single
-// SectionCard — there is no footer to pin "Start over" / "Save report" to,
+// SectionCard — there is no footer to pin "Start over" to,
 // so the shell renders that bar itself instead of the view. Decided here
 // (route + step + resultReady), not stashed as a ReactNode in the store
 // (stores.md) — resultReady is a plain boolean StepResult writes once it

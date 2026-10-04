@@ -97,7 +97,11 @@
     "stepResult": {
       "badge": "Matching complete"
     },
-    "comingSoon": "Coming in Plan 2"
+    "comingSoon": "Coming in Plan 2",
+    "claimed": {
+      "title": "Saved to your account.",
+      "body": "This result, its CV and its JD moved over from your guest session."
+    }
   },
   "review": {
     "hint": "Data is editable. Fix any mistakes before running the match.",
@@ -108,7 +112,8 @@
     "tab": {
       "upload": "Upload file",
       "paste": "Paste text"
-    }
+    },
+    "guestNote": "As a guest, this document is kept for 24 hours and is not added to a library. <signin>Sign in</signin> to save it for reuse."
   },
   "dropzone": {
     "title": "Drop your file here or <highlight>browse</highlight>",
@@ -210,11 +215,11 @@
     "cancel": "Cancel",
     "runMatch": "Run match",
     "startOver": "Start over",
-    "saveReport": "Save report",
     "runMatchCount": "Run match · {{count}} providers",
     "tryAgain": "Try again",
     "improveCv": "Improve my CV",
-    "compareVersions": "Compare versions"
+    "compareVersions": "Compare versions",
+    "dismiss": "Dismiss"
   },
   "rewrite": {
     "title": "Improve this CV",
@@ -287,6 +292,11 @@
       "model_unavailable": "The provider does not offer that model.",
       "timeout": "The provider took too long to answer.",
       "unreachable": "Could not reach the provider."
+    },
+    "keep": {
+      "title": "Kept for 24 hours, then deleted",
+      "body": "Sign in with Ducker ID and this result moves into your account with its CV and JD. Then you can rewrite the CV against these gaps or draft a cover letter.",
+      "cta": "Sign in to keep it"
     }
   },
   "err": {

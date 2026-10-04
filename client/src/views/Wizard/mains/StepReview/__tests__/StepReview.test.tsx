@@ -2,11 +2,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "#/i18n/config";
+import * as aiHooks from "#/hooks/useAiCredentials";
+import { useAuth } from "#/hooks/useAuth";
 import * as documentHooks from "#/hooks/useDocuments";
 import * as matchHooks from "#/hooks/useMatch";
 import { useWizardStore } from "#/stores";
 import type { DocumentDto } from "#/types/Documents";
 import StepReview from "../index";
+
+vi.mock("#/hooks/useAuth");
+
+const auth = (status: "guest" | "user") => ({
+  status,
+  user: null,
+  guestQuota: null,
+  isUser: status === "user"
+});
 
 // DocumentPreview pulls react-pdf/docx-preview — stub it so the pane just
 // reports which doc id it was asked to render.
@@ -60,6 +71,7 @@ function mockDocs() {
 
 describe("StepReview", () => {
   beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue(auth("user"));
     useWizardStore.setState({
       step: 3,
       jdDocId: "jd-1",
@@ -190,5 +202,54 @@ describe("StepReview", () => {
       expect(heading.className).toContain("text-muted");
       expect(heading.className).not.toContain("text-faint");
     });
+  });
+
+  it("touch-sizes the footer buttons and stretches them below md", async () => {
+    mockDocs();
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    renderStep();
+    await screen.findAllByTestId("review-pane");
+
+    for (const name of [/back/i, /run match/i]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.className).toContain("!h-11");
+      expect(button.className).toContain("max-md:w-full");
+    }
+  });
+
+  it("a guest runs on the system key, with no provider picker and no credential requests", async () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    useWizardStore.setState({ credentialIds: [] });
+    const credentialsSpy = vi.spyOn(aiHooks, "useAiCredentials");
+    const providersSpy = vi.spyOn(aiHooks, "useProviders");
+    mockDocs();
+    const mutateAsync = vi.fn(async () => ({
+      id: "run-g",
+      cvDocumentId: "cv-1",
+      jdDocumentId: "jd-1",
+      createdAt: "2026-08-08T00:00:00.000Z"
+    }));
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync,
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    renderStep();
+    await screen.findAllByTestId("review-pane");
+
+    // /ai-credentials 401s for a guest — the selector must not even mount.
+    expect(credentialsSpy).not.toHaveBeenCalled();
+    expect(providersSpy).not.toHaveBeenCalled();
+
+    const run = screen.getByRole("button", { name: /run match/i });
+    expect(run).not.toBeDisabled();
+    fireEvent.click(run);
+
+    await waitFor(() => expect(useWizardStore.getState().runId).toBe("run-g"));
+    expect(useWizardStore.getState().pendingCredentialIds).toEqual([null]);
   });
 });

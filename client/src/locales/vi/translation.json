@@ -97,7 +97,11 @@
     "stepResult": {
       "badge": "Đã hoàn tất so khớp"
     },
-    "comingSoon": "Sẽ có ở Plan 2"
+    "comingSoon": "Sẽ có ở Plan 2",
+    "claimed": {
+      "title": "Đã lưu vào tài khoản của bạn.",
+      "body": "Kết quả này cùng CV và JD của nó đã được chuyển từ phiên khách sang."
+    }
   },
   "review": {
     "hint": "Dữ liệu có thể chỉnh sửa. Sửa lỗi trước khi chạy so khớp.",
@@ -108,7 +112,8 @@
     "tab": {
       "upload": "Tải file",
       "paste": "Dán văn bản"
-    }
+    },
+    "guestNote": "Với tư cách khách, tài liệu này được giữ 24 giờ và không được thêm vào thư viện. <signin>Đăng nhập</signin> để lưu lại dùng tiếp."
   },
   "dropzone": {
     "title": "Kéo thả file vào đây hoặc <highlight>chọn file</highlight>",
@@ -210,11 +215,11 @@
     "cancel": "Huỷ",
     "runMatch": "Chạy so khớp",
     "startOver": "Làm lại",
-    "saveReport": "Lưu báo cáo",
     "runMatchCount": "Chạy so khớp · {{count}} provider",
     "tryAgain": "Thử lại",
     "improveCv": "Cải thiện CV",
-    "compareVersions": "So sánh phiên bản"
+    "compareVersions": "So sánh phiên bản",
+    "dismiss": "Đóng"
   },
   "rewrite": {
     "title": "Cải thiện CV này",
@@ -287,6 +292,11 @@
       "model_unavailable": "Nhà cung cấp không có model đó.",
       "timeout": "Nhà cung cấp phản hồi quá lâu.",
       "unreachable": "Không kết nối được tới nhà cung cấp."
+    },
+    "keep": {
+      "title": "Giữ trong 24 giờ, sau đó bị xoá",
+      "body": "Đăng nhập bằng Ducker ID và kết quả này chuyển vào tài khoản của bạn cùng CV và JD của nó. Khi đó bạn có thể viết lại CV theo các điểm thiếu này hoặc soạn thư xin việc.",
+      "cta": "Đăng nhập để giữ lại"
     }
   },
   "err": {

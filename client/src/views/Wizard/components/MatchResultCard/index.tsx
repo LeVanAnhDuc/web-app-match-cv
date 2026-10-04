@@ -15,6 +15,7 @@ import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
 import SignInGate from "#/components/SignInGate";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
 import { ApiError } from "#/libs/api";
@@ -83,7 +84,11 @@ const MatchResultCard = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const providersQuery = useProviders();
+  const { isUser } = useAuth();
+  // The provider list, the rewrite page, cover letters and comparison all
+  // need an account (they 401 for a guest), so a guest's card is scores and
+  // report only — the sign-in pitch sits below the cards (KeepResultCallout).
+  const providersQuery = useProviders(isUser);
   // Only to learn whether this CV descends from an earlier version. React Query
   // dedupes by key, so N provider cards on the same run share one request.
   const cvQuery = useDocument(cvDocumentId);
@@ -247,43 +252,45 @@ const MatchResultCard = ({
       // `Space` is not used here: it wraps each child in a fixed-width item, so
       // `w-full` on the button would never reach the row.
       extra={
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:gap-2">
-          <Button
-            className={HEADER_ACTION_CLASS}
-            icon={<Wand2 size={16} />}
-            onClick={() =>
-              void navigate({
-                to: "/cv-rewrite/$matchResultId",
-                params: { matchResultId: result.id }
-              })
-            }
-          >
-            {t("action.improveCv")}
-          </Button>
-          <Button
-            className={HEADER_ACTION_CLASS}
-            icon={<Mail size={16} />}
-            onClick={() => setLetterOpen(true)}
-          >
-            {t("coverLetter.open")}
-          </Button>
-          {cvQuery.data?.parentId && (
+        isUser && (
+          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:gap-2">
             <Button
               className={HEADER_ACTION_CLASS}
-              icon={<GitCompareArrows size={16} />}
+              icon={<Wand2 size={16} />}
               onClick={() =>
                 void navigate({
-                  to: "/compare/$documentId",
-                  params: { documentId: result.cvDocumentId },
-                  // Compare on the JD the user is looking at right now.
-                  search: { jd: result.jdDocumentId }
+                  to: "/cv-rewrite/$matchResultId",
+                  params: { matchResultId: result.id }
                 })
               }
             >
-              {t("action.compareVersions")}
+              {t("action.improveCv")}
             </Button>
-          )}
-        </div>
+            <Button
+              className={HEADER_ACTION_CLASS}
+              icon={<Mail size={16} />}
+              onClick={() => setLetterOpen(true)}
+            >
+              {t("coverLetter.open")}
+            </Button>
+            {cvQuery.data?.parentId && (
+              <Button
+                className={HEADER_ACTION_CLASS}
+                icon={<GitCompareArrows size={16} />}
+                onClick={() =>
+                  void navigate({
+                    to: "/compare/$documentId",
+                    params: { documentId: result.cvDocumentId },
+                    // Compare on the JD the user is looking at right now.
+                    search: { jd: result.jdDocumentId }
+                  })
+                }
+              >
+                {t("action.compareVersions")}
+              </Button>
+            )}
+          </div>
+        )
       }
     >
       <div className="grid grid-cols-1 gap-4 border-b border-line bg-surface-subtle p-4 md:grid-cols-3 md:gap-6 md:p-6">

@@ -43,21 +43,19 @@ const UploadPasteTabs = ({
   };
 
   return (
-    <div className="mb-6 md:mb-8">
+    <div className="flex flex-col gap-4">
       <Segmented
+        size="large"
         value={mode}
         onChange={(value) => onModeChange(value as InputMode)}
         options={[
           { label: t("input.tab.upload"), value: "upload" },
           { label: t("input.tab.paste"), value: "paste" }
         ]}
-        className="mb-8"
+        className="self-start [&_.ant-segmented-item-label]:!min-h-10 [&_.ant-segmented-item-label]:!leading-10"
       />
       {mode === "upload" ? (
-        <Dragger
-          {...draggerProps}
-          className="mb-6 !rounded-xl !border-dashed md:mb-10"
-        >
+        <Dragger {...draggerProps} className="!rounded-xl !border-dashed">
           <div className="flex flex-col items-center justify-center py-4 md:py-6">
             <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-accent md:size-16">
               <UploadCloud size={28} />
@@ -85,7 +83,7 @@ const UploadPasteTabs = ({
           onChange={(e) => onPastedTextChange(e.target.value)}
           rows={8}
           placeholder={t("paste.placeholder")}
-          className="mb-6 !rounded-xl md:mb-10"
+          className="!rounded-xl"
         />
       )}
     </div>

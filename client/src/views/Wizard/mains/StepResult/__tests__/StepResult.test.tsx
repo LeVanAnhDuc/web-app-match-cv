@@ -4,8 +4,9 @@ import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
 import { useMatchResult, useMatchRun, useRunMatch } from "#/hooks/useMatch";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
-import { ApiError } from "#/libs/api";
+import { ApiError, signInUrl } from "#/libs/api";
 import { useWizardStore } from "#/stores";
 import type {
   CreateMatchInput,
@@ -21,6 +22,14 @@ vi.mock("#/hooks/useAiCredentials");
 // The card reads the CV only to learn whether it descends from an earlier
 // version (Goal 9), so the comparison action can be offered.
 vi.mock("#/hooks/useDocuments");
+vi.mock("#/hooks/useAuth");
+
+const auth = (status: "guest" | "user") => ({
+  status,
+  user: null,
+  guestQuota: null,
+  isUser: status === "user"
+});
 
 const RUN_ID = "run-1";
 const CV_ID = "cv-1";
@@ -132,6 +141,7 @@ function setStore(over: Record<string, unknown>) {
 describe("StepResult", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue(auth("user"));
     vi.mocked(useProviders).mockReturnValue(asQuery(providers));
     vi.mocked(useDocument).mockReturnValue(asQuery(originalCv));
     vi.mocked(useMatchRun).mockReturnValue(
@@ -535,5 +545,44 @@ describe("StepResult", () => {
       await screen.findByRole("meter", { name: "Overall match" })
     ).toBeInTheDocument();
     expect(useWizardStore.getState().resultReady).toBe(true);
+  });
+
+  it("tells a guest the result is kept for 24 hours and signs in back to this run", async () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    setStore({ pendingCredentialIds: [null] });
+    mockRunMatch({ result: succeeded });
+
+    render(<StepResult />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Kept for 24 hours, then deleted"
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Sign in to keep it" })
+    ).toHaveAttribute("href", signInUrl(`/wizard?runId=${RUN_ID}`));
+  });
+
+  it("does not show the keep-it callout to a signed-in user", async () => {
+    setStore({ pendingCredentialIds: ["cred-a"] });
+    mockRunMatch({ result: succeeded });
+
+    render(<StepResult />);
+
+    await screen.findByRole("meter", { name: "Overall match" });
+    expect(screen.queryByText("Kept for 24 hours, then deleted")).toBeNull();
+  });
+
+  it("does not show the keep-it callout to a guest before there is a report", () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    setStore({});
+    vi.mocked(useMatchRun).mockReturnValue(
+      asQuery<MatchRunDetailDto>(undefined, { isLoading: true })
+    );
+
+    render(<StepResult />);
+
+    expect(screen.queryByText("Kept for 24 hours, then deleted")).toBeNull();
   });
 });

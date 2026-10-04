@@ -14,7 +14,7 @@ interface WizardState {
   /**
    * Step 4 only StepResult knows whether its query landed on a report or on a
    * loading/error/guard screen — the shell reads this to decide whether its
-   * pinned action bar (which offers "Save report") may render at all.
+   * pinned action bar may render at all.
    */
   resultReady: boolean;
   setStep: (step: WizardStep) => void;
@@ -23,6 +23,12 @@ interface WizardState {
   setMatchId: (id: string) => void;
   setCredentialIds: (ids: Array<string | null>) => void;
   startRun: (runId: string, credentialIds: Array<string | null>) => void;
+  /**
+   * Land on step 4 for a run that already exists — the `/wizard?runId=` path
+   * after a full-page sign-in, where the store started empty. Nothing is
+   * pending, so the cards read the stored results instead of firing again.
+   */
+  openRun: (run: { runId: string; cvDocId: string; jdDocId: string }) => void;
   goNext: () => void;
   goBack: () => void;
   /** Backward-only: jumping ahead to a step without its data would show a blank/stale screen. */
@@ -64,6 +70,15 @@ export const useWizardStore = create<WizardState>((set) => ({
   setCredentialIds: (ids) => set({ credentialIds: ids }),
   startRun: (runId, credentialIds) =>
     set({ runId, pendingCredentialIds: credentialIds }),
+  openRun: ({ runId, cvDocId, jdDocId }) =>
+    set({
+      step: 4,
+      runId,
+      cvDocId,
+      jdDocId,
+      matchId: null,
+      pendingCredentialIds: []
+    }),
   goNext: () => set((s) => ({ step: Math.min(4, s.step + 1) as WizardStep })),
   goBack: () => set((s) => ({ step: Math.max(1, s.step - 1) as WizardStep })),
   jumpTo: (step) => set((s) => (step < s.step ? { step } : s)),

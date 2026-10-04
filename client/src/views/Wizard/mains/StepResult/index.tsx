@@ -3,9 +3,11 @@ import { Loader2, RotateCcw } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
+import { useAuth } from "#/hooks/useAuth";
 import { useMatchResult, useMatchRun } from "#/hooks/useMatch";
 import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
+import KeepResultCallout from "../../components/KeepResultCallout";
 import MatchResultCard from "../../components/MatchResultCard";
 
 type ResultPhase =
@@ -19,6 +21,7 @@ type ResultPhase =
 
 const StepResult = () => {
   const { t } = useTranslation();
+  const { status, isUser } = useAuth();
   const runId = useWizardStore((s) => s.runId);
   const matchId = useWizardStore((s) => s.matchId);
   const cvDocId = useWizardStore((s) => s.cvDocId);
@@ -35,7 +38,7 @@ const StepResult = () => {
   const singleQuery = useMatchResult(isSingle ? matchId : null);
 
   // One priority chain drives both what renders below AND whether the shell
-  // may show its pinned "Start over" / "Save report" bar — only the two
+  // may show its pinned "Start over" bar — only the two
   // "-success" phases have an actual report, and only those phases keep no
   // inline "Start over" of their own (see the branches below), so the shell
   // bar never ends up doubled with this component's own recovery button.
@@ -66,7 +69,7 @@ const StepResult = () => {
       size="large"
       icon={<RotateCcw size={16} />}
       onClick={reset}
-      className="!text-muted"
+      className="!h-11 !text-muted max-md:w-full"
     >
       {t("action.startOver")}
     </Button>
@@ -186,6 +189,9 @@ const StepResult = () => {
           expanded={expanded}
         />
       ))}
+      {!isUser && status !== "loading" && isReportReady && (
+        <KeepResultCallout runId={runId} />
+      )}
     </div>
   );
 };

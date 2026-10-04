@@ -1,9 +1,11 @@
 import { Button } from "antd";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
+import { useAuth } from "#/hooks/useAuth";
 import { useCreateDocument } from "#/hooks/useDocuments";
+import { signInUrl } from "#/libs/api";
 import { FILE } from "#/constants";
 import type { DocumentKind } from "#/types/Documents";
 import type { InputMode } from "#/types/Wizard";
@@ -21,6 +23,8 @@ const DocumentInputStep = ({
   onBack?: () => void;
 }) => {
   const { t } = useTranslation();
+  const { status, isUser } = useAuth();
+  const isGuest = status === "guest" || status === "anonymous";
   const [mode, setMode] = useState<InputMode>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
@@ -140,7 +144,7 @@ const DocumentInputStep = ({
             disabled={!onBack}
             icon={<ArrowLeft size={16} />}
             onClick={onBack}
-            className="!text-muted"
+            className="!h-11 !text-muted max-md:w-full"
           >
             {t("action.back")}
           </Button>
@@ -152,13 +156,14 @@ const DocumentInputStep = ({
             onClick={() => void handleNext()}
             iconPosition="end"
             icon={<ArrowRight size={16} />}
+            className="!h-11 max-md:w-full"
           >
             {t("action.next")}
           </Button>
         </>
       }
     >
-      <>
+      <div className="flex flex-col gap-6">
         <UploadPasteTabs
           mode={mode}
           onModeChange={handleModeChange}
@@ -168,34 +173,53 @@ const DocumentInputStep = ({
           onPastedTextChange={handlePastedTextChange}
           maxSizeLabel={FILE.MAX_SIZE_LABEL}
         />
-        {hasNewInput && (
-          <div className="mb-8">
-            <SaveForReuseButton
+        {isGuest && (
+          <p className="flex items-start gap-2 rounded-xl bg-surface-subtle p-3 text-sm text-muted">
+            <Clock
+              size={16}
+              aria-hidden="true"
+              className="mt-0.5 shrink-0 text-faint"
+            />
+            <span>
+              <Trans
+                i18nKey="input.guestNote"
+                components={{
+                  signin: (
+                    <a
+                      href={signInUrl("/wizard")}
+                      className="font-medium text-accent underline underline-offset-2"
+                    />
+                  )
+                }}
+              />
+            </span>
+          </p>
+        )}
+        {isUser && hasNewInput && (
+          <SaveForReuseButton
+            kind={kind}
+            savedTitle={savedTitle}
+            onSave={handleSaveForReuse}
+          />
+        )}
+        {isUser && (
+          <div>
+            <h3 className="mb-4 text-xs font-semibold tracking-wider text-muted uppercase">
+              {t(`reuse.${reuseKey}.title`)}
+            </h3>
+            <SavedDocRadioList
               kind={kind}
-              savedTitle={savedTitle}
-              onSave={handleSaveForReuse}
+              selectedId={selectedSavedId}
+              onSelect={handleSelectSaved}
             />
           </div>
         )}
-        <div>
-          <h3 className="mb-4 text-xs font-semibold tracking-wider text-muted uppercase">
-            {t(`reuse.${reuseKey}.title`)}
-          </h3>
-          <SavedDocRadioList
-            kind={kind}
-            selectedId={selectedSavedId}
-            onSelect={handleSelectSaved}
-          />
-        </div>
         {validationError && (
-          <p
-            role="alert"
-            className="mt-4 text-sm text-red-600 dark:text-red-400"
-          >
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
             {validationError}
           </p>
         )}
-      </>
+      </div>
     </SectionCard>
   );
 };

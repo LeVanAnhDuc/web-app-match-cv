@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import DocumentPreview from "#/components/DocumentPreview";
 import SectionCard from "#/components/SectionCard";
+import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
 import { useCreateMatchRun } from "#/hooks/useMatch";
 import { useWizardStore } from "#/stores";
@@ -11,6 +12,7 @@ import RunWithSelector from "../../components/RunWithSelector";
 
 const StepReview = () => {
   const { t } = useTranslation();
+  const { status, isUser } = useAuth();
   const jdDocId = useWizardStore((s) => s.jdDocId);
   const cvDocId = useWizardStore((s) => s.cvDocId);
   const credentialIds = useWizardStore((s) => s.credentialIds);
@@ -26,6 +28,10 @@ const StepReview = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // A guest has no keys of their own and /ai-credentials 401s for them, so
+  // the picker is not offered and the run always goes on the system key.
+  const runIds: Array<string | null> = isUser ? credentialIds : [null];
+
   async function handleRunMatch() {
     if (!cvDocId || !jdDocId) return;
     setError(null);
@@ -37,7 +43,7 @@ const StepReview = () => {
         cvDocumentId: cvDocId,
         jdDocumentId: jdDocId
       });
-      startRun(run.id, credentialIds);
+      startRun(run.id, runIds);
       goNext();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("err.matchFailed"));
@@ -57,7 +63,12 @@ const StepReview = () => {
         <p role="alert" className="font-medium text-muted">
           {t("review.missingDocs")}
         </p>
-        <Button icon={<ArrowLeft size={16} />} onClick={goBack}>
+        <Button
+          size="large"
+          icon={<ArrowLeft size={16} />}
+          onClick={goBack}
+          className="!h-11 max-md:w-full"
+        >
           {t("action.back")}
         </Button>
       </SectionCard>
@@ -91,27 +102,32 @@ const StepReview = () => {
         <>
           <Button
             type="text"
+            size="large"
             icon={<ArrowLeft size={16} />}
             onClick={goBack}
-            className="!text-muted"
+            className="!h-11 !text-muted max-md:w-full"
           >
             {t("action.back")}
           </Button>
           <Button
             type="primary"
+            size="large"
             loading={isSubmitting}
-            disabled={credentialIds.length === 0}
+            disabled={status === "loading" || runIds.length === 0}
             onClick={() => void handleRunMatch()}
             icon={<Sparkles size={16} />}
+            className="!h-11 max-md:w-full"
           >
-            {credentialIds.length > 1
-              ? t("action.runMatchCount", { count: credentialIds.length })
+            {runIds.length > 1
+              ? t("action.runMatchCount", { count: runIds.length })
               : t("action.runMatch")}
           </Button>
         </>
       }
     >
-      <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
+      {isUser && (
+        <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
+      )}
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
         <section className="flex min-h-0 flex-col p-4 md:p-6">
           <h3 className="mb-4 shrink-0 text-xs font-semibold tracking-wider text-muted uppercase">

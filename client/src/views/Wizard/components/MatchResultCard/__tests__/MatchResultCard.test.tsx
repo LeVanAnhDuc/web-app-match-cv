@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
 import { useProviders } from "#/hooks/useAiCredentials";
+import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
 import type { DocumentDto } from "#/types/Documents";
@@ -20,6 +21,14 @@ import MatchResultCard from "../index";
 vi.mock("#/hooks/useMatch");
 vi.mock("#/hooks/useAiCredentials");
 vi.mock("#/hooks/useDocuments");
+vi.mock("#/hooks/useAuth");
+
+const auth = (status: "guest" | "user") => ({
+  status,
+  user: null,
+  guestQuota: null,
+  isUser: status === "user"
+});
 
 const RUN_ID = "run-1";
 const CV_ID = "cv-1";
@@ -103,6 +112,7 @@ function renderCard(over: Partial<MatchResultDto> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useAuth).mockReturnValue(auth("user"));
   vi.mocked(useProviders).mockReturnValue(asQuery(providers));
   vi.mocked(useDocument).mockReturnValue(asQuery(originalCv));
   mockRunMatch();
@@ -222,5 +232,21 @@ describe("MatchResultCard", () => {
       screen.getByRole("link", { name: "Sign in with Ducker ID" })
     ).toBeDefined();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("offers a guest no follow-up actions — rewrite, cover letter and compare need an account", () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    vi.mocked(useDocument).mockReturnValue(
+      asQuery({ ...originalCv, parentId: "cv-0" })
+    );
+
+    renderCard();
+
+    expect(screen.getByRole("meter", { name: "Overall match" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: /Improve my CV/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /cover letter/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /compare/i })).toBeNull();
+    // /ai-credentials/providers 401s for a guest.
+    expect(vi.mocked(useProviders)).toHaveBeenCalledWith(false);
   });
 });
