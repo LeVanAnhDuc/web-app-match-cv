@@ -4,7 +4,7 @@ import AdmZip from "adm-zip";
 import request from "supertest";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
+const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import { PrismaService } from "../src/prisma/prisma.service";
 
 // Markers distinctive enough that a substring search over the WHOLE archive

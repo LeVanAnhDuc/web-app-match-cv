@@ -17,7 +17,7 @@ Chi tiết version xem `server/package.json` (nguồn đúng) + `docs/03-design/
 - **AI**: OpenRouter qua `openai` SDK (matching engine)
 - **Security**: helmet + `@nestjs/throttler` (global guard)
 - **Test**: Jest (`*.spec.ts` co-located)
-- **Auth**: **defer** — `CurrentUserService` hiện stub (`STUB_USER_ID`)
+- **Auth**: đăng nhập qua Ducker ID + guest; `CurrentUserService` đọc `requestContext` (ADR-0022/0023)
 - **Package manager**: pnpm
 
 ## Skills

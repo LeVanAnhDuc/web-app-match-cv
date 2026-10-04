@@ -92,7 +92,9 @@ function makeOrchestrator() {
     }
   };
   const currentUser = {
-    getUserId: jest.fn<string, []>().mockReturnValue(USER_ID)
+    getUserId: jest.fn<string, []>().mockReturnValue(USER_ID),
+    isGuest: () => false,
+    peek: () => undefined
   };
   const credentials = {
     getRuntimeConfig: jest.fn(),

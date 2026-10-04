@@ -7,7 +7,7 @@
 // in ./mock-documents.ts; this file owns every database interaction.
 
 import { Prisma, PrismaClient, Role, SourceFormat } from "@prisma/client";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
+const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 import {
   CV_ID_DIAL,
   JD_ID_DIAL,

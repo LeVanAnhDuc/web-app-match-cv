@@ -33,7 +33,7 @@ export class CurrentUserModule {}
 ## `CurrentUserService`
 
 - `@Injectable()`, expose `getUserId(): string` — nguồn duy nhất để service lấy user hiện tại. Service inject qua constructor và scope Prisma query theo giá trị này (xem `services.md`).
-- **Hiện là stub** (`STUB_USER_ID`) vì auth deferred — TODO(auth) thay bằng userId thật từ SSO khi có auth. Khi implement auth, chỉ đổi bên trong service này; consumer không đổi.
+- Đọc user từ `requestContext` (AsyncLocalStorage, `src/common/request-context/`) do SessionMiddleware nạp (ADR-0022); `getUserId()` ném 401 `SIGN_IN_REQUIRED` khi không có user. Không còn stub user (ADR-0023).
 
 ## Quy tắc
 

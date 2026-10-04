@@ -45,7 +45,9 @@ function build(documents: Array<ReturnType<typeof doc>>) {
     }
   } as unknown as PrismaService;
   const currentUser: CurrentUserService = {
-    getUserId: () => USER_ID
+    getUserId: () => USER_ID,
+    isGuest: () => false,
+    peek: () => undefined
   };
   return { service: new DocumentsService(prisma, currentUser), update };
 }

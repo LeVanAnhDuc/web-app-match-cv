@@ -11,7 +11,7 @@ import { AppModule } from "../src/app.module";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { AiService } from "../src/modules/ai/ai.service";
 import type { AiRuntimeConfig } from "../src/modules/ai/providers";
-import { STUB_USER_ID } from "../src/common/current-user/current-user.service";
+const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
 
 interface DocumentResponseBody {
   id: string;

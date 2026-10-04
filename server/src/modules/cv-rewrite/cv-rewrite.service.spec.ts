@@ -89,7 +89,11 @@ function makeHarness(options: HarnessOptions = {}) {
       update: jest.fn()
     }
   };
-  const currentUser = { getUserId: jest.fn().mockReturnValue(USER_ID) };
+  const currentUser = {
+    getUserId: jest.fn().mockReturnValue(USER_ID),
+    isGuest: () => false,
+    peek: () => undefined
+  };
   const credentials = {
     getRuntimeConfig: jest
       .fn()

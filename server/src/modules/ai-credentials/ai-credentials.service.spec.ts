@@ -76,7 +76,9 @@ function makeService() {
       .mockResolvedValue({ chat: AiTestStatus.ok, embed: AiTestStatus.ok })
   };
   const currentUser = {
-    getUserId: jest.fn<string, []>().mockReturnValue(USER_ID)
+    getUserId: jest.fn<string, []>().mockReturnValue(USER_ID),
+    isGuest: () => false,
+    peek: () => undefined
   };
   const service = new AiCredentialsService(
     prisma as unknown as PrismaService,
