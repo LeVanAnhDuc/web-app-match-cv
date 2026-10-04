@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Button } from "antd";
 import { Clock, KeyRound } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
+import { useReturnTo } from "#/hooks/useReturnTo";
 import { signInUrl } from "#/libs/api";
 import { timeUntil } from "#/utils";
 
@@ -20,9 +21,7 @@ const SignInGate = ({
   backTo: "/" | "/wizard";
 }) => {
   const { t } = useTranslation();
-  const returnTo = useRouterState({
-    select: (s) => s.location.pathname + s.location.searchStr
-  });
+  const returnTo = useReturnTo();
   const Icon = variant === "quota" ? Clock : KeyRound;
   const { hours, minutes } = timeUntil(resetsAt ?? new Date().toISOString());
   const time = hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;

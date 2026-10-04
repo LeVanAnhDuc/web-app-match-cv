@@ -36,6 +36,34 @@
       "jd": "JD",
       "score": "Score",
       "date": "Date"
+    },
+    "guest": {
+      "eyebrow": "CV ↔ JD matching",
+      "title": "How well does your CV fit this job?",
+      "subtitle": "Paste a job description and your CV. You get one score you can trace back — 60% meaning, 40% keywords — plus what is strong and what is missing.",
+      "cta": "Start matching →",
+      "signIn": "Sign in",
+      "note": "No account needed: {{limit}} matches a day on the system AI key. Your CV and JD are kept for 24 hours, then deleted."
+    },
+    "perks": {
+      "eyebrow": "With a Ducker ID account",
+      "title": "Everything stays in one place",
+      "documents": {
+        "title": "Saved CVs & JDs",
+        "meta": "Reuse documents across matches"
+      },
+      "history": {
+        "title": "Match history",
+        "meta": "Every result you ran, kept"
+      },
+      "rewrite": {
+        "title": "CV rewrite & cover letters",
+        "meta": "Generated from the gaps of a match"
+      },
+      "keys": {
+        "title": "Your own AI keys",
+        "meta": "OpenAI, Gemini or OpenRouter — encrypted"
+      }
     }
   },
   "step": {

@@ -1,17 +1,15 @@
-import { useRouterState } from "@tanstack/react-router";
 import { Button, Tooltip } from "antd";
 import { LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "#/hooks/useAuth";
+import { useReturnTo } from "#/hooks/useReturnTo";
 import { signInUrl } from "#/libs/api";
 import { quotaLeftPercent } from "#/utils";
 
 const GuestCard = ({ collapsed = false }: { collapsed?: boolean }) => {
   const { t } = useTranslation();
   const { guestQuota } = useAuth();
-  const returnTo = useRouterState({
-    select: (s) => s.location.pathname + s.location.searchStr
-  });
+  const returnTo = useReturnTo();
   const href = signInUrl(returnTo);
 
   if (collapsed) {

@@ -8,12 +8,14 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
+import { useAuth } from "#/hooks/useAuth";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import { useMatchHistory } from "#/hooks/useMatch";
 import type { DocumentSummaryDto } from "#/types/Documents";
 import type { MatchSummaryDto } from "#/types/Matching";
 import Home from "../index";
 
+vi.mock("#/hooks/useAuth");
 vi.mock("#/hooks/useDocuments");
 vi.mock("#/hooks/useMatch");
 
@@ -101,6 +103,23 @@ function mockHooks({
   );
   vi.mocked(useMatchHistory).mockReturnValue(asQueryResult(matches));
 }
+
+function mockAuth(
+  status: "user" | "guest" | "loading",
+  guestQuota: { limit: number; used: number; resetsAt: string } | null = null
+) {
+  vi.mocked(useAuth).mockReturnValue({
+    status,
+    user:
+      status === "user"
+        ? { id: "u", email: "a@b.c", fullName: "A B", avatar: null }
+        : null,
+    guestQuota,
+    isUser: status === "user"
+  });
+}
+
+beforeEach(() => mockAuth("user"));
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -198,6 +217,83 @@ describe("Home", () => {
 
     expect(await screen.findByText(/no matches yet/i)).toBeDefined();
     expect(screen.getByRole("button", { name: /match now/i })).toBeDefined();
+  });
+
+  describe("guest", () => {
+    const quota = { limit: 5, used: 1, resetsAt: "2026-10-05T00:00:00.000Z" };
+
+    it("renders the hero with Start matching and a Sign in link", async () => {
+      mockAuth("guest", quota);
+      renderHome();
+
+      expect(await screen.findByText("CV ↔ JD matching")).toBeDefined();
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: /how well does your cv fit this job/i
+        })
+      ).toBeDefined();
+      expect(
+        screen.getByRole("link", { name: /start matching/i })
+      ).toHaveAttribute("href", "/wizard");
+      expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+        "href",
+        expect.stringContaining("/auth/login?returnTo=%2F")
+      );
+    });
+
+    it("takes the daily limit in the footer note from the guest quota", async () => {
+      mockAuth("guest", { ...quota, limit: 7 });
+      renderHome();
+
+      expect(
+        await screen.findByText(/no account needed: 7 matches a day/i)
+      ).toBeDefined();
+    });
+
+    it("falls back to 5 when the quota is not loaded", async () => {
+      mockAuth("guest");
+      renderHome();
+
+      expect(
+        await screen.findByText(/no account needed: 5 matches a day/i)
+      ).toBeDefined();
+    });
+
+    it("lists the four things a Ducker ID account adds", async () => {
+      mockAuth("guest", quota);
+      renderHome();
+
+      expect(await screen.findByText("With a Ducker ID account")).toBeDefined();
+      for (const title of [
+        "Saved CVs & JDs",
+        "Match history",
+        "CV rewrite & cover letters",
+        "Your own AI keys"
+      ]) {
+        expect(screen.getByText(title)).toBeDefined();
+      }
+    });
+
+    it("does not mount StatCards or RecentMatches, nor fire their queries", async () => {
+      mockAuth("guest", quota);
+      renderHome();
+
+      await screen.findByText("With a Ducker ID account");
+      expect(screen.queryByTestId("home-stat-saved-cvs")).toBeNull();
+      expect(screen.queryByText(/recent matches/i)).toBeNull();
+      expect(useMatchHistory).not.toHaveBeenCalled();
+      expect(useSavedDocuments).not.toHaveBeenCalled();
+    });
+  });
+
+  it("renders neither dashboard nor guest hero while auth is loading", async () => {
+    mockAuth("loading");
+    renderHome();
+
+    await screen.findByTestId("home-loading");
+    expect(screen.queryByRole("link", { name: /start matching/i })).toBeNull();
+    expect(useMatchHistory).not.toHaveBeenCalled();
   });
 
   describe("console output", () => {

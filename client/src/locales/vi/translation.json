@@ -36,6 +36,34 @@
       "jd": "JD",
       "score": "Điểm",
       "date": "Ngày"
+    },
+    "guest": {
+      "eyebrow": "Ghép CV ↔ JD",
+      "title": "CV của bạn khớp công việc này đến đâu?",
+      "subtitle": "Dán mô tả công việc và CV của bạn. Bạn nhận một điểm có thể truy ngược — 60% theo ý nghĩa, 40% theo từ khoá — cùng điểm mạnh và điểm còn thiếu.",
+      "cta": "Bắt đầu ghép →",
+      "signIn": "Đăng nhập",
+      "note": "Không cần tài khoản: {{limit}} lượt ghép mỗi ngày bằng khoá AI của hệ thống. CV và JD của bạn được giữ 24 giờ rồi bị xoá."
+    },
+    "perks": {
+      "eyebrow": "Với tài khoản Ducker ID",
+      "title": "Mọi thứ nằm cùng một chỗ",
+      "documents": {
+        "title": "CV & JD đã lưu",
+        "meta": "Dùng lại tài liệu cho nhiều lần ghép"
+      },
+      "history": {
+        "title": "Lịch sử ghép",
+        "meta": "Mọi kết quả bạn đã chạy đều được giữ"
+      },
+      "rewrite": {
+        "title": "Viết lại CV & thư xin việc",
+        "meta": "Tạo từ những điểm còn thiếu của một lần ghép"
+      },
+      "keys": {
+        "title": "Khoá AI của riêng bạn",
+        "meta": "OpenAI, Gemini hoặc OpenRouter — được mã hoá"
+      }
     }
   },
   "step": {
