@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { PropsWithChildren, ReactNode } from "react";
 import { useAuth } from "#/hooks/useAuth";
 import { signInUrl } from "#/libs/api";
-import type { PropsWithChildren, ReactNode } from "react";
 import { useUiStore } from "#/stores";
 import AccountMenu from "./components/AccountMenu";
 import Sidebar from "./components/Sidebar";
@@ -81,7 +81,7 @@ const AppShell = ({
             aria-label={t("nav.openMenu")}
             icon={<Menu size={20} />}
             onClick={() => setIsDrawerOpen(true)}
-            className="text-muted"
+            className="!size-11 text-muted"
           />
           <span className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-body">
             {t("appName")}
@@ -107,7 +107,9 @@ const AppShell = ({
         onClose={() => setIsDrawerOpen(false)}
         title={t("appName")}
         width={256}
-        styles={{ body: { padding: 0 } }}
+        styles={{
+          body: { padding: 0, display: "flex", flexDirection: "column" }
+        }}
       >
         <Sidebar />
       </Drawer>

@@ -15,7 +15,7 @@ const UserCard = ({ collapsed = false }: { collapsed?: boolean }) => {
   if (collapsed) {
     return (
       <div className="mt-auto flex justify-center px-2 py-3">
-        <AccountMenu placement="rightBottom" />
+        <AccountMenu placement="rightBottom" tooltip />
       </div>
     );
   }
@@ -39,7 +39,7 @@ const UserCard = ({ collapsed = false }: { collapsed?: boolean }) => {
           icon={<LogOut size={18} />}
           loading={signOut.isPending}
           onClick={() => signOut.mutate()}
-          className="!h-11 w-full !justify-start"
+          className="!h-11 w-full !justify-start !text-muted hover:!text-body"
         >
           {t("auth.signOut")}
         </Button>

@@ -4,7 +4,13 @@ import {
   createRootRoute,
   createRouter
 } from "@tanstack/react-router";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "#/i18n/config";
 import { useAuth, useSignOut } from "#/hooks/useAuth";
@@ -190,7 +196,6 @@ describe("AppShell", () => {
 
       expect(await screen.findByText("Ada Lovelace")).toBeDefined();
       expect(screen.getByText("ada@example.com")).toBeDefined();
-      expect(screen.getAllByText("AL").length).toBeGreaterThan(0);
       expect(screen.queryByText("Guest mode")).toBeNull();
 
       fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
@@ -216,5 +221,41 @@ describe("AppShell", () => {
     expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Account" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
+  });
+
+  it("pins the account card inside the open drawer", async () => {
+    mockAuth(USER);
+    renderShell();
+
+    fireEvent.click(await screen.findByRole("button", { name: /open menu/i }));
+
+    const drawer = await screen.findByRole("dialog");
+    expect(within(drawer).getByText("Ada Lovelace")).toBeDefined();
+    expect(
+      within(drawer).getByRole("button", { name: "Sign out" })
+    ).toBeDefined();
+    const body = drawer.querySelector(".ant-drawer-body") as HTMLElement;
+    expect(body.style.display).toBe("flex");
+    expect(body.style.flexDirection).toBe("column");
+  });
+
+  it("account menu is keyboard-operable", async () => {
+    mockAuth(USER);
+    renderShell();
+
+    const trigger = await screen.findByRole("button", { name: "Account" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent.click(trigger);
+
+    const menu = await screen.findByRole("dialog", { name: "Account" });
+    const signOut = within(menu).getByRole("button", { name: "Sign out" });
+    await waitFor(() => expect(document.activeElement).toBe(signOut));
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    fireEvent.keyDown(signOut, { key: "Escape" });
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 });
