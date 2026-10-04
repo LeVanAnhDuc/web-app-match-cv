@@ -1,4 +1,9 @@
-import { createPublicKey, createVerify, type JsonWebKey } from "crypto";
+import {
+  createPublicKey,
+  createVerify,
+  type JsonWebKey,
+  type KeyObject
+} from "crypto";
 
 export interface IdTokenClaims {
   sub: string;
@@ -50,7 +55,13 @@ export function decodeJwt(token: string) {
 
 export function verifyRs256(token: string, jwk: JsonWebKey): boolean {
   const { signingInput, signature } = decodeJwt(token);
-  const key = createPublicKey({ key: jwk, format: "jwk" });
+  let key: KeyObject;
+  try {
+    if (jwk.kty !== "RSA") throw new Error("not an RSA key");
+    key = createPublicKey({ key: jwk, format: "jwk" });
+  } catch {
+    throw new IdTokenError("signature");
+  }
   return createVerify("RSA-SHA256").update(signingInput).verify(key, signature);
 }
 
@@ -66,5 +77,6 @@ export function validateClaims(
     claims.exp + CLOCK_SKEW_SEC < expected.nowSec
   )
     throw new IdTokenError("exp");
-  if (claims.nonce !== expected.nonce) throw new IdTokenError("nonce");
+  if (!expected.nonce || claims.nonce !== expected.nonce)
+    throw new IdTokenError("nonce");
 }

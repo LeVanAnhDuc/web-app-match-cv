@@ -9,6 +9,10 @@ describe("safeReturnTo", () => {
     ["https://evil.com", "/"],
     ["", "/"],
     [undefined, "/"],
+    ["/\t/evil.com", "/"],
+    ["/\n/evil.com", "/"],
+    ["/\r\n//evil", "/"],
+    ["/" + "a".repeat(2048), "/"],
     [42, "/"]
   ])("%p → %p", (raw, expected) => expect(safeReturnTo(raw)).toBe(expected));
 });

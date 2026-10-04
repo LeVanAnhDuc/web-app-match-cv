@@ -71,6 +71,31 @@ describe("id_token", () => {
       expect((e as IdTokenError).reason).toBe(reason);
     }
   });
+  it("rejects an empty expected nonce, with or without a token nonce", () => {
+    const { nonce: _omit, ...noNonce } = good;
+    void _omit;
+    for (const claims of [noNonce, good]) {
+      expect(() => validateClaims(claims, { ...expected, nonce: "" })).toThrow(
+        expect.objectContaining({ reason: "nonce" })
+      );
+    }
+  });
+  it("rejects a token without a nonce claim", () => {
+    const { nonce: _omit, ...noNonce } = good;
+    void _omit;
+    expect(() => validateClaims(noNonce, expected)).toThrow(
+      expect.objectContaining({ reason: "nonce" })
+    );
+  });
+  it("rejects a non-RSA or garbage JWK as signature", () => {
+    const ec = generateKeyPairSync("ec", { namedCurve: "P-256" });
+    const ecJwk = ec.publicKey.export({ format: "jwk" });
+    for (const bad of [ecJwk, { kty: "RSA" }]) {
+      expect(() => verifyRs256(sign(good), bad)).toThrow(
+        expect.objectContaining({ reason: "signature" })
+      );
+    }
+  });
   it("accepts aud as an array containing the client", () => {
     expect(() =>
       validateClaims({ ...good, aud: ["x", "client_abc"] }, expected)
