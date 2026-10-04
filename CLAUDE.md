@@ -11,11 +11,11 @@ Root (`/`): `pnpm install` — installs husky only; the pre-commit hook runs `li
 From `server/`:
 
 - `pnpm install` then `cp .env.example .env` — needs a local PostgreSQL (no Docker in this repo)
-- `pnpm exec prisma migrate dev` — apply migrations · `pnpm exec prisma generate` — regenerate the client (run before `pnpm lint`) · `pnpm exec prisma db seed` — seed the stub user
+- `pnpm exec prisma migrate dev` — apply migrations · `pnpm exec prisma generate` — regenerate the client (run before `pnpm lint`) · `pnpm exec prisma db seed` — no-op (there is no default user; users come from Ducker ID sign-in)
 - `pnpm start:dev` (watch, `:5200`) · `pnpm start` · `pnpm build` · `pnpm start:prod`
 - `pnpm test` (Jest unit, `src/**/*.spec.ts`) · `pnpm test:watch` · `pnpm test:cov` · `pnpm test:e2e` (Jest + supertest, needs the DB)
 - `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
-- `pnpm seed:mock` / `pnpm seed:mock:clean` — dev-only mock CV/JD documents · `pnpm recompute-scores` — recompute stored keyword/overall scores
+- `pnpm seed:mock --user <email>` / `pnpm seed:mock:clean` — dev-only mock CV/JD documents for a user who has signed in once · `pnpm recompute-scores` — recompute stored keyword/overall scores
 
 From `client/`:
 

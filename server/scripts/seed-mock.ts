@@ -1,13 +1,15 @@
 // Dev-only tooling: insert a fixed set of mock CV/JD documents, or remove them.
 //
-//   pnpm seed:mock         insert / refresh the mock documents
-//   pnpm seed:mock:clean   remove them, and any match produced from them
+//   pnpm seed:mock --user <email>   insert / refresh the mock documents for a user
+//   pnpm seed:mock:clean            remove them, and any match produced from them
+//
+// There is no default user any more (ADR-0022): the target must already exist,
+// i.e. have signed in once through Ducker ID with that email.
 //
 // See docs/specs/seed-mock-documents/design.md. The documents themselves live
 // in ./mock-documents.ts; this file owns every database interaction.
 
-import { Prisma, PrismaClient, Role, SourceFormat } from "@prisma/client";
-const STUB_USER_ID = "00000000-0000-0000-0000-000000000001"; // replaced in Task 4/8
+import { Prisma, PrismaClient, SourceFormat } from "@prisma/client";
 import {
   CV_ID_DIAL,
   JD_ID_DIAL,
@@ -21,19 +23,34 @@ const CLEAN = process.argv.includes("--clean");
 
 const prisma = new PrismaClient();
 
+class UsageError extends Error {}
+
+function readUserEmail(): string | null {
+  const i = process.argv.indexOf("--user");
+  const value = i === -1 ? undefined : process.argv[i + 1];
+  return value && !value.startsWith("--") ? value : null;
+}
+
 async function insert(): Promise<void> {
-  // The stub user owns every mock document, and a freshly reset database has no
-  // rows at all — so upsert it here rather than assuming `prisma db seed` was
-  // run first. Same id and role as prisma/seed.ts, so the two never disagree.
-  await prisma.user.upsert({
-    where: { id: STUB_USER_ID },
-    update: {},
-    create: { id: STUB_USER_ID, role: Role.candidate }
+  const email = readUserEmail();
+  if (!email) {
+    throw new UsageError("Usage: pnpm seed:mock --user <email>");
+  }
+
+  // Never create the user here: real users come from Ducker ID sign-in, and a
+  // row invented by this script would have no externalSub to sign in with.
+  const user = await prisma.user.findFirst({
+    where: { email, isGuest: false }
   });
+  if (!user) {
+    throw new UsageError(
+      `No signed-in user with email "${email}". Sign in once through Ducker ID with that email first.`
+    );
+  }
 
   for (const doc of MOCK_DOCUMENTS) {
     const data = {
-      userId: STUB_USER_ID,
+      userId: user.id,
       kind: doc.kind,
       title: doc.title,
       sourceFormat: SourceFormat.text,
@@ -70,8 +87,8 @@ async function insert(): Promise<void> {
 async function clean(): Promise<void> {
   // Delete by DIAL, not by the current MOCK_DOCUMENTS id list. Keying on the
   // live list would mean that renumbering or removing a fixture strands the row
-  // already in the database: invisible to this command forever, and — sharing
-  // STUB_USER_ID with real data — indistinguishable from a real document.
+  // already in the database: invisible to this command forever, and
+  // indistinguishable from a real document of the same owner.
   // The dial is still 24 fixed characters of a UUID, so it cannot collide with
   // a real document's generated id.
   const isMockId = [
@@ -101,8 +118,7 @@ async function clean(): Promise<void> {
   console.log(`  match results removed : ${matchResults.count}`);
   console.log(`  match runs removed    : ${matchRuns.count}`);
   console.log(`  documents removed     : ${documents.count}`);
-  // STUB_USER_ID is deliberately left alone: it is required seed data that
-  // CurrentUserService resolves to, not mock data. Deleting it breaks the app.
+  // Users are left alone: they are real accounts, never created by this script.
   console.log("\nMock data removed. Seed it again with: pnpm seed:mock");
 }
 
@@ -120,7 +136,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error(e instanceof UsageError ? e.message : e);
     await prisma.$disconnect();
     process.exit(1);
   });
