@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import RequireAuth from "#/components/RequireAuth";
 import CvComparison from "#/views/CvComparison";
 
 export const Route = createFileRoute("/_app/compare/$documentId")({
@@ -13,5 +14,9 @@ export const Route = createFileRoute("/_app/compare/$documentId")({
 function RouteComponent() {
   const { documentId } = Route.useParams();
   const { jd } = Route.useSearch();
-  return <CvComparison documentId={documentId} jdDocumentId={jd} />;
+  return (
+    <RequireAuth titleKey="gate.compare">
+      <CvComparison documentId={documentId} jdDocumentId={jd} />
+    </RequireAuth>
+  );
 }

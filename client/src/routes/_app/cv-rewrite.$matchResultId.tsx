@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import RequireAuth from "#/components/RequireAuth";
 import CvRewrite from "#/views/CvRewrite";
 
 export const Route = createFileRoute("/_app/cv-rewrite/$matchResultId")({
@@ -7,5 +8,9 @@ export const Route = createFileRoute("/_app/cv-rewrite/$matchResultId")({
 
 function RouteComponent() {
   const { matchResultId } = Route.useParams();
-  return <CvRewrite matchResultId={matchResultId} />;
+  return (
+    <RequireAuth titleKey="gate.cvRewrite">
+      <CvRewrite matchResultId={matchResultId} />
+    </RequireAuth>
+  );
 }

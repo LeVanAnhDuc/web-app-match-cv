@@ -13,9 +13,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
+import SignInGate from "#/components/SignInGate";
 import { useProviders } from "#/hooks/useAiCredentials";
 import { useDocument } from "#/hooks/useDocuments";
 import { useRunMatch } from "#/hooks/useMatch";
+import { ApiError } from "#/libs/api";
 import type { MatchResultDto } from "#/types/Matching";
 import CoverLetterModal from "../CoverLetterModal";
 
@@ -90,12 +92,17 @@ const MatchResultCard = ({
     initialResult
   );
   const [failed, setFailed] = useState(false);
+  const [quota, setQuota] = useState<{
+    limit: number | string;
+    resetsAt: string;
+  } | null>(null);
   const [running, setRunning] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
   const firedRef = useRef(false);
 
   const fire = async () => {
     setFailed(false);
+    setQuota(null);
     setRunning(true);
     try {
       setResult(
@@ -107,7 +114,15 @@ const MatchResultCard = ({
           credentialId: credentialId ?? undefined
         })
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "GUEST_QUOTA_EXCEEDED") {
+        const body = error.body as
+          { limit?: number; resetsAt?: string } | undefined;
+        setQuota({
+          limit: body?.limit ?? "",
+          resetsAt: body?.resetsAt ?? new Date().toISOString()
+        });
+      }
       setFailed(true);
     } finally {
       setRunning(false);
@@ -136,6 +151,18 @@ const MatchResultCard = ({
       <SectionCard title={title} aria-busy="true">
         <Skeleton active paragraph={{ rows: 4 }} />
       </SectionCard>
+    );
+  }
+
+  if (quota) {
+    return (
+      <SignInGate
+        variant="quota"
+        title={t("gate.quotaTitle", { limit: quota.limit })}
+        description={t("gate.quotaDescription")}
+        resetsAt={quota.resetsAt}
+        backTo="/"
+      />
     );
   }
 

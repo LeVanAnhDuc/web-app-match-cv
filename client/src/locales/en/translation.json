@@ -471,5 +471,19 @@
       "label": "Free matches today",
       "left": "{{left}} / {{limit}} left"
     }
+  },
+  "gate": {
+    "cv": "Sign in to see your saved CVs",
+    "jd": "Sign in to see your saved job descriptions",
+    "aiCredentials": "Sign in to manage your AI keys",
+    "myData": "Sign in to download your data",
+    "compare": "Sign in to compare CV versions",
+    "cvRewrite": "Sign in to rewrite this CV",
+    "description": "This page keeps things in your account. Sign in with Ducker ID to open it.",
+    "quotaTitle": "You have used today's {{limit}} free matches",
+    "quotaDescription": "Guest matches run on the system AI key, so they are capped per network. Sign in to keep going — with your own AI key if you add one.",
+    "resetsIn": "Resets in <time>{{time}}</time>",
+    "backHome": "Back to home",
+    "backMatching": "Back to matching"
   }
 }

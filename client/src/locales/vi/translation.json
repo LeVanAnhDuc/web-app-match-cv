@@ -471,5 +471,19 @@
       "label": "Lượt đối chiếu miễn phí hôm nay",
       "left": "Còn {{left}} / {{limit}}"
     }
+  },
+  "gate": {
+    "cv": "Đăng nhập để xem các CV đã lưu",
+    "jd": "Đăng nhập để xem các mô tả công việc đã lưu",
+    "aiCredentials": "Đăng nhập để quản lý khoá AI của bạn",
+    "myData": "Đăng nhập để tải dữ liệu của bạn",
+    "compare": "Đăng nhập để so sánh các phiên bản CV",
+    "cvRewrite": "Đăng nhập để viết lại CV này",
+    "description": "Trang này lưu dữ liệu trong tài khoản của bạn. Đăng nhập bằng Ducker ID để mở.",
+    "quotaTitle": "Bạn đã dùng hết {{limit}} lượt đối chiếu miễn phí hôm nay",
+    "quotaDescription": "Lượt của khách chạy bằng khoá AI của hệ thống nên bị giới hạn theo mạng. Đăng nhập để tiếp tục — với khoá AI của riêng bạn nếu bạn thêm.",
+    "resetsIn": "Đặt lại sau <time>{{time}}</time>",
+    "backHome": "Về trang chủ",
+    "backMatching": "Quay lại đối chiếu"
   }
 }

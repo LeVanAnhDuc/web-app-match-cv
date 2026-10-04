@@ -1,3 +1,9 @@
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter
+} from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
@@ -8,6 +14,7 @@ import { useRunMatch } from "#/hooks/useMatch";
 import type { DocumentDto } from "#/types/Documents";
 import type { ProviderInfoDto } from "#/types/AiCredentials";
 import type { CreateMatchInput, MatchResultDto } from "#/types/Matching";
+import { ApiError } from "#/libs/api";
 import MatchResultCard from "../index";
 
 vi.mock("#/hooks/useMatch");
@@ -171,5 +178,49 @@ describe("MatchResultCard", () => {
       "This key has no quota left with the provider."
     );
     expect(screen.queryByRole("meter")).toBeNull();
+  });
+
+  it("invites a guest to sign in when the daily quota is exhausted", async () => {
+    vi.mocked(useProviders).mockReturnValue(asQuery(providers));
+    vi.mocked(useDocument).mockReturnValue(asQuery(originalCv));
+    vi.mocked(useRunMatch).mockReturnValue({
+      mutateAsync: vi.fn(async () => {
+        throw new ApiError(429, "Too many", "GUEST_QUOTA_EXCEEDED", {
+          code: "GUEST_QUOTA_EXCEEDED",
+          limit: 5,
+          resetsAt: new Date(
+            Date.now() + 6 * 3_600_000 + 5 * 60_000
+          ).toISOString()
+        });
+      }),
+      isPending: false
+    } as unknown as UseMutationResult<MatchResultDto, Error, CreateMatchInput>);
+    const rootRoute = createRootRoute({
+      component: () => (
+        <MatchResultCard
+          runId={RUN_ID}
+          cvDocumentId={CV_ID}
+          jdDocumentId={JD_ID}
+          credentialId={null}
+          autoRun
+          expanded
+        />
+      )
+    });
+    const router = createRouter({
+      routeTree: rootRoute,
+      history: createMemoryHistory({ initialEntries: ["/wizard"] })
+    });
+    render(<RouterProvider router={router} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "You have used today's 5 free matches"
+      })
+    ).toBeDefined();
+    expect(
+      screen.getByRole("link", { name: "Sign in with Ducker ID" })
+    ).toBeDefined();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
