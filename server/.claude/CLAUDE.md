@@ -66,10 +66,10 @@ pnpm format           # prettier --write .
 pnpm test             # jest (test:cov, test:watch, test:e2e)
 pnpm exec prisma migrate dev --name <name>   # tạo + apply migration
 pnpm exec prisma generate                    # regenerate client
-pnpm seed             # seed DB (idempotent)
+pnpm seed             # no-op: không còn default user (user đến từ đăng nhập Ducker ID)
 pnpm recompute-scores                        # dry-run: tính lại keywordScore/overallScore cho MatchResult cũ
 pnpm recompute-scores --apply                # ghi thật
-pnpm seed:mock                               # dev only: chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
+pnpm seed:mock --user <email>   # dev only (user đã đăng nhập Ducker ID một lần): chèn/làm mới 6 mock document CV+JD (VI+EN), idempotent
 pnpm seed:mock:clean                         # xoá mock document + MatchResult/MatchRun sinh ra từ chúng
 ```
 

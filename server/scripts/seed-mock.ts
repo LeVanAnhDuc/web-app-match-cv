@@ -40,7 +40,7 @@ async function insert(): Promise<void> {
   // Never create the user here: real users come from Ducker ID sign-in, and a
   // row invented by this script would have no externalSub to sign in with.
   const user = await prisma.user.findFirst({
-    where: { email, isGuest: false }
+    where: { email: { equals: email, mode: "insensitive" }, isGuest: false }
   });
   if (!user) {
     throw new UsageError(
