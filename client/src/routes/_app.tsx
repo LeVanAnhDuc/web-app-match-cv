@@ -28,5 +28,14 @@ const AppRoute = () => {
 };
 
 export const Route = createFileRoute("/_app")({
+  // The OAuth callback redirects to `/?authError=<code>`.
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { authError?: string } => ({
+    authError:
+      typeof search.authError === "string" && search.authError
+        ? search.authError
+        : undefined
+  }),
   component: AppRoute
 });

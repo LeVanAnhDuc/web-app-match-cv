@@ -1,5 +1,5 @@
 import { StyleProvider } from "@ant-design/cssinjs";
-import { ConfigProvider, theme } from "antd";
+import { App, ConfigProvider, theme } from "antd";
 import { useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
 
@@ -43,7 +43,7 @@ export function AntdProvider({ children }: PropsWithChildren) {
           }
         }}
       >
-        {children}
+        <App component={false}>{children}</App>
       </ConfigProvider>
     </StyleProvider>
   );
