@@ -5,6 +5,13 @@ import { defineConfig, devices } from "@playwright/test";
 // Runs against the ALREADY-RUNNING dev servers (server :5200, client :5300)
 // — this config intentionally has no `webServer` block; it never starts or
 // stops anything itself.
+// globalSetup seeds a User + Session row and writes this storage state with
+// the matching `mcv_session` cookie (e2e/auth-state.ts), so every signed-in
+// project runs as the e2e user without the OIDC round-trip.
+const SIGNED_IN = "e2e/.auth/user.json";
+const NO_SESSION = { cookies: [], origins: [] };
+const GUEST_SPECS = "guest-mode/**";
+
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.e2e.ts",
@@ -33,19 +40,44 @@ export default defineConfig({
   // `defaultBrowserType: "webkit"`, which means installing another browser for
   // no gain when what we assert is CSS breakpoint behaviour.
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "desktop",
+      testIgnore: GUEST_SPECS,
+      use: { ...devices["Desktop Chrome"], storageState: SIGNED_IN }
+    },
     {
       name: "tablet",
+      testIgnore: GUEST_SPECS,
       use: {
         ...devices["Desktop Chrome"],
+        storageState: SIGNED_IN,
         viewport: { width: 820, height: 1180 },
         hasTouch: true
       }
     },
     {
       name: "mobile",
+      testIgnore: GUEST_SPECS,
       use: {
         ...devices["Desktop Chrome"],
+        storageState: SIGNED_IN,
+        viewport: { width: 390, height: 844 },
+        hasTouch: true
+      }
+    },
+    // Guest mode (FR-18 / FR-21): no session cookie. Only guest-mode/** runs
+    // here; everything else is signed-in.
+    {
+      name: "guest-desktop",
+      testMatch: GUEST_SPECS,
+      use: { ...devices["Desktop Chrome"], storageState: NO_SESSION }
+    },
+    {
+      name: "guest-mobile",
+      testMatch: GUEST_SPECS,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: NO_SESSION,
         viewport: { width: 390, height: 844 },
         hasTouch: true
       }
