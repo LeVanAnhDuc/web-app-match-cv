@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "antd";
 import { FileSearch, Info, Sparkles } from "lucide-react";
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
 import { useReturnTo } from "#/hooks/useReturnTo";
@@ -9,6 +10,11 @@ import { signInUrl } from "#/libs/api";
 const HeroCta = ({ guestLimit }: { guestLimit?: number }) => {
   const { t } = useTranslation();
   const returnTo = useReturnTo();
+  const navigate = useNavigate();
+  const goToWizard = (e: MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    void navigate({ to: "/wizard" });
+  };
 
   if (guestLimit !== undefined) {
     return (
@@ -34,11 +40,14 @@ const HeroCta = ({ guestLimit }: { guestLimit?: number }) => {
           {t("home.guest.subtitle")}
         </p>
         <div className="flex flex-col gap-3 md:flex-row">
-          <Link to="/wizard">
-            <Button type="primary" className="!h-11 w-full md:w-auto">
-              {t("home.guest.cta")}
-            </Button>
-          </Link>
+          <Button
+            type="primary"
+            href="/wizard"
+            onClick={goToWizard}
+            className="!h-11 w-full md:w-auto"
+          >
+            {t("home.guest.cta")}
+          </Button>
           <Button href={signInUrl(returnTo)} className="!h-11 w-full md:w-auto">
             {t("home.guest.signIn")}
           </Button>
@@ -54,11 +63,15 @@ const HeroCta = ({ guestLimit }: { guestLimit?: number }) => {
           {t("home.hero.title")}
         </h1>
         <p className="mb-6 text-muted">{t("home.hero.subtitle")}</p>
-        <Link to="/wizard">
-          <Button type="primary" size="large" icon={<Sparkles size={18} />}>
-            {t("home.hero.cta")}
-          </Button>
-        </Link>
+        <Button
+          type="primary"
+          size="large"
+          href="/wizard"
+          onClick={goToWizard}
+          icon={<Sparkles size={18} />}
+        >
+          {t("home.hero.cta")}
+        </Button>
       </div>
       <FileSearch
         className="pointer-events-none absolute -right-4 -bottom-8 hidden text-line md:block"
