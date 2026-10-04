@@ -2,7 +2,7 @@
 
 > **Trả lời:** Khái niệm này gọi là gì trong code, và hiện ra sao trên UI?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** xuất hiện một khái niệm nghiệp vụ mới trong code hoặc UI
 
 <!-- CÁCH ĐIỀN
@@ -26,7 +26,9 @@ KHÔNG chứa: giải thích nghiệp vụ dài (-> overview.md).
 | Provider | Nhà cung cấp AI đứng sau một credential (OpenRouter / OpenAI / Gemini) | `provider` | Nhà cung cấp | Provider |
 | Anchored change | Một thay đổi CV rewrite, neo vào một đoạn nguyên văn duy nhất của CV gốc | `AnchoredChange` | Thay đổi đề xuất | Suggested change |
 | Cover letter | Lá thư ứng tuyển sinh từ một cặp CV↔JD đã match | `CoverLetter` | Thư ứng tuyển | Cover letter |
-| Mock user | `User` thật trong DB thay cho phiên đăng nhập, khi chưa có auth | `STUB_USER_ID` | — (không hiện) | — |
+| Guest | `User` tạm (24 giờ) cho người chưa đăng nhập, chạy match trên key hệ thống | `User.isGuest` | Khách / Chế độ khách | Guest / Guest mode |
+| Session | Phiên đăng nhập phía server; DB chỉ lưu `sha256` của token trong cookie `mcv_session` | `Session` | — | — |
+| Claim | Chuyển dữ liệu của khách sang tài khoản vừa đăng nhập | `GuestService.claim` | Đã lưu vào tài khoản của bạn | Saved to your account |
 
 **Tên bị cấm:**
 
@@ -34,5 +36,6 @@ KHÔNG chứa: giải thích nghiệp vụ dài (-> overview.md).
 - Dùng `MatchResult`, **không** dùng `Score` / `Report` làm tên thực thể (`report` chỉ là
   một trường **trong** `MatchResult`).
 - **Không có `Job`** — JD chỉ tồn tại như một `Document`, xem overview §4 Non-Goals.
-- Dùng "mock user", **không** dùng "stub user" — khái niệm cũ ám chỉ một id ảo ngoài DB,
-  đã bỏ ở [ADR-0008](../decisions/0008-mock-user-la-user-that.md).
+- Mock user đã bỏ ([ADR-0023](../decisions/0023-che-do-khach-user-tam-24h.md), thay
+  [ADR-0008](../decisions/0008-mock-user-la-user-that.md)): đừng dùng lại "mock user" /
+  "stub user" / `STUB_USER_ID`. Người chưa đăng nhập là **Guest**, không phải "anonymous user".

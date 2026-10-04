@@ -8,6 +8,7 @@
 > Cập nhật 2026-08-09 (feature `cv-rewrite-assistant` — Roadmap #6): `Document.parentId` **đã implement** (migration `add_document_parent`, self-FK `ON DELETE SET NULL`, ADR #15). Mục "Generated content 📝" **đã chốt phương án (a)** — không thêm model, xem cuối file.
 > Cập nhật 2026-08-08 (đồng bộ doc ↔ code): xác nhận lại **đúng 4 model đang tồn tại trong `server/prisma/schema.prisma`** — `User`, `Document`, `MatchResult` (bản rút gọn), và **không có** `MatchRun` / `AiCredential`. Bỏ model `Job` khỏi kế hoạch (ADR #12 — "Recruiter đăng Job" + "Apply flow" đã loại khỏi roadmap). Thêm ghi chú Goal 7 (CV rewrite + cover letter) ở cuối.
 > Cập nhật 2026-08-09 (feature `cover-letter-generator`, Roadmap #8 / Goal 7b): thêm model **`CoverLetter`** + 4 enum (`CoverLetterTone`/`Length`/`Language`/`Status`), migration `add_cover_letter`. Đóng open question "cover letter có lưu không" — **có lưu, bảng riêng**. Mục "Generated content" gộp lại: **hai nửa Goal 7 chốt ngược hướng nhau, có chủ ý** — 7a không thêm model (đề xuất không lưu), 7b có bảng riêng (mọi lần sinh đều lưu); tiêu chí phân biệt là **output có chảy tiếp vào hệ thống hay không**.
+> Cập nhật 2026-10-04 (feature `ducker-id-sign-in`, FR-18/FR-21): thêm `Session` + `GuestUsage`, `User` nhận `isGuest`/`guestExpiresAt` và các cột mirror profile, bỏ `isMock`; mock user bị xoá; cascade xuống con của `User`. Sửa bullet Identity (còn nhắc mock user / `project-goals.md` §3).
 
 ## Trạng thái implement (đối chiếu `server/prisma/schema.prisma`, 2026-08-08 — sau feature `ai-credentials`)
 
@@ -28,7 +29,7 @@
 
 ## Module groups
 
-- **Identity**: `User` (mock user khi chưa auth — xem `project-goals.md` §3)
+- **Identity**: `User` (tài khoản Ducker ID qua `externalSub`, hoặc khách `isGuest` sống 24 giờ), `Session`, `GuestUsage` — [ADR-0022](decisions/0022-dang-nhap-bff-session-rieng.md), [ADR-0023](decisions/0023-che-do-khach-user-tam-24h.md)
 - **Documents**: `Document` (CV | JD, per-user, reusable)
 - **Matching**: `MatchRun` + `MatchResult`
 - **AI credentials**: `AiCredential` (token AI của user, mã hoá at-rest)

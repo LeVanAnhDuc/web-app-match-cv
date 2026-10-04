@@ -2,7 +2,7 @@
 
 > **Trả lời:** Khái niệm hoặc hành động này dùng icon nào?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-03 · chuyển từ `.claude/uiux/`
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** xuất hiện một khái niệm/action mới trên UI
 
 > Rút từ mock `cv-jd-matching-wizard` (user duyệt 2026-07-24). Token nằm ở
@@ -39,6 +39,18 @@
 | Gap / thiếu (warning) | `alert-triangle` |
 | Gợi ý cải thiện | `lightbulb` / `sparkles` |
 
-## 4. Quy tắc
+## 4. Auth và chế độ khách
+
+| Khái niệm | Lucide |
+|---|---|
+| Đăng nhập (nút, thẻ khách) | `log-in` |
+| Đăng xuất (menu tài khoản, thẻ user) | `log-out` |
+| Dữ liệu khách giữ 24 giờ · lịch sử ghép (perks) | `clock` |
+| Gate đăng nhập · khoá AI (perks) | `key-round` |
+| Đã lưu vào tài khoản (`ClaimedNotice`) | `circle-check` |
+| CV & JD đã lưu (perks) | `file-text` |
+| Viết lại CV & thư (perks) | `pen-line` |
+
+## 5. Quy tắc
 
 1 khái niệm → 1 icon nhất quán toàn app. Thêm concept mới → thêm dòng ở đây **trước khi** dùng trong code.

@@ -2,7 +2,7 @@
 
 > **Trả lời:** Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết quả vẫn sai?
 > **Trạng thái:** 🟢 đủ — đã rà theo dự án 2026-09-03
-> **Cập nhật:** 2026-09-03 · commit —
+> **Cập nhật:** 2026-10-04 · commit —
 > **Cập nhật khi:** phát hiện một bất biến mới — thường là ngay sau khi ai đó vừa phá nó
 
 <!-- CÁCH ĐIỀN
@@ -20,7 +20,7 @@ KHÔNG chứa: quy ước format/naming (-> lint config), kiến trúc (-> archi
 | 1 | Thời gian lưu ở **UTC**. Đổi múi giờ chỉ ở tầng hiển thị | Lệch một ngày ở biên múi giờ. Test viết theo giờ máy vẫn xanh |
 | 2 | Mọi mutation kiểm quyền ở **server**, kể cả khi UI đã ẩn nút | Gọi API trực tiếp là sửa được dữ liệu người khác |
 | 3 | Chỉ tầng service truy vấn datastore. Controller không query trực tiếp | Bỏ qua lớp kiểm quyền và validate nằm trong service |
-| 4 | Không tin `id` từ client để xác định quyền sở hữu — luôn đối chiếu `CurrentUserService.getUserId()` | Truy cập chéo dữ liệu giữa các user. Với mock user hiện tại thì **không lộ ra**, và sẽ lộ đúng lúc Auth về (FR-18) |
+| 4 | Không tin `id` từ client để xác định quyền sở hữu — luôn đối chiếu `CurrentUserService.getUserId()`, lấy từ **session** | Truy cập chéo dữ liệu giữa các user, kể cả khách với khách hay khách với tài khoản |
 | 5 | Tác vụ ghi quan trọng **idempotent** theo một khoá. Seed dùng upsert theo id | Retry hoặc double-click tạo bản ghi trùng |
 | 6 | Migration **chỉ tiến**. Không sửa file migration đã chạy ở bất kỳ đâu | Lịch sử schema giữa các môi trường lệch nhau, không hoà giải được |
 
@@ -51,3 +51,5 @@ KHÔNG chứa: quy ước format/naming (-> lint config), kiến trúc (-> archi
 | 17 | Token AI **không bao giờ** rời server dạng plaintext — không response, không log, không error, không Swagger example | Secret bậc cao nhất của app rò qua đường không ai nhìn |
 | 18 | Nhật ký tiết lộ ghi **trước** call AI và **fail-closed**: ghi hỏng thì không gọi | Ca đáng lo nhất (dữ liệu đã đi rồi mới lỗi) là đúng ca không được ghi lại |
 | 19 | Module chỉ để đọc lại (`ComparisonModule`, lịch sử, xem trước) **không import `AiModule`** | Mỗi lần user đổi dropdown là một lần tài liệu rời hệ thống mà họ không hề bấm gì |
+| 20 | Token phiên chỉ lưu dạng `sha256` trong DB; token của IdP **không bao giờ** được lưu | Lộ DB là chiếm được tài khoản (NFR-SEC-12) |
+| 21 | Endpoint cho khách phải opt-in bằng `@AllowGuest`; mặc định là chỉ user đã đăng nhập (guard default-deny) | Khách chạm tới tính năng trả phí hoặc dữ liệu tài khoản (ADR-0022) |
