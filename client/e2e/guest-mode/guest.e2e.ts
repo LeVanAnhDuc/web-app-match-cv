@@ -105,11 +105,25 @@ test.describe("guest wizard", () => {
   }) => {
     await gotoWizard(page);
 
-    const tabs = await page.locator(".ant-segmented").first().boundingBox();
-    const zone = await page.locator(".ant-upload-drag").first().boundingBox();
-    expect(tabs).not.toBeNull();
-    expect(zone).not.toBeNull();
-    expect(zone!.y - (tabs!.y + tabs!.height)).toBeGreaterThanOrEqual(16);
+    // Poll: the first measurement can land before the Segmented/Dragger have
+    // settled after hydration (seen as a transient negative gap in a full run).
+    await expect
+      .poll(
+        async () => {
+          const tabs = await page
+            .locator(".ant-segmented")
+            .first()
+            .boundingBox();
+          const zone = await page
+            .locator(".ant-upload-drag")
+            .first()
+            .boundingBox();
+          if (!tabs || !zone) return -Infinity;
+          return zone.y - (tabs.y + tabs.height);
+        },
+        { timeout: 10_000 }
+      )
+      .toBeGreaterThanOrEqual(16);
   });
 
   test("[happy] only Upload and Paste are offered; review has no provider selector; the result is kept 24h", async ({
