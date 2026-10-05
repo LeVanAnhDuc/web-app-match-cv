@@ -11,7 +11,7 @@
 | [`02-requirements/scope.md`](02-requirements/scope.md) | Hệ thống có những chức năng nào, mỗi cái đang ở trạng thái… | 🟢 đủ | brainstorm ra chức năng mới (cấp FR mới) · một FR chuyển t… |
 | [`02-requirements/nfr.md`](02-requirements/nfr.md) | Ngưỡng nào áp cho **mọi** feature, để không phải nhắc lại … | 🟢 đủ — đã rà theo dự án 2026-09-03 | thêm loại tài nguyên mới · thêm nhóm người dùng · sau sự c… |
 | [`03-design/architecture.md`](03-design/architecture.md) | Hệ thống ghép lại thế nào, ranh giới giữa các phần ở đâu? | 🟢 đủ | thêm/bỏ một module hoặc service · đổi cách hai module nói … |
-| [`03-design/invariants.md`](03-design/invariants.md) | Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết… | 🟢 đủ — đã rà theo dự án 2026-09-03 | phát hiện một bất biến mới — thường là ngay sau khi ai đó … |
+| [`03-design/invariants.md`](03-design/invariants.md) | Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết… | 🟢 đủ — đã rà lại 2026-10-04 (thêm #20, #21 … | phát hiện một bất biến mới — thường là ngay sau khi ai đó … |
 | [`04-state/backlog.md`](04-state/backlog.md) | Đang làm gì, tiếp theo làm gì, và đang nợ những gì? | 🟢 đủ | bắt đầu/kết thúc một việc · brainstorm ra việc mới · cố ý … |
 | [`design-system/match-cv/design-guide.md`](design-system/match-cv/design-guide.md) | Ý đồ thiết kế — khi nào dùng gì, và tại sao? | 🟢 đủ | xuất hiện một pattern mới · đổi nguyên tắc thiết kế |
 | [`design-system/match-cv/icon-map.md`](design-system/match-cv/icon-map.md) | Khái niệm hoặc hành động này dùng icon nào? | 🟢 đủ | xuất hiện một khái niệm/action mới trên UI |
