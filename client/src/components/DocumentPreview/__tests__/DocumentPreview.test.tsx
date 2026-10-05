@@ -1,11 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "#/i18n/config";
+import { pdfjs } from "react-pdf";
 import { fetchDocumentFile } from "#/requests/documents";
 import DocumentPreview from "../index";
 
 vi.mock("#/requests/documents", () => ({
   fetchDocumentFile: vi.fn()
+}));
+
+vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({
+  default: "/assets/pdf.worker.min-hashed.mjs"
 }));
 
 vi.mock("react-pdf", () => ({
@@ -48,6 +53,17 @@ describe("DocumentPreview", () => {
       await screen.findByTestId("mock-react-pdf-document")
     ).toBeInTheDocument();
     expect(screen.getByTestId("mock-react-pdf-page")).toBeInTheDocument();
+  });
+
+  it("pdf — points the pdf.js worker at the URL Vite emits for the bundled worker", async () => {
+    mockedFetchDocumentFile.mockResolvedValue(new ArrayBuffer(8));
+
+    render(<DocumentPreview docId="doc-6" sourceFormat="pdf" rawText="" />);
+
+    await screen.findByTestId("mock-react-pdf-document");
+    expect(pdfjs.GlobalWorkerOptions.workerSrc).toBe(
+      "/assets/pdf.worker.min-hashed.mjs"
+    );
   });
 
   it("docx — fetches the file and triggers docx-preview renderAsync", async () => {

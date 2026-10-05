@@ -9,6 +9,13 @@ import type {
   Document as PdfDocumentComponent,
   Page as PdfPageComponent
 } from "react-pdf";
+// `?url` makes Vite emit the worker as a hashed asset and hand back its URL —
+// a plain string, so importing it is SSR-safe. `new URL("pdfjs-dist/…",
+// import.meta.url)` does not resolve the bare package name: since the pnpm
+// move pdfjs-dist is no longer hoisted, the URL ended up under this folder and
+// every PDF preview failed. Keep pdfjs-dist pinned to the version react-pdf
+// depends on — pdf.js refuses a worker from another version.
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -51,10 +58,7 @@ function PdfPreview({ docId }: { docId: string }) {
           fetchDocumentFile(docId)
         ]);
         if (cancelled) return;
-        reactPdf.pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/build/pdf.worker.min.mjs",
-          import.meta.url
-        ).toString();
+        reactPdf.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
         setState({
           status: "ready",
           data,
