@@ -44,7 +44,7 @@ parse (pdf-parse / mammoth / paste) → rawText  (cap 20k chars khi gửi OpenRo
 OpenRouter (rawText CV + JD + scores) → report { strengths[], gaps[], suggestions[] }
 ```
 
-- **Data disclosure (privacy)**: nội dung CV/JD (chứa PII) được **gửi tới OpenRouter API** để embedding + sinh report. UI có disclaimer ở step 4 (`result.disclaimer`); ghi rõ ở đây + `project-goals.md` §7.
+- **Data disclosure (privacy)**: nội dung CV/JD (chứa PII) được **gửi tới OpenRouter API** để embedding + sinh report. bước 3 nêu đích danh bên nhận trước khi chạy (`credentials.runWith.privacyList`) cho cả người đã đăng nhập lẫn khách — khách luôn chạy bằng key hệ thống; ghi rõ ở đây + `project-goals.md` §7.
 - MVP **synchronous** (loading UI). Timeout 20s + error 503 handling cho OpenRouter call.
 - Report trình bày dễ hiểu: % tổng nổi bật, breakdown, danh sách gap + gợi ý chỉnh CV.
 

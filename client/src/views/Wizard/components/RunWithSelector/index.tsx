@@ -1,11 +1,12 @@
 import { Button, Checkbox, Tag } from "antd";
-import { Plus, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Plus, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CredentialFormModal from "#/components/CredentialFormModal";
 import TestStatusTag from "#/components/TestStatusTag";
 import { useAiCredentials, useProviders } from "#/hooks/useAiCredentials";
 import type { AiCredentialDto } from "#/types/AiCredentials";
+import RunPrivacyNotice from "../RunPrivacyNotice";
 
 // antd Checkbox values must be primitives, so the system key needs a sentinel;
 // it is mapped back to `null` at the component boundary.
@@ -127,14 +128,7 @@ const RunWithSelector = ({
           {t("credentials.runWith.untestedCount", { count: warned.length })}
         </p>
       )}
-      <p className="flex items-start gap-2 text-sm text-muted">
-        <ShieldCheck size={14} className="mt-0.5 shrink-0" />
-        {value.length === 0
-          ? t("credentials.runWith.privacyNone")
-          : t("credentials.runWith.privacyList", {
-              providers: providerNames.join(", ")
-            })}
-      </p>
+      <RunPrivacyNotice providers={providerNames} none={value.length === 0} />
       <CredentialFormModal
         open={addOpen}
         credential={null}

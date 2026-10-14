@@ -276,4 +276,21 @@ describe("StepReview", () => {
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     await waitFor(() => expect(useWizardStore.getState().step).toBe(2));
   });
+
+  it("tells a guest who receives the CV/JD before they run", async () => {
+    vi.mocked(useAuth).mockReturnValue(auth("guest"));
+    useWizardStore.setState({ credentialIds: [] });
+    mockDocs();
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    renderStep();
+    await screen.findAllByTestId("review-pane");
+
+    expect(
+      screen.getByText("Your CV and JD text will be sent to: System key.")
+    ).toBeDefined();
+  });
 });

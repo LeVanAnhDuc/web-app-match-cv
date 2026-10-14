@@ -32,8 +32,6 @@ test.describe("guest", () => {
     "khách thấy bên nhận nội dung CV/JD trước khi chạy",
     { tag: ["@TC-CVJDMATCHINGWIZARD-042"] },
     async ({ guestWizardPage: wizardPage }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-05
-      test.fail();
       await wizardPage.goto();
       await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
 

@@ -8,6 +8,7 @@ import { useAuth } from "#/hooks/useAuth";
 import { useDocument } from "#/hooks/useDocuments";
 import { useCreateMatchRun } from "#/hooks/useMatch";
 import { useWizardStore } from "#/stores";
+import RunPrivacyNotice from "../../components/RunPrivacyNotice";
 import RunWithSelector from "../../components/RunWithSelector";
 
 const StepReview = () => {
@@ -134,8 +135,12 @@ const StepReview = () => {
         </>
       }
     >
-      {isUser && (
+      {isUser ? (
         <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
+      ) : (
+        <div className="border-b border-line px-4 py-4 md:px-6">
+          <RunPrivacyNotice providers={[t("credentials.systemKey")]} />
+        </div>
       )}
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
         <section className="flex min-h-0 flex-col p-4 md:p-6">
