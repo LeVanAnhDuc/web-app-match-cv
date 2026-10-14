@@ -85,8 +85,6 @@ test.describe("DELETE /documents/:id", { tag: ["@creates-data"] }, () => {
   });
 
   test("tài liệu chỉ được một lượt match chưa có kết quả tham chiếu không làm server lỗi 5xx", { tag: ["@TC-DOCUMENTS-049"] }, async ({ docOwner }) => {
-    // BUG: defects/documents.md#bug-documents-01
-    test.fail();
     const cv = await docOwner.paste("CV");
     const jd = await docOwner.paste("JD");
     await docOwner.openRun(cv.id, jd.id);

@@ -295,6 +295,18 @@ export class DocumentsService {
         )
       );
     }
-    await this.prisma.document.delete({ where: { id } });
+    // A run that never produced a result (tab closed, guest out of quota) still
+    // holds an ON DELETE NO ACTION reference; it carries no history, so it goes
+    // with the document instead of turning the delete into a 500.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.matchRun.deleteMany({
+        where: {
+          userId,
+          OR: [{ cvDocumentId: id }, { jdDocumentId: id }],
+          results: { none: {} }
+        }
+      });
+      await tx.document.delete({ where: { id } });
+    });
   }
 }

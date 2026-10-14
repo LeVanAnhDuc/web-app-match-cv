@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException
+} from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
 import type { CurrentUserService } from "../../common/current-user/current-user.service";
 import type { PrismaService } from "../../prisma/prisma.service";
@@ -169,5 +173,63 @@ describe("DocumentsService.setParent", () => {
       service.setParent("cv-v1", { parentId: "cv-v2" })
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(update).not.toHaveBeenCalled();
+  });
+});
+
+function buildRemove(matchResultCount: number) {
+  const documentDelete = jest.fn(() => Promise.resolve(doc()));
+  const runDeleteMany = jest.fn(() => Promise.resolve({ count: 1 }));
+  const tx = {
+    matchRun: { deleteMany: runDeleteMany },
+    document: { delete: documentDelete }
+  };
+  const prisma = {
+    document: {
+      findFirst: jest.fn(() => Promise.resolve(doc())),
+      delete: documentDelete
+    },
+    matchResult: { count: jest.fn(() => Promise.resolve(matchResultCount)) },
+    $transaction: jest.fn((fn: (client: typeof tx) => Promise<unknown>) =>
+      fn(tx)
+    )
+  } as unknown as PrismaService;
+  const currentUser: CurrentUserService = {
+    getUserId: () => USER_ID,
+    isGuest: () => false,
+    peek: () => undefined
+  };
+  return {
+    service: new DocumentsService(prisma, currentUser),
+    documentDelete,
+    runDeleteMany
+  };
+}
+
+// MatchRun → Document is ON DELETE NO ACTION, so a run that never produced a
+// result (tab closed, guest out of quota) used to make the delete a 500.
+describe("DocumentsService.remove", () => {
+  it("deletes the runs that never produced a result along with the document", async () => {
+    const { service, documentDelete, runDeleteMany } = buildRemove(0);
+
+    await service.remove("cv-v2");
+
+    expect(runDeleteMany).toHaveBeenCalledWith({
+      where: {
+        userId: USER_ID,
+        OR: [{ cvDocumentId: "cv-v2" }, { jdDocumentId: "cv-v2" }],
+        results: { none: {} }
+      }
+    });
+    expect(documentDelete).toHaveBeenCalledWith({ where: { id: "cv-v2" } });
+  });
+
+  it("keeps a document a match result still points at", async () => {
+    const { service, documentDelete, runDeleteMany } = buildRemove(1);
+
+    await expect(service.remove("cv-v2")).rejects.toBeInstanceOf(
+      ConflictException
+    );
+    expect(runDeleteMany).not.toHaveBeenCalled();
+    expect(documentDelete).not.toHaveBeenCalled();
   });
 });

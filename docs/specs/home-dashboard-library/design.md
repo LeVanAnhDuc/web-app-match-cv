@@ -53,7 +53,7 @@ client (TanStack Start)                     server (NestJS)                Postg
 |---|---|---|
 | `GET` | `/documents/:id/file` | Load doc theo `id` **+ userId**; 404 nếu không thuộc user. Nếu `fileData == null` (text) → 404 `documents.errors.noOriginalFile`. Set `Content-Type = fileMime`. Query `?download=1` → `Content-Disposition: attachment; filename="<title>.<ext>"`; mặc định `inline`. Trả buffer. |
 | `PATCH` | `/documents/:id` | Body `{ title }` (`@IsString @MaxLength(200)`, trim, non-empty). Load per-user (404). Update `title`. Trả `DocumentDto`. |
-| `DELETE` | `/documents/:id` | Load per-user (404). **Nếu tồn tại `MatchResult` tham chiếu (`cvDocumentId == id \|\| jdDocumentId == id`) → 409** `documents.errors.inUseByMatch`. Else xóa → 204. (Giữ lịch sử match nguyên vẹn, không cascade.) |
+| `DELETE` | `/documents/:id` | Load per-user (404). **Nếu tồn tại `MatchResult` tham chiếu (`cvDocumentId == id \|\| jdDocumentId == id`) → 409** `documents.errors.inUseByMatch`. Else xóa → 204, trong cùng transaction xoá kèm các `MatchRun` tham chiếu tài liệu mà **chưa có kết quả** (FK `ON DELETE NO ACTION`; run rỗng không mang lịch sử — REQ-DOCUMENTS-34). (Giữ lịch sử match nguyên vẹn, không cascade.) |
 | `GET` | `/match` | List `MatchResult` của user, newest-first. Trả `MatchSummaryDto[]`: `{ id, cvTitle, jdTitle, overallScore, createdAt }` (join lấy title CV/JD). |
 
 Không có endpoint `/stats` riêng — Home tính counts/avg/max client-side từ `GET /documents?kind=CV&saved=true`, `?kind=JD`, `GET /match` (lịch sử chỉ gồm `MatchResult` `status=succeeded`; kết quả provider lỗi vẫn đọc được qua `GET /match/:id` và `GET /match/runs/:id`).
