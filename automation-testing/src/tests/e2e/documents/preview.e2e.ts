@@ -50,8 +50,6 @@ test.describe("Xem trước tài liệu", { tag: ["@creates-data"] }, () => {
   });
 
   test("xem trước PDF nhiều trang hiện đủ mọi trang", { tag: ["@TC-DOCUMENTS-066"] }, async ({ docLibraryPage, docOwner }) => {
-    // BUG: defects/documents.md#bug-documents-02
-    test.fail();
     const title = docTitle("Three-page CV");
     await docOwner.insert({
       kind: "CV",

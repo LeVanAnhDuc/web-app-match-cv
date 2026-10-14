@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchDocumentFile } from "#/requests/documents";
 import type { SourceFormat } from "#/types/Documents";
@@ -41,6 +41,8 @@ function PdfPreview({ docId }: { docId: string }) {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<PdfPreviewState>({ status: "loading" });
+  // Known only once pdf.js has parsed the file (onLoadSuccess).
+  const [numPages, setNumPages] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -50,6 +52,7 @@ function PdfPreview({ docId }: { docId: string }) {
     if (!mounted) return;
     let cancelled = false;
     setState({ status: "loading" });
+    setNumPages(0);
 
     async function load() {
       try {
@@ -86,6 +89,12 @@ function PdfPreview({ docId }: { docId: string }) {
     [state]
   );
 
+  // Stable reference: react-pdf re-runs its load effect when this changes.
+  const onPdfLoadSuccess = useCallback(
+    (pdf: { numPages: number }) => setNumPages(pdf.numPages),
+    []
+  );
+
   if (!mounted || state.status === "loading") {
     return (
       <div
@@ -118,8 +127,14 @@ function PdfPreview({ docId }: { docId: string }) {
       data-testid="pdf-preview"
       className="flex h-full justify-center overflow-auto p-4"
     >
-      <Document file={pdfFile ?? undefined}>
-        <Page pageNumber={1} />
+      <Document
+        file={pdfFile ?? undefined}
+        onLoadSuccess={onPdfLoadSuccess}
+        className="flex flex-col items-center gap-4"
+      >
+        {Array.from({ length: numPages }, (_, index) => (
+          <Page key={index + 1} pageNumber={index + 1} />
+        ))}
       </Document>
     </div>
   );

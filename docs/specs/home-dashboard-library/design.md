@@ -89,7 +89,7 @@ Component chung `DocumentLibrary` prop `kind`.
 - List (antd `List`/`Table` responsive): title · badge định dạng (pdf/docx/text label người-đọc) · ngày (locale) · actions Preview / Rename / Download / Delete.
 - Data: `useSavedDocuments(kind)` (`GET /documents?kind&saved=true`).
 - **Preview** (`Modal`/`Drawer` lớn) — render **client-side, không iframe**:
-  - `pdf` → **`react-pdf`** (pdf.js, render canvas; `enableScripting` off — không chạy JS trong PDF). Fetch ArrayBuffer từ `GET /documents/:id/file` (same-origin, credentials) → `<Document file={{ data }}>`.
+  - `pdf` → **`react-pdf`** (pdf.js, render canvas; `enableScripting` off — không chạy JS trong PDF). Fetch ArrayBuffer từ `GET /documents/:id/file` (same-origin, credentials) → `<Document file={{ data }}>`, một `<Page>` cho **mỗi** trang (`numPages` từ `onLoadSuccess`; REQ-DOCUMENTS-35).
   - `docx` → **`docx-preview`** `renderAsync(blob, container)` (parse cục bộ qua jszip → DOM).
   - `text` → render `rawText` format sạch.
   - **SSR**: cả 2 lib chỉ chạy browser → **client-only component** (dynamic import / guard `typeof window`), không render server.
