@@ -20,7 +20,7 @@ _(không có)_
 - **Đã sửa:** root cause — allow-list của `buildExportManifest` (cố ý map từng field) và transaction của
   `MeService.buildExportArchive` chưa từng được mở rộng khi `CoverLetter` / `MatchRun` ra đời; fix — đọc thêm hai bảng
   (scope `userId`, `select` tường minh) và map `coverLetters[]` / `matchRuns[]` từng field, thêm `matchResults[].runId`
-  để nối kết quả với run (commit: _pending_).
+  để nối kết quả với run (commit: 54dc783).
 
 ### BUG-DATAEXPORT-02
 
@@ -33,4 +33,4 @@ _(không có)_
   (`export-manifest.ts` map tường minh từng field và không gồm các field này).
 - **Đã sửa:** root cause — cùng allow-list trên không gồm `User.email/fullName/avatar` (thêm khi mirror hồ sơ Ducker ID)
   và `Document.parentId` (thêm khi có lineage), còn `select` tài liệu bỏ `parentId`; fix — map bốn field đó (null khi
-  trống) và tăng `SCHEMA_VERSION` lên 2 (commit: _pending_).
+  trống) và tăng `SCHEMA_VERSION` lên 2 (commit: 54dc783).
