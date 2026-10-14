@@ -104,6 +104,9 @@ const MatchResultCard = ({
     initialResult
   );
   const [failed, setFailed] = useState(false);
+  // The server's own words for an HTTP error; null means the request never
+  // got an answer (network failure), which is what "unreachable" is for.
+  const [serverError, setServerError] = useState<string | null>(null);
   const [quota, setQuota] = useState<{
     limit: number | string;
     resetsAt: string;
@@ -114,6 +117,7 @@ const MatchResultCard = ({
 
   const fire = async () => {
     setFailed(false);
+    setServerError(null);
     setQuota(null);
     setRunning(true);
     try {
@@ -135,6 +139,7 @@ const MatchResultCard = ({
           resetsAt: body?.resetsAt ?? new Date().toISOString()
         });
       }
+      if (error instanceof ApiError) setServerError(error.message);
       setFailed(true);
     } finally {
       setRunning(false);
@@ -192,14 +197,16 @@ const MatchResultCard = ({
   }
 
   if (failed || result?.status === "failed") {
-    const code = result?.errorCode ?? "unreachable";
+    const message = failed
+      ? (serverError ?? t("result.error.unreachable"))
+      : t(`result.error.${result?.errorCode ?? "unreachable"}`);
     return (
       <SectionCard title={title}>
         <Alert
           type="error"
           showIcon
           role="alert"
-          message={t(`result.error.${code}`)}
+          message={message}
           action={
             <Button
               size="small"
