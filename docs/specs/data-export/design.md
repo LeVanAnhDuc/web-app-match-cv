@@ -94,24 +94,40 @@ export-2026-08-08.zip
 
 ```jsonc
 {
-  "schemaVersion": 1,          // để bản export cũ vẫn đọc được khi hình dạng đổi
+  "schemaVersion": 2,          // để bản export cũ vẫn đọc được khi hình dạng đổi (2: REQ-DATAEXPORT-34)
   "exportedAt": "2026-08-08T16:30:00.000Z",
-  "user": { "id": "…", "role": "candidate", "createdAt": "…" },
+  "user": {
+    "id": "…", "role": "candidate", "createdAt": "…",
+    "email": "…", "fullName": "…", "avatar": null   // hồ sơ mirror từ Ducker ID, null nếu trống
+  },
   "documents": [
     {
       "id": "…", "kind": "CV", "title": "CV Le Van Anh Duc",
       "sourceFormat": "pdf", "isSaved": true, "createdAt": "…",
+      "parentId": null,                                 // lineage: id bản gốc nếu đây là bản viết lại
       "rawText": "LE VAN ANH DUC\nFront-End Developer…",
       "file": "documents/cv-le-van-anh-duc-a1b2c3.pdf"   // null nếu paste-text
     }
   ],
   "matchResults": [
     {
-      "id": "…", "cvDocumentId": "…", "jdDocumentId": "…",
+      "id": "…", "runId": "…", "cvDocumentId": "…", "jdDocumentId": "…",
       "overallScore": 67, "semanticScore": 78, "keywordScore": 51,
       "provider": "openrouter", "chatModel": "…", "embedModel": "…",
       "report": { "strengths": [], "gaps": [], "suggestions": [] },
       "createdAt": "…"
+    }
+  ],
+  "matchRuns": [
+    { "id": "…", "cvDocumentId": "…", "jdDocumentId": "…", "createdAt": "…" }
+  ],
+  "coverLetters": [
+    {
+      "id": "…", "matchResultId": "…", "tone": "formal", "length": "standard",
+      "language": "en", "content": "Dear hiring manager…", "omittedRequirements": [],
+      "status": "succeeded", "errorCode": null, "edited": false,
+      "credentialId": null, "provider": "openrouter", "chatModel": "…",
+      "createdAt": "…", "updatedAt": "…"
     }
   ],
   "aiCredentials": [

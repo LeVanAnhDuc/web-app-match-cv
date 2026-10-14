@@ -1,11 +1,10 @@
 import { test, expect } from "@/fixtures";
 
 // REQ-DATAEXPORT-34 (decision Q1 (a)): FR-15 promises "everything the app holds about you". Cover letters (PII),
-// match runs, document lineage and the profile mirrored from Ducker ID are missing from the export today.
+// match runs, document lineage and the profile mirrored from Ducker ID must all be in data.json.
 
 test.describe("GET /me/export — completeness", () => {
-  // BUG: defects/data-export.md#bug-dataexport-01
-  test.fail(
+  test(
     "export chứa cover letter và match run của user",
     { tag: ["@TC-DATAEXPORT-032", "@creates-data"] },
     async ({ apiAs, dataExportUsers, dataExportSeed, dataExportArchive }) => {
@@ -35,8 +34,7 @@ test.describe("GET /me/export — completeness", () => {
     }
   );
 
-  // BUG: defects/data-export.md#bug-dataexport-02
-  test.fail(
+  test(
     "export chứa hồ sơ user, lineage tài liệu và schemaVersion 2",
     { tag: ["@TC-DATAEXPORT-033", "@creates-data"] },
     async ({ apiAs, dataExportUsers, dataExportSeed, dataExportArchive }) => {

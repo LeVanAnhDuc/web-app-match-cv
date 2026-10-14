@@ -63,6 +63,9 @@ describe("buildExportManifest()", () => {
   const user = {
     id: "u1",
     role: "candidate",
+    email: "duc@example.com",
+    fullName: "Le Van Anh Duc",
+    avatar: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z")
   };
 
@@ -78,6 +81,8 @@ describe("buildExportManifest()", () => {
       user,
       documents: [],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [
         {
           id: "c1",
@@ -133,10 +138,13 @@ describe("buildExportManifest()", () => {
           hasFile: false,
           fileMime: null,
           isSaved: true,
+          parentId: null,
           createdAt: exportedAt
         }
       ],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [],
       exportedAt
     });
@@ -156,10 +164,13 @@ describe("buildExportManifest()", () => {
           hasFile: false,
           fileMime: PDF,
           isSaved: true,
+          parentId: null,
           createdAt: exportedAt
         }
       ],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [],
       exportedAt
     });
@@ -179,10 +190,13 @@ describe("buildExportManifest()", () => {
           hasFile: true,
           fileMime: PDF,
           isSaved: true,
+          parentId: null,
           createdAt: exportedAt
         }
       ],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [],
       exportedAt
     });
@@ -202,10 +216,13 @@ describe("buildExportManifest()", () => {
           hasFile: false,
           fileMime: null,
           isSaved: true,
+          parentId: null,
           createdAt: exportedAt
         }
       ],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [],
       exportedAt
     });
@@ -221,13 +238,158 @@ describe("buildExportManifest()", () => {
       user,
       documents: [],
       matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
       aiCredentials: [],
       exportedAt
     });
-    expect(manifest.schemaVersion).toBe(1);
+    expect(manifest.schemaVersion).toBe(2);
     expect(manifest.documents).toEqual([]);
     expect(manifest.matchResults).toEqual([]);
     expect(manifest.aiCredentials).toEqual([]);
     expect(manifest.exportedAt).toBe("2026-08-08T16:30:00.000Z");
+  });
+
+  it("[REQ-DATAEXPORT-34] exports the profile mirrored from Ducker ID", () => {
+    const manifest = buildExportManifest({
+      user,
+      documents: [],
+      matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
+      aiCredentials: [],
+      exportedAt
+    });
+    expect(manifest.user).toEqual({
+      id: "u1",
+      role: "candidate",
+      email: "duc@example.com",
+      fullName: "Le Van Anh Duc",
+      avatar: null,
+      createdAt: "2026-01-01T00:00:00.000Z"
+    });
+  });
+
+  it("[REQ-DATAEXPORT-34] exports document lineage as parentId", () => {
+    const base = {
+      kind: "CV" as const,
+      sourceFormat: "text" as const,
+      rawText: "x",
+      hasFile: false,
+      fileMime: null,
+      isSaved: true,
+      createdAt: exportedAt
+    };
+    const manifest = buildExportManifest({
+      user,
+      documents: [
+        { ...base, id: "p1", title: "Original", parentId: null },
+        { ...base, id: "c1", title: "Rewritten", parentId: "p1" }
+      ],
+      matchResults: [],
+      matchRuns: [],
+      coverLetters: [],
+      aiCredentials: [],
+      exportedAt
+    });
+    expect(manifest.documents.map((d) => d.parentId)).toEqual([null, "p1"]);
+  });
+
+  it("[REQ-DATAEXPORT-34] exports match runs and links each result to its run", () => {
+    const manifest = buildExportManifest({
+      user,
+      documents: [],
+      matchResults: [
+        {
+          id: "m1",
+          runId: "r1",
+          cvDocumentId: "cv",
+          jdDocumentId: "jd",
+          overallScore: 60,
+          semanticScore: 70,
+          keywordScore: 45,
+          report: {},
+          createdAt: exportedAt,
+          credentialId: null,
+          provider: "openrouter",
+          chatModel: "chat",
+          embedModel: "embed"
+        }
+      ],
+      matchRuns: [
+        {
+          id: "r1",
+          cvDocumentId: "cv",
+          jdDocumentId: "jd",
+          createdAt: exportedAt
+        }
+      ],
+      coverLetters: [],
+      aiCredentials: [],
+      exportedAt
+    });
+    expect(manifest.matchRuns).toEqual([
+      {
+        id: "r1",
+        cvDocumentId: "cv",
+        jdDocumentId: "jd",
+        createdAt: "2026-08-08T16:30:00.000Z"
+      }
+    ]);
+    expect(manifest.matchResults[0].runId).toBe("r1");
+  });
+
+  it("[REQ-DATAEXPORT-34] exports cover letters field by field", () => {
+    const manifest = buildExportManifest({
+      user,
+      documents: [],
+      matchResults: [],
+      matchRuns: [],
+      coverLetters: [
+        {
+          id: "l1",
+          matchResultId: "m1",
+          tone: "formal",
+          length: "standard",
+          language: "en",
+          content: "Dear hiring manager",
+          omittedRequirements: ["Kubernetes"],
+          status: "succeeded",
+          errorCode: null,
+          edited: true,
+          credentialId: null,
+          provider: "openrouter",
+          chatModel: "chat",
+          createdAt: exportedAt,
+          updatedAt: exportedAt
+        }
+      ],
+      aiCredentials: [],
+      exportedAt
+    });
+    const [letter] = manifest.coverLetters;
+    expect(letter.content).toBe("Dear hiring manager");
+    expect(letter.omittedRequirements).toEqual(["Kubernetes"]);
+    // Same allow-list guard as credentials: a field mapped by accident (or a
+    // spread) changes this set and fails here.
+    expect(Object.keys(letter).sort()).toEqual(
+      [
+        "chatModel",
+        "content",
+        "createdAt",
+        "credentialId",
+        "edited",
+        "errorCode",
+        "id",
+        "language",
+        "length",
+        "matchResultId",
+        "omittedRequirements",
+        "provider",
+        "status",
+        "tone",
+        "updatedAt"
+      ].sort()
+    );
   });
 });

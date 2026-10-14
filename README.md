@@ -69,7 +69,7 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
   - Warns when the two matches ran on different AI models, and each delta then reads *Not comparable* instead of a direction, because the scores are not strictly comparable.
 
 - **Export your data** (`/my-data`)
-  - One button downloads a zip containing `data.json` (documents, matches with full reports, AI credential settings) plus every original file you uploaded.
+  - One button downloads a zip containing `data.json` (your profile, documents with their version lineage, match runs and matches with full reports, cover letters, AI credential settings) plus every original file you uploaded.
   - Credentials are exported masked — the archive never contains a key.
 
 - **Vietnamese and English documents**
