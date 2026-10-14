@@ -12,6 +12,9 @@ describe("readCookie", () => {
   it("decodes percent-encoding", () => {
     expect(readCookie("n=a%3Db", "n")).toBe("a=b");
   });
+  it("returns a malformed percent-encoding raw, so a tampered cookie is still seen", () => {
+    expect(readCookie("mcv_session=%%%", "mcv_session")).toBe("%%%");
+  });
   it("returns null without a header", () => {
     expect(readCookie(undefined, "n")).toBeNull();
   });
