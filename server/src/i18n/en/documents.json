@@ -12,6 +12,9 @@
     "lineageParentNotFound": "The document you picked as the previous version was not found.",
     "lineageKindMismatch": "A CV can only be a version of another CV, and a JD of another JD.",
     "lineageCycle": "That would make the two documents versions of each other.",
-    "lineageTooDeep": "This version history is too long to extend safely."
+    "lineageTooDeep": "This version history is too long to extend safely.",
+    "invalidKind": "Document kind must be CV or JD.",
+    "titleTooLong": "Title must be at most 200 characters.",
+    "textTooLong": "Pasted text must be at most 100,000 characters."
   }
 }

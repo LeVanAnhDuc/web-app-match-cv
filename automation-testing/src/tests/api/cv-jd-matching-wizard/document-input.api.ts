@@ -63,8 +63,6 @@ test.describe("POST /documents — file checks", () => {
     "file đúng 10 485 760 byte được nhận",
     { tag: ["@TC-CVJDMATCHINGWIZARD-021"] },
     async ({ apiAs }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-02
-      test.fail();
       const file = docxOfExactSize(MAX_UPLOAD_BYTES);
       expect(file.buffer.length).toBe(MAX_UPLOAD_BYTES);
 
@@ -243,8 +241,6 @@ test.describe("POST /documents — save for reuse", () => {
     "lỗi validate tiêu đề quá dài trả message tiếng Việt khi request tiếng Việt",
     { tag: ["@TC-CVJDMATCHINGWIZARD-032"] },
     async ({ apiAs }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-03
-      test.fail();
       const res = await apiAs(user)
         .lang("vi")
         .documents.create({ kind: "JD", save: true, title: "T".repeat(MAX_TITLE + 1), sourceText: "JD" });
