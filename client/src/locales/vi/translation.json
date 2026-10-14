@@ -110,7 +110,8 @@
   "review": {
     "hint": "Dữ liệu có thể chỉnh sửa. Sửa lỗi trước khi chạy so khớp.",
     "loading": "Đang tải tài liệu…",
-    "missingDocs": "Chưa chọn tài liệu. Quay lại để thêm CV và JD."
+    "missingDocs": "Chưa chọn tài liệu. Quay lại để thêm CV và JD.",
+    "loadFailed": "Không tải được tài liệu. Quay lại và nạp lại tài liệu."
   },
   "input": {
     "tab": {

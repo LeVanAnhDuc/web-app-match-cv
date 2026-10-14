@@ -93,6 +93,7 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | Key | EN | VI |
 |---|---|---|
 | review.missingDocs | No document selected. Go back to add a CV and a JD. | Chưa chọn tài liệu. Quay lại để thêm CV và JD. |
+| review.loadFailed | Could not load the document. Go back and add it again. | Không tải được tài liệu. Quay lại và nạp lại tài liệu. |
 | result.disclaimer | AI-generated. CV/JD content is sent to OpenRouter for analysis — verify results independently. | Nội dung AI tạo. CV/JD được gửi tới OpenRouter để phân tích — hãy tự kiểm chứng kết quả. |
 
 ## 9. Auth, khách, gate (ducker-id-sign-in)

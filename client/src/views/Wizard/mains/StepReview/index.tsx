@@ -53,15 +53,24 @@ const StepReview = () => {
   }
 
   // Guard: reaching step 3 without a JD/CV id → useDocument(null) is disabled
-  // and never resolves, so offer a way back instead of hanging on the spinner.
-  if (!jdDocId || !cvDocId) {
+  // and never resolves; a document that failed to load (e.g. 404 once a guest
+  // document expired) never resolves either. Offer a way back instead of
+  // hanging on the spinner.
+  const blockedMessage =
+    !jdDocId || !cvDocId
+      ? t("review.missingDocs")
+      : jdQuery.isError || cvQuery.isError
+        ? t("review.loadFailed")
+        : null;
+
+  if (blockedMessage !== null || !jdDocId || !cvDocId) {
     return (
       <SectionCard
         className="lg:h-full"
         bodyClassName="flex h-full flex-col items-center justify-center gap-4 p-8 md:p-16"
       >
         <p role="alert" className="font-medium text-muted">
-          {t("review.missingDocs")}
+          {blockedMessage}
         </p>
         <Button
           size="large"

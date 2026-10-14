@@ -110,7 +110,8 @@
   "review": {
     "hint": "Data is editable. Fix any mistakes before running the match.",
     "loading": "Loading document…",
-    "missingDocs": "No document selected. Go back to add a CV and a JD."
+    "missingDocs": "No document selected. Go back to add a CV and a JD.",
+    "loadFailed": "Could not load the document. Go back and add it again."
   },
   "input": {
     "tab": {

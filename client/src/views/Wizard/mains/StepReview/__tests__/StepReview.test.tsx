@@ -252,4 +252,28 @@ describe("StepReview", () => {
     await waitFor(() => expect(useWizardStore.getState().runId).toBe("run-g"));
     expect(useWizardStore.getState().pendingCredentialIds).toEqual([null]);
   });
+
+  it("a document that fails to load shows an error with a way back, not an endless spinner", async () => {
+    vi.spyOn(documentHooks, "useDocument").mockImplementation(
+      (id) =>
+        (id === "jd-1"
+          ? { data: undefined, isLoading: false, isError: true }
+          : { data: cvDto, isLoading: false, isError: false }) as ReturnType<
+          typeof documentHooks.useDocument
+        >
+    );
+    vi.spyOn(matchHooks, "useCreateMatchRun").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
+    } as unknown as ReturnType<typeof matchHooks.useCreateMatchRun>);
+
+    renderStep();
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Could not load the document. Go back and add it again."
+    );
+    expect(screen.queryByText("Loading document…")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /back/i }));
+    await waitFor(() => expect(useWizardStore.getState().step).toBe(2));
+  });
 });
