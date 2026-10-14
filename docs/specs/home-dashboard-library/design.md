@@ -56,7 +56,7 @@ client (TanStack Start)                     server (NestJS)                Postg
 | `DELETE` | `/documents/:id` | Load per-user (404). **Nếu tồn tại `MatchResult` tham chiếu (`cvDocumentId == id \|\| jdDocumentId == id`) → 409** `documents.errors.inUseByMatch`. Else xóa → 204. (Giữ lịch sử match nguyên vẹn, không cascade.) |
 | `GET` | `/match` | List `MatchResult` của user, newest-first. Trả `MatchSummaryDto[]`: `{ id, cvTitle, jdTitle, overallScore, createdAt }` (join lấy title CV/JD). |
 
-Không có endpoint `/stats` riêng — Home tính counts/avg/max client-side từ `GET /documents?kind=CV&saved=true`, `?kind=JD`, `GET /match`.
+Không có endpoint `/stats` riêng — Home tính counts/avg/max client-side từ `GET /documents?kind=CV&saved=true`, `?kind=JD`, `GET /match` (lịch sử chỉ gồm `MatchResult` `status=succeeded`; kết quả provider lỗi vẫn đọc được qua `GET /match/:id` và `GET /match/runs/:id`).
 
 ### 3.3 API Contract (DTO) — CHỐT
 - `MatchSummaryDto`: `{ id: string, cvTitle: string, jdTitle: string, overallScore: number, createdAt: string }`.
@@ -80,7 +80,7 @@ Header Content: tên trang + user stub (placeholder). **Không có toggle EN/VI*
 
 ### 4.2 Home `/` (chỉ thống kê + CTA)
 1. **Hero CTA** (nổi bật nhất): card lớn primary → nút "Bắt đầu Match" → `/wizard`.
-2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query. Lượt match / cao nhất / TB **chỉ tính `MatchResult` `status=succeeded`**, đếm theo từng `MatchResult` (chạy 3 provider = 3); kết quả `failed` (`overallScore=0`) không được kéo TB xuống (chốt 2026-10-14 khi viết automation test — code hiện còn tính cả `failed`, ghi defect ở `automation-testing/src/defects/home-dashboard-library.md`).
+2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query. Lượt match / cao nhất / TB **chỉ tính `MatchResult` `status=succeeded`**, đếm theo từng `MatchResult` (chạy 3 provider = 3); kết quả `failed` (`overallScore=0`) không được kéo TB xuống (chốt 2026-10-14 khi viết automation test; từ 2026-10-15 `GET /match` chỉ trả kết quả `succeeded` nên bảng recent cũng không có dòng `failed` — BUG-HOMEDASHBOARDLIBRARY-01).
 3. **Lịch sử match gần đây**: 5 dòng `succeeded` mới nhất (chốt 2026-10-14, cùng defect trên) (cvTitle, jdTitle, `%` tag màu theo band, ngày format theo locale). Click → mở lại kết quả (step 4 với `matchId`). "Xem tất cả" khi >5.
 4. **Empty states**: chưa match → empty-state + nút "Match ngay"; stat = 0 vẫn hiện số 0.
 

@@ -98,8 +98,6 @@ test(
   "kết quả provider lỗi không được tính vào thống kê và bảng",
   { tag: ["@TC-HOMEDASHBOARDLIBRARY-034"] },
   async ({ homeData, homeSession, homeDashboardPage: home }) => {
-    // BUG: defects/home-dashboard-library.md#bug-homedashboardlibrary-01
-    test.fail();
     const user = await homeData.signedIn();
     const pair = await homeData.pair(user.userId, "Failed");
     await homeData.result(user.userId, { ...pair, score: 80, createdAt: new Date(Date.now() - 3 * 60_000) });

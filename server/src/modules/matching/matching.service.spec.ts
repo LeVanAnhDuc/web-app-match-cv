@@ -527,4 +527,20 @@ describe("MatchingService", () => {
       ]).toContain(data.errorCode);
     });
   });
+
+  describe("list()", () => {
+    it("returns only succeeded results — a failed provider row is not a match", async () => {
+      const { service, prisma } = makeOrchestrator();
+      const findMany = jest.fn().mockResolvedValue([]);
+      Object.assign(prisma.matchResult, { findMany });
+
+      await service.list();
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: USER_ID, status: "succeeded" }
+        })
+      );
+    });
+  });
 });

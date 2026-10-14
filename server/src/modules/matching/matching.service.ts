@@ -327,10 +327,15 @@ export class MatchingService {
     return MatchResultDto.fromEntity(found);
   }
 
+  /**
+   * History of real scorings only: a provider failure is persisted as a
+   * `failed` row with overallScore 0 (NFR-REL-04), which is not a match and
+   * must not inflate the count or drag the average (REQ-HOMEDASHBOARDLIBRARY-19).
+   */
   async list(): Promise<MatchSummaryDto[]> {
     const userId = this.currentUser.getUserId();
     const rows = await this.prisma.matchResult.findMany({
-      where: { userId },
+      where: { userId, status: MatchStatus.succeeded },
       orderBy: { createdAt: "desc" },
       include: {
         cvDocument: { select: { title: true } },
