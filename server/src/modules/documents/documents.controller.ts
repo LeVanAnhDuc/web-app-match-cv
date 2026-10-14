@@ -26,6 +26,7 @@ import {
   ApiTags
 } from "@nestjs/swagger";
 import { AllowGuest } from "../auth/decorators";
+import { contentDisposition } from "./content-disposition";
 import { CreateDocumentDto } from "./dto/create-document.dto";
 import { DocumentDto } from "./dto/document.dto";
 import { DocumentSummaryDto } from "./dto/document-summary.dto";
@@ -129,11 +130,16 @@ export class DocumentsController {
     @Query("download") download: string | undefined,
     @Res({ passthrough: true }) res: import("express").Response
   ): Promise<StreamableFile> {
-    const { buffer, mime, filename } = await this.documentsService.getFile(id);
+    const { buffer, mime, filename, utf8Filename } =
+      await this.documentsService.getFile(id);
     res.setHeader("Content-Type", mime);
     res.setHeader(
       "Content-Disposition",
-      `${download === "1" ? "attachment" : "inline"}; filename="${filename}"`
+      contentDisposition(
+        download === "1" ? "attachment" : "inline",
+        filename,
+        utf8Filename
+      )
     );
     return new StreamableFile(buffer);
   }

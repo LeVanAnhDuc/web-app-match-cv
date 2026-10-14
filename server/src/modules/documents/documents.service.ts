@@ -22,6 +22,9 @@ import { tDoc } from "./i18n-messages";
 import { parseFile } from "./parsing";
 
 const TITLE_FALLBACK_LENGTH = 80;
+const FILENAME_MAX_LENGTH = 100;
+// Only non-ASCII letters need filename*; ASCII punctuation is fine as "_".
+const NON_ASCII = /[^\p{ASCII}]/u;
 
 function deriveTitle(rawText: string): string {
   const firstLine = rawText
@@ -91,9 +94,12 @@ export class DocumentsService {
     return DocumentDto.fromEntity(created);
   }
 
-  async getFile(
-    id: string
-  ): Promise<{ buffer: Buffer; mime: string; filename: string }> {
+  async getFile(id: string): Promise<{
+    buffer: Buffer;
+    mime: string;
+    filename: string;
+    utf8Filename: string | null;
+  }> {
     const userId = this.currentUser.getUserId();
     const doc = await this.prisma.document.findFirst({
       where: { id, userId }
@@ -108,11 +114,17 @@ export class DocumentsService {
     }
     const ext = doc.fileMime.includes("pdf") ? "pdf" : "docx";
     const safeTitle =
-      doc.title.replace(/[^\w.-]+/g, "_").slice(0, 100) || "document";
+      doc.title.replace(/[^\w.-]+/g, "_").slice(0, FILENAME_MAX_LENGTH) ||
+      "document";
+    const utf8Title = Array.from(doc.title.trim())
+      .slice(0, FILENAME_MAX_LENGTH)
+      .join("");
     return {
       buffer: Buffer.from(doc.fileData),
       mime: doc.fileMime,
-      filename: `${safeTitle}.${ext}`
+      filename: `${safeTitle}.${ext}`,
+      utf8Filename:
+        utf8Title && NON_ASCII.test(utf8Title) ? `${utf8Title}.${ext}` : null
     };
   }
 

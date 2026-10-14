@@ -233,3 +233,41 @@ describe("DocumentsService.remove", () => {
     expect(documentDelete).not.toHaveBeenCalled();
   });
 });
+
+describe("DocumentsService.getFile", () => {
+  function buildFile(title: string) {
+    const prisma = {
+      document: {
+        findFirst: jest.fn(() =>
+          Promise.resolve(
+            doc({
+              title,
+              fileData: Buffer.from("%PDF"),
+              fileMime: "application/pdf"
+            })
+          )
+        )
+      }
+    } as unknown as PrismaService;
+    const currentUser: CurrentUserService = {
+      getUserId: () => USER_ID,
+      isGuest: () => false,
+      peek: () => undefined
+    };
+    return new DocumentsService(prisma, currentUser);
+  }
+
+  it("keeps the original name next to the ASCII fallback for a non-ASCII title", async () => {
+    const file = await buildFile("Sơ yếu Lý lịch").getFile("cv-v2");
+
+    expect(file.filename).toBe("S_y_u_L_l_ch.pdf");
+    expect(file.utf8Filename).toBe("Sơ yếu Lý lịch.pdf");
+  });
+
+  it("has no UTF-8 name when the title is plain ASCII", async () => {
+    const file = await buildFile('evil";x=1\r\nSet-Cookie: a').getFile("cv-v2");
+
+    expect(file.filename).toBe("evil_x_1_Set-Cookie_a.pdf");
+    expect(file.utf8Filename).toBeNull();
+  });
+});

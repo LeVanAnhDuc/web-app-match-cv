@@ -136,8 +136,6 @@ test.describe("GET /documents/:id/file", { tag: ["@creates-data"] }, () => {
   });
 
   test("title tiếng Việt có dấu được giữ nguyên qua filename* UTF-8", { tag: ["@TC-DOCUMENTS-035"] }, async ({ docOwner }) => {
-    // BUG: defects/documents.md#bug-documents-05
-    test.fail();
     const doc = await docOwner.upload("CV", FILES.pdf, { title: VI_TITLE });
 
     const res = await docOwner.api.documents.file(doc.id, { download: true });
