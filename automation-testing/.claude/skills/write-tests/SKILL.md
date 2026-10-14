@@ -20,6 +20,22 @@ Output (đường dẫn tính từ `src/`):
 | `tests/e2e/<module>/*.e2e.ts`, `tests/api/<module>/*.api.ts` | spec theo chủ đề |
 | `defects/<module>.md` | `BUG-<MODULE>-NN` nếu có bug |
 
+## Gọi từ flow phát triển feature (hai pha)
+
+Khi một feature mới đang được làm theo flow của project (vd skill `feature-flow`), skill này chạy **hai lần**:
+
+| Pha | Lúc nào | Bước | Nguồn requirement |
+|---|---|---|---|
+| **A — test case** | ngay sau khi tài liệu thiết kế của feature được duyệt, **trước** khi build | 1, 2, 3, 4, 6 | tài liệu feature vừa duyệt (design + FR/US mới) là nguồn chính; docs/code khác theo `requirement-sources.md` |
+| **B — tự động hoá** | sau khi build xong và đã xem app chạy thật | 5, 7, 8, 9 | chỉ `requirements/<module>.md` + `decisions/<module>.md` đã viết ở pha A |
+
+Ở pha A, thiết kế vừa duyệt đã là quyết định của user: **không hỏi lại** những gì nó đã chốt, chỉ hỏi chỗ còn mơ hồ cho việc
+kiểm thử (biên, lỗi, quyền, trạng thái). Test case viết cho hành vi **sẽ** có, nên chưa có `Automated:` — để `manual — chờ
+pha B` rồi pha B điền đường dẫn spec. Cổng duyệt test case ở bước 6 là cổng duy nhất của pha A.
+Pha A chỉ viết **tài liệu**: không page object, không locator, không spec e2e/API, không client endpoint — chưa có giao
+diện, element, endpoint hay response thật để nhìn. Mọi thứ đó viết ở pha B, sau khi planner quan sát app đang chạy.
+Gọi đứng riêng (module đã ship, không qua flow feature) → chạy liền bước 1→9 như dưới.
+
 ## Bước 1: Tự đọc nguồn requirement
 
 Nơi đọc requirement được chốt sẵn trong `src/docs/requirement-sources.md` (user đã xác nhận lúc scaffold). Đọc file đó
@@ -65,11 +81,15 @@ Thứ tự ưu tiên: mâu thuẫn giữa nguồn, rồi hành vi khi lỗi/biê
 
 **Từ bước 5 trở đi chỉ đọc hai file này**, không đọc lại nguồn gốc.
 
-## Bước 5: Khám phá app
+## Bước 5: Khám phá app (MCP, chỉ quan sát)
 
-Gọi subagent `playwright-test-planner` với seed `src/tests/seed.spec.ts`. Giao cho nó: khám phá các màn hình/endpoint mà
-requirement nhắc tới, báo lại selector, thông điệp, điều hướng và request mạng thật.
-Bỏ qua test plan của planner, chỉ dùng phần quan sát được. Test case do bước 6 viết theo quy ước repo.
+App phải đang chạy thật. Gọi subagent `playwright-test-planner` với seed `src/tests/seed.spec.ts`: nó lái trình duyệt qua
+Playwright MCP, khám phá các màn hình/endpoint mà requirement nhắc tới, báo lại selector, thông điệp, điều hướng và request
+mạng thật. Bỏ qua test plan của planner, chỉ dùng phần quan sát được; test case do bước 6 viết theo quy ước repo.
+
+Thứ tự vai trò từ đây: **planner quan sát (MCP)** → bước 7 viết page object + spec (`playwright-test-generator` hoặc tự
+viết) → bước 8 **chạy test để verify** → `playwright-test-healer` sửa script khi đỏ → bước 9 phân loại bug. Quan sát bằng
+MCP không thay cho việc chạy test: chỉ kết quả `test` mới là bằng chứng.
 
 ## Bước 6: `src/test-cases/<module>.md`
 

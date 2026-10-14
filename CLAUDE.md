@@ -26,6 +26,11 @@ From `client/`:
 
 From `automation-testing/` (own `package.json` + `.env`; see its `README.md` and `CLAUDE.md`):
 
+Regression tests: automation-testing/ (/write-tests)
+
+That line switches on `feature-flow` §2b (test cases before code) and §5b (verify by running the suite).
+
+
 - `pnpm install` then `cp .env.example .env` · first run `pnpm exec playwright install chromium`
 - `pnpm test` — Playwright e2e (desktop / tablet / mobile / guest) + API tests against the running pair (`:5200` + `:5300`); seeds and wipes rows in the dev DB at `E2E_DATABASE_URL`
 - `/write-tests <module>` — write or normalise a feature's e2e + API coverage there
