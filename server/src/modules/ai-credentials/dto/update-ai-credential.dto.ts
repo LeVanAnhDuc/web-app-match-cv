@@ -1,11 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsOptional, IsString, Length, Matches } from "class-validator";
 import {
   API_KEY_MAX_LENGTH,
   API_KEY_MIN_LENGTH,
   LABEL_MAX_LENGTH,
   MODEL_MAX_LENGTH,
-  NO_WHITESPACE
+  NO_WHITESPACE,
+  trimIfString
 } from "./create-ai-credential.dto";
 
 /**
@@ -16,6 +18,7 @@ import {
 export class UpdateAiCredentialDto {
   @ApiProperty({ required: false })
   @IsOptional()
+  @Transform(trimIfString)
   @IsString()
   @Length(1, LABEL_MAX_LENGTH)
   label?: string;
