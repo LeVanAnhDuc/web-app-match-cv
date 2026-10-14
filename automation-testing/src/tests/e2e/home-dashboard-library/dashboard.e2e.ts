@@ -150,8 +150,6 @@ test(
   "GET /match lỗi thì trang chủ báo lỗi thay vì \"No matches yet\"",
   { tag: ["@TC-HOMEDASHBOARDLIBRARY-036"] },
   async ({ homeData, homeSession, homeDashboardPage: home, network }) => {
-    // BUG: defects/home-dashboard-library.md#bug-homedashboardlibrary-02
-    test.fail();
     const user = await homeData.signedIn();
     const pair = await homeData.pair(user.userId, "MatchDown");
     await homeData.result(user.userId, pair);
@@ -172,8 +170,6 @@ test(
   "GET /documents lỗi thì thẻ thống kê báo lỗi thay vì số 0",
   { tag: ["@TC-HOMEDASHBOARDLIBRARY-037"] },
   async ({ homeData, homeSession, homeDashboardPage: home, network }) => {
-    // BUG: defects/home-dashboard-library.md#bug-homedashboardlibrary-02
-    test.fail();
     const user = await homeData.signedIn();
     await homeData.document(user.userId, "CV");
     await homeData.document(user.userId, "CV");

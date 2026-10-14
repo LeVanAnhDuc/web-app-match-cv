@@ -31,6 +31,10 @@
       "empty": "Chưa có lượt ghép nào",
       "emptyCta": "Ghép ngay"
     },
+    "error": {
+      "documents": "Không tải được tài liệu đã lưu.",
+      "matches": "Không tải được các lượt ghép gần đây."
+    },
     "cols": {
       "cv": "CV",
       "jd": "JD",

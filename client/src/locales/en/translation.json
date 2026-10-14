@@ -31,6 +31,10 @@
       "empty": "No matches yet",
       "emptyCta": "Match now"
     },
+    "error": {
+      "documents": "Could not load your saved documents.",
+      "matches": "Could not load your recent matches."
+    },
     "cols": {
       "cv": "CV",
       "jd": "JD",

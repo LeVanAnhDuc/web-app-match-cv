@@ -2,7 +2,7 @@
 
 > **Trả lời:** Câu chữ trên UI viết thế nào, EN và VI?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-10-14 · commit —
+> **Cập nhật:** 2026-10-15 · commit —
 > **Cập nhật khi:** thêm màn hình mới · đổi tone · thêm chuỗi i18n
 
 > Rút từ mock `cv-jd-matching-wizard` (user duyệt 2026-07-24). Token nằm ở
@@ -69,6 +69,8 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | err.fileSize | File exceeds the {max} limit | File vượt quá giới hạn {max} |
 | err.empty | Please provide a {kind} to continue | Vui lòng nhập {kind} để tiếp tục |
 | err.parseFailed | We couldn't read this file. Try another. | Không đọc được file này. Thử file khác. |
+| home.error.documents | Could not load your saved documents. | Không tải được tài liệu đã lưu. |
+| home.error.matches | Could not load your recent matches. | Không tải được các lượt ghép gần đây. |
 
 ## 7. Wizard card copy (step 1–2) — thêm ở Plan 1
 
