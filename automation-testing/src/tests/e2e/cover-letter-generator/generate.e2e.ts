@@ -61,8 +61,6 @@ test.describe("cover letter — generate", () => {
     "while generating the draft area is busy, and a double click sends one request",
     { tag: ["@TC-COVERLETTERGENERATOR-041"] },
     async ({ coverLetterPage, coverLetterSeed, coverLetterAi }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-05
-      test.fail();
       const match = await coverLetterSeed.match();
       await coverLetterAi.stubGenerate({ delayMs: 3_000 });
       await coverLetterPage.openRun(match.runId);
@@ -103,8 +101,6 @@ test.describe("cover letter — generate", () => {
     "try again regenerates with the failed draft's own options",
     { tag: ["@TC-COVERLETTERGENERATOR-043"] },
     async ({ coverLetterPage, coverLetterSeed, coverLetterAi }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-04
-      test.fail();
       const match = await coverLetterSeed.match();
       await coverLetterSeed.letter(match, {
         tone: "friendly",

@@ -109,8 +109,6 @@ test.describe("cover letter — options and run with", () => {
     "the privacy note on the system key names OpenRouter",
     { tag: ["@TC-COVERLETTERGENERATOR-038"] },
     async ({ coverLetterPage, coverLetterSeed }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-01
-      test.fail();
       const match = await coverLetterSeed.match();
       await coverLetterPage.openRun(match.runId);
       const modal = await coverLetterPage.openLetterModal();

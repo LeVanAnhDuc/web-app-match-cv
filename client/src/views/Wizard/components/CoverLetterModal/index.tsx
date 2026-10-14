@@ -20,7 +20,7 @@ import {
   Trash2,
   TriangleAlert
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAiCredentials, useProviders } from "#/hooks/useAiCredentials";
 import {
@@ -67,7 +67,7 @@ const CoverLetterModal = ({
   defaultCredentialId: string | null;
   onClose: () => void;
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lettersQuery = useCoverLetters(matchResultId, open);
   const credentialsQuery = useAiCredentials();
   const providersQuery = useProviders();
@@ -84,6 +84,9 @@ const CoverLetterModal = ({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
+  // `isPending` only flips on the next render, so a double click would slip a
+  // second paid generate through; the ref closes that window synchronously.
+  const generatingRef = useRef(false);
 
   const letters = lettersQuery.data ?? [];
   const active = letters.find((letter) => letter.id === activeId) ?? null;
@@ -112,9 +115,16 @@ const CoverLetterModal = ({
   const selectedCredential = credentials.find(
     (credential) => credential.id === credentialValue
   );
-  const privacyTarget = selectedCredential
-    ? providerLabel(selectedCredential.provider)
-    : t("credentials.systemKey");
+  // NFR-DATA-05: name who receives the text — the system key means OpenRouter.
+  const privacyNote = selectedCredential
+    ? t("credentials.runWith.privacyList", {
+        providers: providerLabel(selectedCredential.provider)
+      })
+    : t("credentials.runWith.privacySystem");
+  const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
+    dateStyle: "medium",
+    timeStyle: "short"
+  });
 
   const describe = (letter: CoverLetterDto) =>
     [
@@ -125,14 +135,22 @@ const CoverLetterModal = ({
 
   // mutateAsync + try/catch: the onSuccess/onError callbacks passed to
   // `mutate` do not fire reliably in this codebase.
-  const runGenerate = async () => {
+  // Try again passes the failed draft's own options; Generate uses the
+  // currently selected ones.
+  const runGenerate = async (
+    options: {
+      tone: CoverLetterTone;
+      length: CoverLetterLength;
+      language: CoverLetterLanguage;
+    } = { tone, length, language }
+  ) => {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
     setActionError(null);
     try {
       const created = await generateMutation.mutateAsync({
         matchResultId,
-        tone,
-        length,
-        language,
+        ...options,
         // Absent (not null) means "the system key" in the API contract.
         credentialId:
           credentialValue === SYSTEM_KEY_VALUE ? undefined : credentialValue
@@ -141,6 +159,8 @@ const CoverLetterModal = ({
       setDraft(created.content);
     } catch {
       setActionError(t("coverLetter.err.generate"));
+    } finally {
+      generatingRef.current = false;
     }
   };
 
@@ -284,7 +304,7 @@ const CoverLetterModal = ({
         </div>
         <p className="flex items-start gap-2 text-sm text-muted">
           <ShieldCheck size={14} className="mt-0.5 shrink-0" />
-          {t("credentials.runWith.privacyList", { providers: privacyTarget })}
+          {privacyNote}
         </p>
         {actionError && (
           <Alert type="error" showIcon role="alert" message={actionError} />
@@ -301,7 +321,13 @@ const CoverLetterModal = ({
                 <Button
                   size="small"
                   icon={<RotateCcw size={14} />}
-                  onClick={() => void runGenerate()}
+                  onClick={() =>
+                    void runGenerate({
+                      tone: active.tone,
+                      length: active.length,
+                      language: active.language
+                    })
+                  }
                 >
                   {t("action.tryAgain")}
                 </Button>
@@ -413,6 +439,12 @@ const CoverLetterModal = ({
                     <span className="text-sm text-body">
                       {describe(letter)}
                     </span>
+                    <time
+                      className="text-xs text-muted"
+                      dateTime={letter.createdAt}
+                    >
+                      {dateFormatter.format(new Date(letter.createdAt))}
+                    </time>
                     {letter.edited && (
                       <Tag className="!me-0">{t("coverLetter.editedTag")}</Tag>
                     )}
