@@ -59,8 +59,6 @@ test.describe("cover letters — edit and delete", () => {
     "whitespace-only content is rejected with 400",
     { tag: ["@TC-COVERLETTERGENERATOR-017"] },
     async ({ apiAs, coverLetterDb }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-03
-      test.fail();
       const id = await coverLetterDb.letter(owner.userId, match.matchId);
 
       for (const blank of ["   ", "\n\n", "\t "]) {
