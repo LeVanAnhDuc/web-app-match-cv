@@ -6,6 +6,9 @@ import type { AuthStatus, AuthUserDto, GuestQuotaDto } from "#/types/Auth";
 /**
  * GET /auth/me — anonymous | guest | user, plus the guest quota. A failed
  * request degrades to anonymous so the app shows the guest view, not a skeleton.
+ * A refetch of a query without data resets it to pending, so "has failed once"
+ * (errorUpdatedAt) keeps it anonymous, and the guest view's own observers must
+ * not retry it on mount — that remount loop is what left /cv on a skeleton.
  */
 export function useAuth(): {
   status: AuthStatus | "loading";
@@ -13,14 +16,15 @@ export function useAuth(): {
   guestQuota: GuestQuotaDto | null;
   isUser: boolean;
 } {
-  const { data, isError } = useQuery({
+  const { data, errorUpdatedAt } = useQuery({
     queryKey: AUTH_QUERY_KEY,
     queryFn: fetchMe,
-    staleTime: 30_000
+    staleTime: 30_000,
+    retryOnMount: false
   });
 
   return {
-    status: data?.status ?? (isError ? "anonymous" : "loading"),
+    status: data?.status ?? (errorUpdatedAt > 0 ? "anonymous" : "loading"),
     user: data?.user ?? null,
     guestQuota: data?.guestQuota ?? null,
     isUser: data?.status === "user"
