@@ -486,6 +486,7 @@
     "err": {
       "notFound": "That CV doesn't exist, or it isn't yours.",
       "noParent": "This CV is not marked as a new version of another CV, so there is nothing to compare it with.",
+      "notCv": "Only a CV can be compared with a previous version — this is a job description.",
       "jdNotComparable": "Neither version has been matched against that job description.",
       "failed": "Couldn't load the comparison. Please try again."
     }

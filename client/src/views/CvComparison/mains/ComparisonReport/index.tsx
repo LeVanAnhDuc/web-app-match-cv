@@ -6,6 +6,7 @@ import SectionCard from "#/components/SectionCard";
 import { useComparison } from "#/hooks/useComparison";
 import { ApiError } from "#/libs/api";
 import { useWizardStore } from "#/stores";
+import type { ComparisonSide, CvComparisonDto } from "#/types/Comparison";
 import GapDiffList from "../../components/GapDiffList";
 import ScoreDelta from "../../components/ScoreDelta";
 
@@ -37,7 +38,7 @@ const ComparisonReport = ({
     return (
       <SectionCard>
         <p role="alert" className="text-center font-medium text-red-600">
-          {errorMessage(query.error, Boolean(jdDocumentId), t)}
+          {errorMessage(query.error, t)}
         </p>
         <div className="mt-4 text-center">
           <Button onClick={() => void navigate({ to: "/cv" })}>
@@ -174,8 +175,8 @@ const ComparisonReport = ({
                 showIcon
                 message={t("compare.modelWarning.title")}
                 description={t("compare.modelWarning.hint", {
-                  base: data.baseResult?.chatModel ?? "",
-                  revision: data.revisionResult?.chatModel ?? ""
+                  base: differingModels(data.baseResult, data),
+                  revision: differingModels(data.revisionResult, data)
                 })}
               />
             )}
@@ -198,19 +199,38 @@ const ComparisonReport = ({
   );
 };
 
-function errorMessage(
-  error: unknown,
-  hadPinnedJd: boolean,
-  t: (key: string) => string
+/**
+ * Only the models that actually differ: semantic scores from two embedding
+ * models live in different vector spaces, so naming the shared chat model
+ * twice ("X and X") would hide the real cause of the warning.
+ */
+function differingModels(
+  side: ComparisonSide | null,
+  data: CvComparisonDto
 ): string {
+  if (!side) return "";
+  const models: string[] = [];
+  if (!data.sameChatModel) models.push(side.chatModel);
+  if (!data.sameEmbedModel) models.push(side.embedModel);
+  return models.join(" + ");
+}
+
+// Keyed on the server's code, never on the URL: a pinned ?jd does not mean the
+// JD is what the server rejected.
+const BAD_REQUEST_COPY: Record<string, string> = {
+  NO_PARENT: "compare.err.noParent",
+  NOT_CV: "compare.err.notCv",
+  JD_NOT_COMPARABLE: "compare.err.jdNotComparable"
+};
+
+function errorMessage(error: unknown, t: (key: string) => string): string {
   if (!(error instanceof ApiError)) return t("compare.err.failed");
   if (error.status === 404) return t("compare.err.notFound");
-  if (error.status === 400) {
-    return hadPinnedJd
-      ? t("compare.err.jdNotComparable")
-      : t("compare.err.noParent");
-  }
-  return t("compare.err.failed");
+  const key =
+    error.status === 400 && error.code
+      ? BAD_REQUEST_COPY[error.code]
+      : undefined;
+  return t(key ?? "compare.err.failed");
 }
 
 export default ComparisonReport;

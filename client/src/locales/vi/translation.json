@@ -486,6 +486,7 @@
     "err": {
       "notFound": "CV không tồn tại hoặc không thuộc về bạn.",
       "noParent": "CV này chưa được khai là phiên bản mới của CV nào nên không có gì để so sánh.",
+      "notCv": "Chỉ CV mới so sánh được với phiên bản trước — đây là một JD.",
       "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
       "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
     }

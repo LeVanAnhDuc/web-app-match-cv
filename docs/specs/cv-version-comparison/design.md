@@ -315,14 +315,14 @@ src/locales/{en,vi}/translation.json           SỬA
 ### 5.1 Luồng trang `/compare/$documentId?jd=<uuid>`
 
 1. `useComparison(documentId, jd)` → `GET /comparisons/:id`.
-2. Lỗi 400 `noParent` → `Alert` nói rõ *"CV này chưa được khai là bản mới của CV nào"* + link về `/cv`. Lỗi 404 → thông báo riêng. Lỗi khác → error UI, không trang trắng.
+2. Lỗi 400 chọn câu theo `code` của server, **không** theo việc URL có `?jd`: `NO_PARENT` → `compare.err.noParent` *"CV này chưa được khai là bản mới của CV nào"*; `NOT_CV` → `compare.err.notCv`; `JD_NOT_COMPARABLE` → `compare.err.jdNotComparable`. Mọi trường hợp có link về `/cv`. Lỗi 404 → thông báo riêng. Lỗi khác (kể cả 400 không có `code` đã biết) → `compare.err.failed`, không trang trắng.
 3. Header: **`Version 1 → Version 2`** kèm tên hai bản (`<tên bản cũ> → <tên bản mới>`), **không** có ngày tạo (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test — bản gốc đòi ngày tạo, code không hiện). Đây là câu trả lời cho *"tôi đang so cái gì với cái gì"*, và nó không thể suy được từ hai cái tên do user tự đặt.
 4. `Select` chọn JD. Đổi lựa chọn → `navigate({ search: { jd } })` → **URL là nguồn chân lý**, refresh và share link giữ nguyên JD đang xem (row 7 của matrix).
 5. `delta !== null` → `ScoreDelta`: 3 khối `Overall / Semantic / Keyword`, mỗi khối hiện **điểm mới** (`%`) và **delta có dấu** — không hiện điểm cũ: `+14` xanh + icon `TrendingUp` / `-6` (gạch nối ASCII, không phải U+2212) đỏ + icon `TrendingDown` / `0` xám + icon `Minus` (gạch ngang, không phải mũi tên), **không** dấu `+`; mỗi delta có nhãn `sr-only` cho screen reader (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test — bản gốc ghi "điểm cũ → điểm mới" và `−6` U+2212).
 6. `delta === null` → `Alert` + nút **"Match this version"** (§2). Không render khối số nào.
 7. `gapDiff` → 3 `GapDiffList`: **Closed** (green, `CircleCheck`), **Still open** (amber, `TriangleAlert`), **New** (red, `CirclePlus`). `persisted` hiện **cả hai câu**: câu cũ mờ hơn, câu mới đậm. Nhóm rỗng vẫn render với empty text (`"None"`) — rỗng là thông tin, không phải chỗ trống.
 8. Dòng caveat §3.5 #3 nằm dưới 3 nhóm.
-9. `sameEmbedModel === false` hoặc `sameChatModel === false` → `Alert type="warning"` nêu tên hai model.
+9. `sameEmbedModel === false` hoặc `sameChatModel === false` → `Alert type="warning"` nêu tên **các model thực sự khác nhau** của mỗi bên: chỉ khác chat → hai chat model; chỉ khác embedding → hai embedding model; khác cả hai → `chat + embedding` mỗi bên.
 
 ### 5.2 Điểm vào
 
