@@ -17,8 +17,6 @@ test.describe("step 4 — result", () => {
     "trong lúc chấm thẻ hiện skeleton có tiêu đề System key",
     { tag: ["@TC-CVJDMATCHINGWIZARD-051"] },
     async ({ wizardPage, network }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-07
-      test.fail();
       await network.stubJson(MATCH_URL, matchResultStub(), { method: "POST", status: 201, delayMs: 3_000 });
       await wizardPage.goto();
       await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));

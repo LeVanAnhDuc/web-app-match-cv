@@ -114,4 +114,16 @@ describe("SectionCard", () => {
     expect(extra?.className).toContain("flex-wrap");
     expect(extra?.className).not.toContain("shrink-0");
   });
+
+  it("forwards aria-busy to the card so a loading card is announced", () => {
+    const { container } = render(
+      <SectionCard title="T" aria-busy="true">
+        body
+      </SectionCard>
+    );
+
+    expect(
+      (container.firstElementChild as HTMLElement).getAttribute("aria-busy")
+    ).toBe("true");
+  });
 });

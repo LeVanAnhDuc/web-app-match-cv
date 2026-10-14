@@ -1,4 +1,4 @@
-import type { PropsWithChildren, ReactNode } from "react";
+import type { AriaAttributes, PropsWithChildren, ReactNode } from "react";
 
 const SectionCard = ({
   children,
@@ -10,7 +10,8 @@ const SectionCard = ({
   fill = false,
   stickyFooter = false,
   className = "",
-  bodyClassName = "p-4 md:p-6"
+  bodyClassName = "p-4 md:p-6",
+  "aria-busy": ariaBusy
 }: PropsWithChildren<{
   eyebrow?: ReactNode;
   title?: ReactNode;
@@ -21,8 +22,10 @@ const SectionCard = ({
   stickyFooter?: boolean;
   className?: string;
   bodyClassName?: string;
+  "aria-busy"?: AriaAttributes["aria-busy"];
 }>) => (
   <div
+    aria-busy={ariaBusy}
     className={`flex flex-col rounded-xl border border-line bg-surface shadow-sm ${
       fill ? "lg:h-full lg:overflow-hidden" : ""
     } ${className}`}
