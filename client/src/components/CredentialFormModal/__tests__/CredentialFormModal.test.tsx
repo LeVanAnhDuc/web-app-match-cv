@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { ConfigProvider } from "antd";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
@@ -66,7 +67,11 @@ function asMutation<TData, TVars>(
   >;
 }
 
-function setup(credential: AiCredentialDto | null, onSaved = vi.fn()) {
+function setup(
+  credential: AiCredentialDto | null,
+  onSaved = vi.fn(),
+  { motion = true } = {}
+) {
   vi.mocked(useProviders).mockReturnValue({
     data: providers,
     isLoading: false,
@@ -86,13 +91,17 @@ function setup(credential: AiCredentialDto | null, onSaved = vi.fn()) {
     asMutation<TestResultDto, string>(testSpy)
   );
 
+  // jsdom never ends CSS animations, so anything that waits for the dialog's
+  // open motion to finish needs motion switched off.
   render(
-    <CredentialFormModal
-      open
-      credential={credential}
-      onClose={vi.fn()}
-      onSaved={onSaved}
-    />
+    <ConfigProvider theme={{ token: { motion } }}>
+      <CredentialFormModal
+        open
+        credential={credential}
+        onClose={vi.fn()}
+        onSaved={onSaved}
+      />
+    </ConfigProvider>
   );
 }
 
@@ -144,6 +153,51 @@ describe("CredentialFormModal", () => {
 
     expect(await screen.findByText("No spaces allowed")).toBeInTheDocument();
     expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only name without calling the API", async () => {
+    setup(null);
+    typeInto("Name", "   ");
+    typeInto("API key", VALID_KEY);
+    save();
+
+    expect(
+      await screen.findByText("This field is required")
+    ).toBeInTheDocument();
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("names the 120-character limit when a model is too long", async () => {
+    setup(null);
+    fillValidForm();
+    typeInto("Chat model", "m".repeat(121));
+    save();
+
+    expect(
+      await screen.findByText("Use at most 120 characters")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Use at most 60 characters")).toBeNull();
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("sends a single create when Save is clicked again before it settles", async () => {
+    // The mocked mutation never flips isPending, exactly like the real one in
+    // the gap before React re-renders — the second click lands in that gap.
+    let resolveCreate: (value: AiCredentialDto) => void = () => undefined;
+    createSpy.mockReturnValue(
+      new Promise<AiCredentialDto>((resolve) => {
+        resolveCreate = resolve;
+      })
+    );
+    setup(null);
+    fillValidForm();
+    save();
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1));
+    save();
+    resolveCreate(existing);
+
+    await waitFor(() => expect(testSpy).toHaveBeenCalledTimes(1));
+    expect(createSpy).toHaveBeenCalledTimes(1);
   });
 
   it("requires a key when creating but not when editing", async () => {
@@ -219,6 +273,18 @@ describe("CredentialFormModal", () => {
     save();
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith(existing));
+  });
+
+  it("moves focus to the provider field when the add modal opens", async () => {
+    setup(null, vi.fn(), { motion: false });
+    await waitFor(() =>
+      expect(screen.getByLabelText("Provider")).toHaveFocus()
+    );
+  });
+
+  it("moves focus to the name field when the edit modal opens", async () => {
+    setup(existing, vi.fn(), { motion: false });
+    await waitFor(() => expect(screen.getByLabelText("Name")).toHaveFocus());
   });
 
   it("never pre-fills the key when editing", () => {

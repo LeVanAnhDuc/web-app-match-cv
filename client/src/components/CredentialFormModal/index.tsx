@@ -1,6 +1,7 @@
 import { Alert, Form, Input, Modal, Select, Spin } from "antd";
+import type { InputRef, RefSelectProps } from "antd";
 import { CheckCircle2, TriangleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "#/libs/api";
 import {
@@ -85,6 +86,12 @@ const CredentialFormModal = ({
   const [testResult, setTestResult] = useState<TestResultDto | null>(null);
   const [testing, setTesting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // `pending` only turns true after validateFields resolves and React
+  // re-renders, so a double click lands before the button is locked. The ref
+  // is set synchronously on the first click and held until the save settles.
+  const submittingRef = useRef(false);
+  const providerRef = useRef<RefSelectProps>(null);
+  const labelRef = useRef<InputRef>(null);
 
   const isEdit = credential !== null;
   const providers = providersQuery.data ?? [];
@@ -125,6 +132,16 @@ const CredentialFormModal = ({
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      await submit();
+    } finally {
+      submittingRef.current = false;
+    }
+  };
+
+  const submit = async () => {
     setSaveError(null);
     let values: FormValues;
     try {
@@ -186,6 +203,13 @@ const CredentialFormModal = ({
       okButtonProps={{ disabled: pending || testing }}
       onCancel={onClose}
       onOk={() => void handleSubmit()}
+      afterOpenChange={(visible) => {
+        // The dialog focuses its own wrapper on open; move focus to the first
+        // field a keyboard user can edit (Provider is locked when editing).
+        if (!visible) return;
+        if (isEdit) labelRef.current?.focus();
+        else providerRef.current?.focus();
+      }}
       destroyOnHidden
     >
       <Form form={form} layout="vertical" requiredMark={false}>
@@ -195,6 +219,7 @@ const CredentialFormModal = ({
           extra={isEdit ? t("credentials.form.providerLocked") : undefined}
         >
           <Select
+            ref={providerRef}
             disabled={isEdit}
             loading={providersQuery.isLoading}
             options={providers.map((p) => ({ value: p.id, label: p.label }))}
@@ -204,11 +229,18 @@ const CredentialFormModal = ({
           name="label"
           label={t("credentials.form.label")}
           rules={[
-            { required: true, message: t("credentials.form.required") },
+            {
+              required: true,
+              whitespace: true,
+              message: t("credentials.form.required")
+            },
             { max: LABEL_MAX, message: t("credentials.form.labelTooLong") }
           ]}
         >
-          <Input placeholder={t("credentials.form.labelPlaceholder")} />
+          <Input
+            ref={labelRef}
+            placeholder={t("credentials.form.labelPlaceholder")}
+          />
         </Form.Item>
         <Form.Item
           name="apiKey"
@@ -234,7 +266,7 @@ const CredentialFormModal = ({
           name="chatModel"
           label={t("credentials.form.chatModel")}
           rules={[
-            { max: MODEL_MAX, message: t("credentials.form.labelTooLong") },
+            { max: MODEL_MAX, message: t("credentials.form.modelTooLong") },
             {
               pattern: NO_WHITESPACE,
               message: t("credentials.form.noWhitespace")
@@ -248,7 +280,7 @@ const CredentialFormModal = ({
           label={t("credentials.form.embedModel")}
           extra={t("credentials.form.modelHint")}
           rules={[
-            { max: MODEL_MAX, message: t("credentials.form.labelTooLong") },
+            { max: MODEL_MAX, message: t("credentials.form.modelTooLong") },
             {
               pattern: NO_WHITESPACE,
               message: t("credentials.form.noWhitespace")

@@ -342,6 +342,7 @@
       "testing": "Testing connection…",
       "required": "This field is required",
       "labelTooLong": "Use at most 60 characters",
+      "modelTooLong": "Use at most 120 characters",
       "keyTooShort": "The key must be at least 20 characters",
       "keyTooLong": "The key must be at most 400 characters",
       "noWhitespace": "No spaces allowed"

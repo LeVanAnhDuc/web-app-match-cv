@@ -342,6 +342,7 @@
       "testing": "Đang kiểm tra kết nối…",
       "required": "Trường này bắt buộc",
       "labelTooLong": "Tối đa 60 ký tự",
+      "modelTooLong": "Tối đa 120 ký tự",
       "keyTooShort": "Key phải có ít nhất 20 ký tự",
       "keyTooLong": "Key tối đa 400 ký tự",
       "noWhitespace": "Không được chứa khoảng trắng"
