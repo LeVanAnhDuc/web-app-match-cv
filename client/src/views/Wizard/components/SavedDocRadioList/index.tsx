@@ -1,4 +1,5 @@
-import { SearchX } from "lucide-react";
+import { Alert, Button } from "antd";
+import { RotateCcw, SearchX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import type { DocumentKind } from "#/types/Documents";
@@ -13,10 +14,30 @@ const SavedDocRadioList = ({
   onSelect: (id: string) => void;
 }) => {
   const { t, i18n } = useTranslation();
-  const { data, isLoading } = useSavedDocuments(kind);
+  const { data, isLoading, isError, refetch } = useSavedDocuments(kind);
 
   if (isLoading) {
     return null;
+  }
+
+  if (isError) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        role="alert"
+        message={t("reuse.loadError")}
+        action={
+          <Button
+            size="small"
+            icon={<RotateCcw size={14} />}
+            onClick={() => void refetch()}
+          >
+            {t("action.tryAgain")}
+          </Button>
+        }
+      />
+    );
   }
 
   if (!data || data.length === 0) {

@@ -192,6 +192,7 @@
     "cv": {
       "title": "Or reuse a saved CV"
     },
+    "loadError": "Couldn't load your saved documents.",
     "empty": {
       "jd": "No saved job descriptions yet",
       "cv": "No saved CVs yet",

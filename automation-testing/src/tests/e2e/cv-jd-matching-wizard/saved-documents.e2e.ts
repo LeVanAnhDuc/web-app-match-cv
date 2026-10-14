@@ -127,8 +127,6 @@ test.describe("saved documents list", () => {
     "không tải được danh sách thì báo lỗi thay vì empty state",
     { tag: ["@TC-CVJDMATCHINGWIZARD-039"] },
     async ({ wizardPage, network }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-04
-      test.fail();
       // Fault injection (decisions Q7): the list request fails; nothing else is stubbed.
       await network.failWith(DOCUMENTS_URL, 500, { method: "GET" });
       await wizardPage.goto();

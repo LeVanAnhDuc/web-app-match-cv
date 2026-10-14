@@ -192,6 +192,7 @@
     "cv": {
       "title": "Hoặc chọn CV đã lưu"
     },
+    "loadError": "Không tải được danh sách tài liệu đã lưu.",
     "empty": {
       "jd": "Chưa có JD nào được lưu",
       "cv": "Chưa có CV nào được lưu",

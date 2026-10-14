@@ -36,6 +36,7 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | reuse.empty.jd | No saved job descriptions yet | Chưa có JD nào được lưu |
 | reuse.empty.cv | No saved CVs yet | Chưa có CV nào được lưu |
 | reuse.empty.hint | Items you save will appear here. | Tài liệu bạn lưu sẽ hiện ở đây. |
+| reuse.loadError | Couldn't load your saved documents. | Không tải được danh sách tài liệu đã lưu. |
 | save.jd | Save this JD for later reuse | Lưu JD này để dùng lại |
 | save.cv | Save this CV for later reuse | Lưu CV này để dùng lại |
 | save.title.placeholder | Enter a title for this document | Đặt tiêu đề cho tài liệu này |
