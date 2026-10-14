@@ -15,8 +15,6 @@ test.describe("ai-credentials — accessibility", () => {
     "mở modal thì focus vào ô đầu tiên",
     { tag: ["@TC-AICREDENTIALS-059"] },
     async ({ aiCredUser, aiCredentialsPage }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-04
-      test.fail();
       void aiCredUser;
       await aiCredentialsPage.open();
       await aiCredentialsPage.openAddDialog();
@@ -69,8 +67,6 @@ test.describe("ai-credentials — accessibility", () => {
     'nhóm checkbox "Run with" có accessible name',
     { tag: ["@TC-AICREDENTIALS-062"] },
     async ({ aiCredUser, runWithStep }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-05
-      test.fail();
       void aiCredUser;
       await runWithStep.gotoReview(WIZARD_JD_TEXT, WIZARD_CV_TEXT);
       await expect(runWithStep.systemKeyCheckbox()).toBeVisible();
@@ -110,8 +106,6 @@ test.describe("ai-credentials — accessibility", () => {
     { tag: ["@TC-AICREDENTIALS-087"] },
     async ({ aiCredUser, aiCredentialsPage }, testInfo) => {
       test.skip(testInfo.project.name !== "app-mobile", "REQ-AICREDENTIALS-42 is about the 390 px touch layout");
-      // BUG: defects/ai-credentials.md#bug-aicredentials-06
-      test.fail();
       const label = uniqueLabel("touch");
       await aiCredUser.api.aiCredentials.create({ provider: "openrouter", label, apiKey: FAKE_KEY });
 
