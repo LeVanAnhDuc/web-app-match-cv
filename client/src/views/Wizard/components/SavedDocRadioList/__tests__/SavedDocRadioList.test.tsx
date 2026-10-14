@@ -24,7 +24,9 @@ describe("SavedDocRadioList", () => {
   it("shows the empty state when nothing is saved", () => {
     mockList({ data: [] });
 
-    render(<SavedDocRadioList kind="JD" selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <SavedDocRadioList kind="JD" selectedId={null} onSelect={vi.fn()} />
+    );
 
     expect(screen.getByText("No saved job descriptions yet")).toBeDefined();
     expect(screen.queryByRole("alert")).toBeNull();
@@ -34,7 +36,9 @@ describe("SavedDocRadioList", () => {
     const refetch = vi.fn();
     mockList({ isError: true, refetch });
 
-    render(<SavedDocRadioList kind="JD" selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <SavedDocRadioList kind="JD" selectedId={null} onSelect={vi.fn()} />
+    );
 
     expect(screen.getByRole("alert").textContent).toContain(
       "Couldn't load your saved documents."
