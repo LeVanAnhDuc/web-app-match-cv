@@ -78,7 +78,7 @@ Xếp theo 6 lăng kính (CLAUDE.md), mỗi case nằm ở lăng kính chính c�
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** 2 thư cùng Formal · Standard · English, tạo cách nhau 26 giờ
 - **Bước:** mở dialog
-- **Mong đợi:** text hai dòng khác nhau và có thời điểm (chữ số) — đang sai: BUG-COVERLETTERGENERATOR-02
+- **Mong đợi:** text hai dòng khác nhau và có thời điểm (chữ số) — đã sửa: [BUG-COVERLETTERGENERATOR-02](../defects/cover-letter-generator.md#bug-coverlettergenerator-02)
 - **Automated:** `tests/e2e/cover-letter-generator/drafts.e2e.ts`
 
 ### TC-COVERLETTERGENERATOR-048 — the requirements a letter does not claim are listed, and the block is hidden when there are none
@@ -369,7 +369,7 @@ Xếp theo 6 lăng kính (CLAUDE.md), mỗi case nằm ở lăng kính chính c�
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** 1 thư failed Friendly / Short / Vietnamese; Segmented đang ở mặc định
 - **Bước:** "Try again"
-- **Mong đợi:** request mang `tone: friendly`, `length: short`, `language: vi` — đang sai: BUG-COVERLETTERGENERATOR-04
+- **Mong đợi:** request mang `tone: friendly`, `length: short`, `language: vi` — đã sửa: [BUG-COVERLETTERGENERATOR-04](../defects/cover-letter-generator.md#bug-coverlettergenerator-04)
 - **Automated:** `tests/e2e/cover-letter-generator/generate.e2e.ts`
 
 ## 5. Đoán lỗi / negative
@@ -388,7 +388,7 @@ Xếp theo 6 lăng kính (CLAUDE.md), mỗi case nằm ở lăng kính chính c�
 - **Requirement:** REQ-COVERLETTERGENERATOR-22
 - **Layer:** api · **Priority:** P2
 - **Bước:** `PATCH` với `"   "`, `"\n\n"`, `"\t "`
-- **Mong đợi:** 400, nội dung cũ giữ nguyên — đang sai: BUG-COVERLETTERGENERATOR-03
+- **Mong đợi:** 400, nội dung cũ giữ nguyên — đã sửa: [BUG-COVERLETTERGENERATOR-03](../defects/cover-letter-generator.md#bug-coverlettergenerator-03)
 - **Automated:** `tests/api/cover-letter-generator/edit-delete.api.ts`
 
 ### TC-COVERLETTERGENERATOR-020 — a non-UUID id is 400 and an unknown id is 404 on PATCH and DELETE
@@ -502,7 +502,7 @@ Xếp theo 6 lăng kính (CLAUDE.md), mỗi case nằm ở lăng kính chính c�
 - **Requirement:** REQ-COVERLETTERGENERATOR-07
 - **Layer:** e2e · **Priority:** P1
 - **Bước:** mở dialog → chọn System key
-- **Mong đợi:** câu `credentials.runWith.privacySystem` — đang sai: BUG-COVERLETTERGENERATOR-01
+- **Mong đợi:** câu `credentials.runWith.privacySystem` — đã sửa: [BUG-COVERLETTERGENERATOR-01](../defects/cover-letter-generator.md#bug-coverlettergenerator-01)
 - **Automated:** `tests/e2e/cover-letter-generator/options.e2e.ts`
 
 ### TC-COVERLETTERGENERATOR-025 — error messages follow the request language
