@@ -79,6 +79,27 @@ describe("DocumentRow", () => {
     expect(onSetLineage).toHaveBeenCalledTimes(1);
   });
 
+  // The dialog hands focus back to whatever held it when it opened; the menu
+  // item is gone by then, so the row's Actions button has to be that element.
+  it("puts focus on the Actions button before opening the version dialog", () => {
+    let focusedOnOpen: Element | null = null;
+    renderRow(
+      {},
+      {
+        onSetLineage: () => {
+          focusedOnOpen = document.activeElement;
+        }
+      }
+    );
+    const actions = screen.getByRole("button", { name: "Actions" });
+    fireEvent.click(actions);
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: "Mark as a new version of…" })
+    );
+
+    expect(focusedOnOpen).toBe(actions);
+  });
+
   it("hides compare when the document has no parent", () => {
     renderRow({ parentId: null });
     fireEvent.click(screen.getByRole("button", { name: "Actions" }));

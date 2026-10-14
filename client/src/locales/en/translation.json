@@ -182,6 +182,9 @@
       "confirm": "Save",
       "success": "Version history updated",
       "rejected": "That link isn't allowed — a document can't be a version of itself or of its own newer version.",
+      "tooDeep": "This version history is already too long to add another version to.",
+      "parentNotFound": "The document you picked as the previous version no longer exists.",
+      "kindMismatch": "A CV can only be a version of another CV, and a JD of another JD.",
       "failed": "Couldn't save. Please try again."
     }
   },

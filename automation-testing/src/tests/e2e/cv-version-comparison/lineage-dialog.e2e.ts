@@ -183,8 +183,6 @@ test.describe("cv-version-comparison — lineage dialog", () => {
     "chuỗi phiên bản quá dài bị từ chối với đúng lý do",
     { tag: ["@TC-CVVERSIONCOMPARISON-067"] },
     async ({ versionLibraryPage, cvcSeed }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-04
-      test.fail();
       // Seeded before the chain, so the chain is newer and its last link heads the option list.
       const targetTitle = cvcSeed.title("Deep target");
       const target = await cvcSeed.cv({ title: targetTitle });
@@ -230,8 +228,6 @@ test.describe("cv-version-comparison — lineage dialog", () => {
     "mở hộp thoại đưa focus vào Select và đóng trả focus về nút Actions",
     { tag: ["@TC-CVVERSIONCOMPARISON-069"] },
     async ({ versionLibraryPage, cvcSeed, page }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-05
-      test.fail();
       const title = cvcSeed.title("Focus CV");
       await cvcSeed.cv({ title });
       await versionLibraryPage.goto("cv");

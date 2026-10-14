@@ -182,6 +182,9 @@
       "confirm": "Lưu",
       "success": "Đã cập nhật lịch sử phiên bản",
       "rejected": "Liên kết này không hợp lệ — một tài liệu không thể là phiên bản của chính nó hoặc của bản mới hơn nó.",
+      "tooDeep": "Chuỗi phiên bản này đã quá dài, không thể nối thêm phiên bản.",
+      "parentNotFound": "Tài liệu bạn chọn làm phiên bản trước không còn tồn tại.",
+      "kindMismatch": "CV chỉ có thể là phiên bản của một CV khác, JD của một JD khác.",
       "failed": "Không lưu được. Vui lòng thử lại."
     }
   },

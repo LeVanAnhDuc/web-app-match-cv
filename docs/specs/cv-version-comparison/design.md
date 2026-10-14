@@ -336,6 +336,10 @@ src/locales/{en,vi}/translation.json           SỬA
 
 Dùng `mutateAsync` + `try/catch`, **không** dùng callback `onSuccess`/`onError` của `mutate` — đã quan sát được là chúng không chạy trong codebase này (cùng lý do `RewriteReview` làm vậy).
 
+Bị từ chối (400) → `Alert` trong modal chọn câu theo `code` của server (`utils/lineage.ts`): `LINEAGE_SELF` / `LINEAGE_CYCLE` → `library.lineage.rejected`; `LINEAGE_TOO_DEEP` → `library.lineage.tooDeep`; `LINEAGE_PARENT_NOT_FOUND` → `library.lineage.parentNotFound`; `LINEAGE_KIND_MISMATCH` → `library.lineage.kindMismatch`; còn lại → `library.lineage.failed`.
+
+Focus: mỗi lần mở, modal đưa focus vào `Select` "Previous version". Mục menu "Mark as a new version of…" chuyển focus về nút **Actions** của hàng trước khi mở, nên khi đóng (`Esc` / Cancel / Save) antd trả focus về đúng nút đó.
+
 ## 6. Hợp đồng BE DTO ↔ FE type
 
 | BE | FE (`src/types/Comparison/index.ts`) |
