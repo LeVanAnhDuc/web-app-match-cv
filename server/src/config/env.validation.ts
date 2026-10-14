@@ -25,7 +25,8 @@ class EnvVars {
   @IsOptional() @IsString() CREDENTIAL_ENCRYPTION_KEY?: string;
 
   // --- Sign-in through Ducker ID (ADR-0022). Optional at boot so unit/e2e
-  // tests need no IdP; /auth/login and /auth/callback answer 503 without them.
+  // tests need no IdP; without them /auth/login and /auth/callback redirect to
+  // CLIENT_ORIGIN/?authError=server (a page navigation never lands on raw JSON).
   @IsOptional() @IsString() OIDC_ISSUER?: string;
   @IsOptional() @IsString() OIDC_CLIENT_ID?: string;
   @IsOptional() @IsString() OIDC_CLIENT_SECRET?: string;

@@ -91,7 +91,7 @@ Không còn user mặc định: user đến từ đăng nhập Ducker ID (OIDC),
 
 `OIDC_ISSUER` phải là `http://localhost:3000` (origin công khai của Ducker ID), **không** phải cổng API `:5000`: token mang `iss=http://localhost:3000`, discovery nằm ở `http://localhost:3000/.well-known/openid-configuration` (Next.js rewrite `/oauth/*` và `/.well-known/*` sang API `:5000`), trình duyệt phải vào `:3000` vì cookie `sid` của Ducker ID nằm ở đó, và server từ chối discovery có `issuer` khác `OIDC_ISSUER`.
 
-Thiếu nhóm `OIDC_*` thì `/auth/login` và `/auth/callback` trả 503; phần còn lại vẫn chạy.
+Thiếu nhóm `OIDC_*` thì `/auth/login` và `/auth/callback` redirect `302` về `/?authError=server` (điều hướng trang không bao giờ ra JSON thô); phần còn lại vẫn chạy.
 
 ## Env vars
 
@@ -103,7 +103,7 @@ Xem `.env.example`:
 - `OPENROUTER_API_KEY` — **bắt buộc cho `/match`** (OpenRouter, OpenAI-compatible; embedding + chat report). Thiếu → `/match` trả 503. Optional cho các endpoint khác.
 - `OPENROUTER_BASE_URL` (default `https://openrouter.ai/api/v1`), `OPENROUTER_CHAT_MODEL` (default `openai/gpt-4o-mini`), `OPENROUTER_EMBED_MODEL` (default `openai/text-embedding-3-small`) — optional.
 - `CREDENTIAL_ENCRYPTION_KEY` — **bắt buộc cho `/ai-credentials`**; base64 của **đúng 32 byte**. Sinh bằng `openssl rand -base64 32`. Thiếu hoặc sai độ dài → mọi endpoint credential trả 503; các endpoint khác vẫn chạy. **Đổi hoặc mất khoá này làm mọi credential đã lưu không giải mã được** — không có đường khôi phục, user phải nhập lại key.
-- `OIDC_ISSUER` (`http://localhost:3000`), `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` (`http://localhost:5200/api/v1/auth/callback`) — optional lúc boot; thiếu thì `/auth/login`, `/auth/callback` trả 503. Xem mục đăng nhập ở trên.
+- `OIDC_ISSUER` (`http://localhost:3000`), `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` (`http://localhost:5200/api/v1/auth/callback`) — optional lúc boot; thiếu thì `/auth/login`, `/auth/callback` redirect về `/?authError=server`. Xem mục đăng nhập ở trên.
 - `SESSION_SECRET` — ≥ 32 ký tự (`openssl rand -base64 48`); niêm phong cookie `mcv_oauth` và khoá HMAC IP của khách. `SESSION_TTL_DAYS` (default `7`).
 - `GUEST_TTL_HOURS` (default `24`), `GUEST_MATCH_LIMIT_PER_DAY` (default `5`) — chế độ khách.
 
