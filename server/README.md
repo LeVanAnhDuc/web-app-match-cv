@@ -115,7 +115,7 @@ Xem `.env.example`:
 - `pnpm lint` — ESLint (check-only, không sửa file)
 - `pnpm lint:fix` — ESLint + auto-fix
 - `pnpm format` / `pnpm format:check` — Prettier write / check
-- `pnpm test:e2e` — e2e tests (Jest + supertest)
+- API tests over HTTP live in [`../automation-testing/src/tests/api/`](../automation-testing/README.md) (Playwright, against the running server)
 - `pnpm seed:mock --user <email>` — **dev only**: chèn 6 document mock (3 CV + 3 JD, tiếng Việt + tiếng Anh) thuộc user chỉ định bằng `--user <email>` (user đó phải đăng nhập Ducker ID ít nhất một lần trước khi chạy, nếu không script thoát mã 1; email so khớp không phân biệt hoa thường), `isSaved = true` nên hiện luôn ở `/cv` và `/jd`. Idempotent — chạy lại **ghi đè** mock về nội dung gốc (kể cả khi đã rename trên UI), không nhân bản.
 - `pnpm seed:mock:clean` — xoá 6 document đó, kèm `MatchResult`/`MatchRun` sinh ra từ chúng (`CoverLetter` tự cascade). Chỉ xoá theo danh sách UUID hằng số nên **không chạm dữ liệu thật**.
 

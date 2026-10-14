@@ -134,20 +134,18 @@ pnpm dev                      # http://localhost:5300
 **3. Tests**
 
 ```bash
-cd server && pnpm test        # Jest unit tests
-cd server && pnpm test:e2e    # Jest + supertest, needs the database
-cd client && pnpm test        # Vitest unit tests (run serially)
-cd client && pnpm test:e2e    # Playwright; both servers must be running, and
-                              # E2E_DATABASE_URL + CREDENTIAL_ENCRYPTION_KEY set
-                              # (first run: pnpm exec playwright install chromium)
+cd server && pnpm test              # Jest unit tests
+cd client && pnpm test              # Vitest unit tests (run serially)
+cd automation-testing && pnpm test  # Playwright e2e + API tests; both servers must be
+                                    # running, see automation-testing/README.md
 ```
 
 ## Project structure
 
 ```
 .
+├── automation-testing/         Playwright e2e (UI) + API tests, one folder per feature
 ├── client/                     TanStack Start web app (port 5300)
-│   ├── e2e/                    Playwright specs, one folder per feature
 │   └── src/
 │       ├── components/         Shared UI pieces (document rows, modals, previews)
 │       ├── constants/          API endpoint paths, upload limits

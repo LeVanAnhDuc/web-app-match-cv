@@ -63,7 +63,7 @@ pnpm start:prod       # node dist/main
 pnpm type-check       # tsc --noEmit
 pnpm lint             # eslint .   (lint:fix để auto-fix)
 pnpm format           # prettier --write .
-pnpm test             # jest (test:cov, test:watch, test:e2e)
+pnpm test             # jest unit (test:cov, test:watch). Test API qua HTTP: ../automation-testing
 pnpm exec prisma migrate dev --name <name>   # tạo + apply migration
 pnpm exec prisma generate                    # regenerate client
 pnpm exec prisma db seed                     # no-op: không còn default user (user đến từ đăng nhập Ducker ID)
@@ -113,4 +113,4 @@ pnpm build        # nest build phải thành công
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
 - `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại sau khi chạy.
 - Đổi Prisma schema → `pnpm exec prisma migrate dev` + cập nhật `seed.ts` idempotent; note ảnh hưởng data trong `design.md`.
-- **`pnpm test:e2e` — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `pnpm format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà TOÀN BỘ e2e suite chết ngay từ lúc load — không riêng feature vừa sửa. Lỗi kiểu này chỉ lộ khi chạy `pnpm test:e2e` thật (vd một dependency pure-ESM mà Jest CommonJS không `require` được).
+- **Boot thật + test API — BẮT BUỘC thêm vào gate khi task đổi module graph của `AppModule` HOẶC thêm runtime dependency mới**: `pnpm format`/`lint`/`type-check`/`test`/`build` có thể xanh hết mà app chết ngay từ lúc load (vd một dependency pure-ESM mà CommonJS không `require` được). Gate: `pnpm start:dev` phải lên được, rồi `cd ../automation-testing && pnpm exec playwright test --project=app src/tests/api` xanh. (Trước 2026-10-13 gate này là `pnpm test:e2e` của Jest in-process; bộ đó đã chuyển sang `automation-testing/src/tests/api/`.)

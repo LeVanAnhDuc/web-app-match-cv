@@ -15,6 +15,7 @@
 
 - `tsconfig.json` có `"exclude": [... "e2e", "playwright.config.ts"]`. Thêm field vào một DTO thì fixture trong `e2e/` (vd `STUB_MATCH_RESULT`) **không đỏ type-check** nhưng render ra `undefined` lúc chạy.
 - **Áp dụng**: đổi type ở `src/types/**` → grep `e2e/` tìm fixture cùng shape và sửa tay.
+- **Cập nhật 2026-10-13**: e2e đã chuyển sang `automation-testing/src/tests/e2e/`, import DTO qua alias `#/types/*` → `client/src/types/*` và **có** chạy trong `pnpm typecheck` của `automation-testing/`. Đổi type ở `src/types/**` → chạy `cd ../automation-testing && pnpm typecheck`; fixture lệch shape giờ đỏ ở đó.
 
 ## `routeTree.gen.ts` luôn "modified" và chặn `git pull` (2026-08-09)
 

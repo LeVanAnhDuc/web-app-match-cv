@@ -13,7 +13,7 @@ From `server/`:
 - `pnpm install` then `cp .env.example .env` — needs a local PostgreSQL (no Docker in this repo)
 - `pnpm exec prisma migrate dev` — apply migrations · `pnpm exec prisma generate` — regenerate the client (run before `pnpm lint`) · `pnpm exec prisma db seed` — no-op (there is no default user; users come from Ducker ID sign-in)
 - `pnpm start:dev` (watch, `:5200`) · `pnpm start` · `pnpm build` · `pnpm start:prod`
-- `pnpm test` (Jest unit, `src/**/*.spec.ts`) · `pnpm test:watch` · `pnpm test:cov` · `pnpm test:e2e` (Jest + supertest, needs the DB)
+- `pnpm test` (Jest unit, `src/**/*.spec.ts`) · `pnpm test:watch` · `pnpm test:cov`
 - `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
 - `pnpm seed:mock --user <email>` / `pnpm seed:mock:clean` — dev-only mock CV/JD documents for a user who has signed in once · `pnpm recompute-scores` — recompute stored keyword/overall scores
 
@@ -21,8 +21,14 @@ From `client/`:
 
 - `pnpm install` then `cp .env.example .env`
 - `pnpm dev` (`:5300`) · `pnpm build` · `pnpm preview` · `pnpm generate-routes` (`tsr generate`)
-- `pnpm test` (Vitest unit, serial) · `pnpm test:e2e` (Playwright; needs both servers up and `E2E_DATABASE_URL`; first run `pnpm exec playwright install chromium`)
+- `pnpm test` (Vitest unit, serial)
 - `pnpm type-check` · `pnpm lint` · `pnpm lint:fix` · `pnpm format` · `pnpm format:check`
+
+From `automation-testing/` (own `package.json` + `.env`; see its `README.md` and `CLAUDE.md`):
+
+- `pnpm install` then `cp .env.example .env` · first run `pnpm exec playwright install chromium`
+- `pnpm test` — Playwright e2e (desktop / tablet / mobile / guest) + API tests against the running pair (`:5200` + `:5300`); seeds and wipes rows in the dev DB at `E2E_DATABASE_URL`
+- `/write-tests <module>` — write or normalise a feature's e2e + API coverage there
 
 ## README — keep `## Features` in sync
 

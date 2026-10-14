@@ -123,7 +123,7 @@ con số version chép tay là nguồn thứ hai và nó sẽ lệch.
 | Bảo mật | `helmet` · `cors` · `@nestjs/throttler` | NFR-SEC-07 |
 | i18n | `nestjs-i18n` — `en` + `vi` | NFR-I18N-01 |
 | Parse file | `pdf-parse` (PDF) + `mammoth` (DOCX) | — |
-| Test | Jest. `test:e2e` cần `cross-env NODE_OPTIONS=--experimental-vm-modules` vì `pdf-parse`/pdfjs dùng dynamic import | — |
+| Test | Jest (unit, `src/**/*.spec.ts`). Test API qua HTTP ở `automation-testing/src/tests/api/` (Playwright, gọi server đang chạy) | — |
 
 ### client
 
@@ -136,7 +136,7 @@ con số version chép tay là nguồn thứ hai và nó sẽ lệch.
 | Form | `react-hook-form` + `zod` | — |
 | i18n | `i18next` / `react-i18next` — `en` + `vi` | NFR-I18N-01 |
 | Xem trước tài liệu | `react-pdf` + `docx-preview` — render **client-side**, không qua dịch vụ ngoài vì PII | [ADR-0019](../decisions/0019-preview-tai-lieu-chay-client-side.md) |
-| Test | Vitest (unit, chạy serial) + Playwright (E2E) | — |
+| Test | Vitest (unit, chạy serial). E2E Playwright ở `automation-testing/src/tests/e2e/` | — |
 
 Chưa dùng: hàng đợi nền (BullMQ + Redis là roadmap của FR-19), email.
 

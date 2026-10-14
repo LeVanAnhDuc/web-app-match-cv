@@ -20,11 +20,11 @@
 ## E2E raw SQL insert vỡ khi schema thêm cột/bảng (2026-08-08)
 
 - `INSERT INTO "MatchResult" (...)` viết tay trong e2e FE không biết cột NOT NULL mới → insert fail. Và `MatchRun` tham chiếu `Document` với **RESTRICT** khiến `cleanDocuments()` (xoá Document trước) fail → `globalSetup` chết → **cả suite chết**, không chỉ test liên quan.
-- **Áp dụng**: đổi schema → grep raw SQL trong `client/e2e/**` và `test/**`; dọn DB theo đúng thứ tự FK (`MatchResult` → `MatchRun` → `Document`).
+- **Áp dụng**: đổi schema → grep raw SQL trong `automation-testing/src/{tests,utils}/**` (trước 2026-10-13 là `client/e2e/**` và `server/test/**`); dọn DB theo đúng thứ tự FK (`MatchResult` → `MatchRun` → `Document`).
 
 ## E2E giả định env sẽ đỏ trên máy sạch (2026-08-08, ai-credentials — lỗi của chính feature này)
 
-- `test/ai-credentials.e2e-spec.ts` cần `CREDENTIAL_ENCRYPTION_KEY` trong `.env`. Service cố ý optional-at-boot để test **không** cần khoá, nhưng spec lại giả định có → clone mới về thấy 20 test đỏ mà không hiểu vì sao.
+- `test/ai-credentials.e2e-spec.ts` (nay là `automation-testing/src/tests/api/ai-credentials/credentials.api.ts`) cần `CREDENTIAL_ENCRYPTION_KEY` trong `.env`. Service cố ý optional-at-boot để test **không** cần khoá, nhưng spec lại giả định có → clone mới về thấy 20 test đỏ mà không hiểu vì sao.
 - **Quy tắc**: spec phải tự lo tiền đề của nó (tự sinh khoá / override provider), hoặc `skip` kèm thông báo nêu rõ thiếu gì. Đừng để môi trường quyết định suite xanh hay đỏ.
 
 ## DB dev dùng chung bị tranh chấp khi chạy nhiều worktree (2026-08-09)
