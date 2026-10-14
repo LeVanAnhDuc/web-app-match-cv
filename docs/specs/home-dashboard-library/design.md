@@ -76,12 +76,12 @@ Sidebar (collapsible, Lucide icons — theo `icon-map.md`):
 | `file-user` | Saved CVs / CV đã lưu | `/cv` | |
 | `file-text` | Saved JDs / JD đã lưu | `/jd` | |
 
-Header Content: tên trang + toggle EN/VI + user stub (placeholder). Active state theo route. Responsive: Sider collapse icon-only ở màn nhỏ. Bám token `frontend-reference.md` + `standards.md`.
+Header Content: tên trang + user stub (placeholder). **Không có toggle EN/VI**: client cố định `lng: "en"` và `<html lang="en">`; tiếng Việt chỉ bật được qua hook dev `window.__i18n.changeLanguage("vi")` (dùng cho E2E) — thiếu language switcher là nợ ở `04-state/backlog.md` (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test). Active state theo route. Responsive: Sider collapse icon-only ở màn nhỏ. Bám token `frontend-reference.md` + `standards.md`.
 
 ### 4.2 Home `/` (chỉ thống kê + CTA)
 1. **Hero CTA** (nổi bật nhất): card lớn primary → nút "Bắt đầu Match" → `/wizard`.
-2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query.
-3. **Lịch sử match gần đây**: 5 dòng mới nhất (cvTitle, jdTitle, `%` tag màu theo band, ngày format theo locale). Click → mở lại kết quả (step 4 với `matchId`). "Xem tất cả" khi >5.
+2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query. Lượt match / cao nhất / TB **chỉ tính `MatchResult` `status=succeeded`**, đếm theo từng `MatchResult` (chạy 3 provider = 3); kết quả `failed` (`overallScore=0`) không được kéo TB xuống (chốt 2026-10-14 khi viết automation test — code hiện còn tính cả `failed`, ghi defect ở `automation-testing/src/defects/home-dashboard-library.md`).
+3. **Lịch sử match gần đây**: 5 dòng `succeeded` mới nhất (chốt 2026-10-14, cùng defect trên) (cvTitle, jdTitle, `%` tag màu theo band, ngày format theo locale). Click → mở lại kết quả (step 4 với `matchId`). "Xem tất cả" khi >5.
 4. **Empty states**: chưa match → empty-state + nút "Match ngay"; stat = 0 vẫn hiện số 0.
 
 ### 4.3 Document Library `/cv` + `/jd`
@@ -93,7 +93,7 @@ Component chung `DocumentLibrary` prop `kind`.
   - `docx` → **`docx-preview`** `renderAsync(blob, container)` (parse cục bộ qua jszip → DOM).
   - `text` → render `rawText` format sạch.
   - **SSR**: cả 2 lib chỉ chạy browser → **client-only component** (dynamic import / guard `typeof window`), không render server.
-- **Rename**: modal nhỏ → `PATCH /documents/:id`; optimistic + invalidate query.
+- **Rename**: modal nhỏ → `PATCH /documents/:id`; **không optimistic** — chờ server trả rồi invalidate query, tên mới hiện sau khi lưu xong; lỗi thì tên cũ giữ nguyên (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test).
 - **Download**: `GET /documents/:id/file?download=1`.
 - **Delete**: `Popconfirm` → `DELETE`; 409 (in-use) → `message.error` i18n rõ.
 - **Empty state**: chưa có CV/JD → icon `search-x` + copy + nút "Match ngay".
@@ -120,7 +120,7 @@ Loại các "unified doc viewer" vì nhiều lib route DOCX qua MS Office Online
 
 ## 7. Testing
 - **BE (Jest e2e, DB live)**: file stream per-user (user khác → 404; text doc → 404); `?download=1` header đúng; PATCH rename per-user + validate; DELETE ok (204 + file mất) / referenced (409) / user khác (404); `GET /match` chỉ match của user, đúng thứ tự + title join.
-- **FE (Vitest + testing-library)**: DocumentLibrary render list/empty/actions (mock query); preview chọn đúng renderer theo format (mock lib); rename optimistic; delete 409 hiển thị lỗi; Home stat cards + recent list + empty; StepReview render pane theo format + Run match gọi mutation.
+- **FE (Vitest + testing-library)**: DocumentLibrary render list/empty/actions (mock query); preview chọn đúng renderer theo format (mock lib); rename (chờ server, không optimistic — cập nhật 2026-10-14: khớp code, quyết định khi viết automation test); delete 409 hiển thị lỗi; Home stat cards + recent list + empty; StepReview render pane theo format + Run match gọi mutation.
 - **E2E** (dual-gate §4.3): theo Scenario Matrix §8 → expand `e2e.md` ở writing-plans.
 
 ## 8. E2E Scenario Matrix
@@ -139,7 +139,7 @@ Loại các "unified doc viewer" vì nhiều lib route DOCX qua MS Office Online
 | 8 | **Data rendering** ✅ | Badge định dạng = label người-đọc (PDF/DOCX/Text) không raw enum. Ngày format theo locale (không ISO). Score `%` + tag màu theo band **[BVA]** biên `49`(đỏ)·`50`(vàng)·`74`(vàng)·`75`(xanh). Recent list hiện cvTitle/jdTitle (không id). | A+B |
 | 9 | **i18n** ✅ | Render **en + vi** cho: Home (cards, hero, recent, empty), `/cv`,`/jd` (list, actions, empty), preview modal, Review step, message lỗi delete-409 + validation. Sidebar labels 2 locale. | A+B |
 | 10 | **Error / loading** ✅ | API 5xx/network trên stats/list → error UI + retry; loading → skeleton. Stream file fail (500/network) → error trong modal. react-pdf/docx-preview parse lỗi → error state (không crash). Mutation (rename/delete) lỗi → toast. | A+B |
-| 11 | **Mutation safety** ✅ | **[ST]** Delete: exists→deleted→list không còn (valid); delete stale/đã xóa → 404 xử lý (invalid transition); delete referenced → 409 doc còn nguyên (invalid transition rejected). Rename optimistic + revert khi lỗi. **Error-guessing**: double-click Delete/Rename → lần 2 no-op; back-button giữa preview → đóng sạch. `afterAll` revert doc seed. | **A only** |
+| 11 | **Mutation safety** ✅ | **[ST]** Delete: exists→deleted→list không còn (valid); delete stale/đã xóa → 404 xử lý (invalid transition); delete referenced → 409 doc còn nguyên (invalid transition rejected). Rename: tên đổi sau khi server trả thành công, lỗi thì tên cũ giữ nguyên — không optimistic (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test). **Error-guessing**: double-click Delete/Rename → lần 2 no-op; back-button giữa preview → đóng sạch. `afterAll` revert doc seed. | **A only** |
 | 12 | **Accessibility** ✅ | Sidebar nav role/label + keyboard order + active state. Preview `Modal`/`Drawer`: focus trap, Esc đóng, focus trả về trigger. Icon-only buttons có `aria-label`. Stat cards đọc được screen-reader. | A+B |
 | F1 | **Preview renderer theo format** ✅ | **[DT]** format × renderer: `pdf`→react-pdf canvas · `docx`→docx-preview DOM · `text`→formatted text · `file missing`→text fallback. Assert đúng renderer + không gọi host ngoài (`browser_network_requests` sạch). | A+B |
 | F2 | **Navigation / routing** ✅ | Sidebar links điều hướng đúng; active state; deep-link `/cv`,`/jd`,`/wizard`; click 1 dòng recent match → mở lại kết quả (matchId). | A+B |

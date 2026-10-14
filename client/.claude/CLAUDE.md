@@ -69,9 +69,7 @@ pnpm lint:fix         # ESLint + auto-fix
 pnpm format           # prettier --write . && eslint --fix
 pnpm format:check     # prettier --check .
 pnpm test             # Vitest (unit)
-pnpm test:e2e         # Playwright (e2e) — 3 viewport project: desktop / tablet / mobile
-                      #   1 viewport: pnpm test:e2e --project=mobile
-                      #   dev server ở port khác (worktree): E2E_BASE_URL=http://localhost:5302 pnpm test:e2e
+# E2E không còn ở đây: chạy `cd ../automation-testing && pnpm test` (xem automation-testing/README.md)
 ```
 
 **Lint/format config**: Prettier (`prettier.config.js`) dùng chung style với `server/` và app anh em `web-app-ducker-id` — double quote, có `;`, `trailingComma: none`, `printWidth 80`; kèm `prettier-plugin-tailwindcss` sort class Tailwind (`tailwindStylesheet: ./src/styles.css` vì Tailwind 4 không có file config JS). ESLint (`eslint.config.js`) = `tanstackConfig` + layer react / react-hooks / jsx-a11y / promise / unused-imports / prettier. `src/routeTree.gen.ts` bị **ignore ở cả prettier lẫn eslint** (file generated, tự yêu cầu vậy trong header).
@@ -127,4 +125,4 @@ pnpm build        # build phải thành công
 
 - Chạy đủ dù nghĩ code đã sạch. Còn error → fix HẾT trước khi bàn giao.
 - `pnpm format`/`pnpm lint` có thể tự sửa file → đọc lại file sau khi chạy.
-- E2E (`pnpm test:e2e`) chạy khi thay đổi behavior user thấy được (xem skill `feature-flow`).
+- E2E (`cd ../automation-testing && pnpm test`) chạy khi thay đổi behavior user thấy được; test mới viết bằng `/write-tests <module>` trong `automation-testing/` (xem skill `feature-flow`).

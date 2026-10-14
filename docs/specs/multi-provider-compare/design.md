@@ -24,9 +24,10 @@ Feature này cho chọn **nhiều** credential ở step 3, chạy song song, và
 |---|---|
 | Queue / stream / polling | ADR #11 chốt: N request độc lập từ FE. Không có gì cần điều phối phía server. |
 | So sánh **giữa các card** (bảng delta, "provider nào chấm cao nhất") | Đọc N card cạnh nhau đã đủ trả lời câu hỏi. Bảng so sánh là feature riêng nếu thực sự thiếu. |
-| Chạy lại **một** card lỗi mà không chạy lại cả run | Thêm trạng thái mà giá trị thấp: bấm Back → Run match lại là đủ. |
 | Batch ranking nhiều CV | Roadmap #11, cần pgvector. |
 | Nhật ký tiết lộ dữ liệu | Goal 10 / Roadmap #5, cố ý **độc lập** với feature này (ADR #16). |
+
+Dòng *"Chạy lại **một** card lỗi mà không chạy lại cả run"* từng nằm trong bảng trên và mâu thuẫn với §4 + §5 row 11 — đã gỡ: card lỗi **có** nút Try again, và mỗi lần bấm tạo **thêm** một `MatchResult` trong cùng run (lần lỗi vẫn là dữ liệu, ADR-0011), nên đọc lại run qua `?runId=` thấy cả row lỗi cũ lẫn row thử lại (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test).
 
 ## 2. Quyết định thiết kế
 
@@ -38,7 +39,7 @@ Feature này cho chọn **nhiều** credential ở step 3, chạy song song, và
 | D4 | Step 3 dùng **checkbox list**, không phải `Select mode="multiple"` | Mỗi dòng cần badge provider + label + `••••1234` + chấm trạng thái test. Nhồi ngần đó vào tag của multi-select thì chật và mất trạng thái. Checkbox list cũng khớp mô hình "mỗi lựa chọn → một card" ở step 4. |
 | D5 | Step 4 = N card, **report gập lại khi N>1** | Ba báo cáo dài mở hết thì phải cuộn qua cả trang mới so được điểm. Điểm + breakdown luôn hiện; `strengths`/`gaps`/`suggestions` nằm trong `Collapse`, mở sẵn khi N=1 để **N=1 trông đúng như hôm nay**. |
 | D6 | Mỗi card **tự bắn request của nó** khi mount | Progressive reveal có sẵn, không cần điều phối: card nào resolve trước thì render trước. Không polling, đúng ADR #11. |
-| D7 | Reload giữa lúc chạy → step 4 **chỉ đọc `GET /match/runs/:id`**, không bắn lại | Store zustand là in-memory nên reload mất `pendingCredentialIds`; không có nó thì không có gì để bắn. Run sẽ có ít result hơn số provider đã chọn — `erd.md` đã ghi đó là **hành vi đúng**, và nó tránh việc reload nhân đôi chi phí AI. |
+| D7 | Reload giữa lúc chạy → wizard **về step 1 trống, không bắn lại** request nào; đọc lại một run chỉ qua `/wizard?runId=` | Store zustand là in-memory và URL không mang `runId` (trừ luồng `?runId=` sau đăng nhập), nên reload mất cả `runId` lẫn `pendingCredentialIds` — không có gì để bắn, cũng không có gì để đọc. Run sẽ có ít result hơn số provider đã chọn — `erd.md` đã ghi đó là **hành vi đúng**, và nó tránh việc reload nhân đôi chi phí AI. Bản gốc ghi "step 4 chỉ đọc `GET /match/runs/:id`" — code không làm vậy (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test). |
 
 ## 3. Backend
 
@@ -95,7 +96,8 @@ model MatchRun {
 
 ```ts
 // ownership + kind check giữ nguyên, vẫn ném 400/404 như cũ
-// runId (nếu có) phải thuộc user và trỏ đúng cặp document — nếu không, 400.
+// runId (nếu có) phải thuộc user — nếu không, 404 runNotFound (không lộ sự tồn tại,
+// khớp GET /match/runs/:id); thuộc user nhưng trỏ cặp document khác — 400. (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test)
 
 const runtime = dto.credentialId
   ? await this.credentials.getRuntimeConfig(dto.credentialId)   // 404 nếu không thuộc user
@@ -131,7 +133,7 @@ src/types/Matching/index.ts                      + MatchRunDto, MatchStatus, run
 
 **Step 3** — khối "Run with" thành danh sách checkbox: mỗi credential một dòng (badge provider · label · `••••1234` · chip trạng thái), cộng dòng "System key". Ít nhất một dòng phải được chọn — bỏ hết thì nút Run match disabled. Mặc định chọn credential `lastUsedAt` mới nhất, hoặc "System key" khi chưa có credential nào. CTA hiện số lượng; thông báo quyền riêng tư liệt kê **đủ tên** provider sẽ nhận tài liệu.
 
-**Step 4** — `Run match` gọi `POST /match/runs` trước, lưu `runId` + `pendingCredentialIds` vào store rồi sang step 4 **ngay**. Mỗi `MatchResultCard` nhận một `credentialId | null`, tự bắn `POST /match { runId, credentialId }` khi mount, và tự render skeleton → kết quả hoặc lỗi. Card lỗi hiện `errorCode` dịch sang câu người đọc được, kèm nút "Try again" chạy lại **card đó**. Không có `pendingCredentialIds` (reload) → step 4 đọc `GET /match/runs/:id` và render những gì đã có.
+**Step 4** — `Run match` gọi `POST /match/runs` trước, lưu `runId` + `pendingCredentialIds` vào store rồi sang step 4 **ngay**. Mỗi `MatchResultCard` nhận một `credentialId | null`, tự bắn `POST /match { runId, credentialId }` khi mount, và tự render skeleton → kết quả hoặc lỗi. Card lỗi hiện `errorCode` dịch sang câu người đọc được, kèm nút "Try again" chạy lại **card đó**. Reload mất store nên wizard về step 1 trống, không bắn lại; đọc lại run (`GET /match/runs/:id`) chỉ xảy ra khi mở `/wizard?runId=` — xem D7. Mỗi lần Try again tạo thêm một `MatchResult` trong run (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test).
 
 ## 5. E2E Scenario Matrix
 
@@ -139,22 +141,22 @@ src/types/Matching/index.ts                      + MatchRunDto, MatchStatus, run
 |---|---|---|---|---|
 | 1 | Happy path | ✅ | (a) chọn 1 credential → step 4 hiện đúng 1 card, report mở sẵn, giống hành vi hôm nay. (b) chọn 2 credential + system key → 3 card, mỗi card đúng tên provider của nó. (c) card xong trước hiện kết quả trong khi card khác còn skeleton. | (a)(b) A+B · (c) A only |
 | 2 | AuthN | N/A | Chưa có auth (`project-goals.md` §3). Thành ✅ ở Roadmap #10. | — |
-| 3 | AuthZ | N/A ở FE | `runId` của user khác → 400/404; chỉ BE e2e dựng được user thứ hai. | — |
-| 4 | Validation | ✅ | **[EP]** số lựa chọn: `0` (nút disabled, không request nào) · `1` · `n>1`. **[DT]** `runId hợp lệ + credentialId của người khác` → 404 và **không** tạo result; `runId của người khác + credentialId hợp lệ` → 400; `runId trỏ cặp document khác` → 400. | A only |
-| 5 | Empty / null | ✅ | Run chưa có result nào (reload ngay sau khi tạo) → step 4 hiện trạng thái rỗng có nghĩa, không phải màn trắng. Card lỗi: `overallScore` 0 **không** được vẽ như "0% match" mà là trạng thái lỗi. | A+B |
+| 3 | AuthZ | N/A ở FE | `runId` của user khác → 404; chỉ BE e2e dựng được user thứ hai (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test). | — |
+| 4 | Validation | ✅ | **[EP]** số lựa chọn: `0` (nút disabled, không request nào) · `1` · `n>1`. **[DT]** `runId hợp lệ + credentialId của người khác` → 404 và **không** tạo result; `runId của người khác + credentialId hợp lệ` → **404** `runNotFound` (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test); `runId trỏ cặp document khác` → 400. | A only |
+| 5 | Empty / null | ✅ | Run chưa có result nào (mở `/wizard?runId=` của run vừa tạo — reload thì về step 1, xem D7; cập nhật 2026-10-14: khớp code, quyết định khi viết automation test) → step 4 hiện trạng thái rỗng có nghĩa, không phải màn trắng. Card lỗi: `overallScore` 0 **không** được vẽ như "0% match" mà là trạng thái lỗi. | A+B |
 | 6 | Boundary | ✅ | **[BVA]** số provider `0` (chặn) · `1` (biên dưới hợp lệ, report mở sẵn) · `2` (biên bật chế độ gập) · `3` (= toàn bộ whitelist). Không phân trang → phần pagination **N/A**. | A only |
 | 7 | Filter / search | N/A | Step 4 không có filter/sort; thứ tự card = thứ tự user chọn, cố định. | — |
 | 8 | Data rendering | ✅ | Mỗi card nêu **provider + model của chính nó** (đọc từ result row, không từ danh sách credential). `errorCode` enum → câu người đọc được, không phải `no_quota`. Điểm hiện `%`. **Assert DOM không chứa key gốc.** | A+B |
 | 9 | i18n | ✅ | `en` + `vi` cho: nhãn checkbox list, CTA có số đếm, thông báo quyền riêng tư nhiều provider, tiêu đề card, **cả 5 thông điệp `errorCode`**, nút Try again, trạng thái rỗng. | A+B |
 | 10 | Error / loading | ✅ | Partial success: 1 trong 3 card lỗi → 2 card kia **giữ nguyên kết quả**. `POST /match/runs` lỗi → ở lại step 3 kèm alert, không sang step 4 rỗng. Skeleton hiện khi card đang chạy. `GET /match/runs/:id` 500 → error UI. | A+B (route interception) |
-| 11 | Mutation safety | ✅ | **[ST]** `tạo run` → `card đang chạy` → `xong/lỗi` → `Try again trên card lỗi` → card đó chạy lại, **các card khác không bị bắn lại**. **Invalid transition (bắt buộc)**: reload giữa lúc chạy → **không** bắn lại request nào, chỉ đọc run (assert số POST `/match` = 0 sau reload). Bấm Run match 2 lần nhanh → chỉ 1 run được tạo. | A only |
+| 11 | Mutation safety | ✅ | **[ST]** `tạo run` → `card đang chạy` → `xong/lỗi` → `Try again trên card lỗi` → card đó chạy lại, **các card khác không bị bắn lại**. **Invalid transition (bắt buộc)**: reload giữa lúc chạy → **không** bắn lại request nào (assert số POST `/match` = 0 sau reload), wizard về step 1; đọc lại run qua `/wizard?runId=` thấy mọi row đã lưu, kể cả row lỗi cũ lẫn row Try again (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test). Bấm Run match 2 lần nhanh → chỉ 1 run được tạo. | A only |
 | 12 | Accessibility | ✅ | Checkbox list là `role="group"` có accessible name; mỗi checkbox chọn được bằng bàn phím và có nhãn liên kết. Card đang chạy có `aria-busy`. Vùng kết quả `aria-live="polite"` để screen reader biết card vừa xong. Thứ tự tab: danh sách → Run match. | A+B |
 
 **Error-guessing pass** (inline): thêm vào matrix — reload giữa chừng (row 11), bấm Run match hai lần (row 11), card lỗi vẽ nhầm thành 0% (row 5), và thứ tự card phải ổn định để so sánh (row 7).
 
 ## 6. Kiểm thử
 
-**BE unit** — `matching.service.spec`: provider lỗi → tạo row `failed` + `errorCode` đúng, **không** ném; `runId` không thuộc user → 400; `runId` trỏ cặp document khác → 400; N result cùng `runId` phân biệt bằng `provider`.
+**BE unit** — `matching.service.spec`: provider lỗi → tạo row `failed` + `errorCode` đúng, **không** ném; `runId` không thuộc user → 404 (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test); `runId` trỏ cặp document khác → 400; N result cùng `runId` phân biệt bằng `provider`.
 **BE e2e** — `test/match-runs.e2e-spec.ts`: tạo run → chạy 2 provider → `GET /match/runs/:id` trả đúng 2 result; ownership 404/400; run của user khác không đọc được; row cũ (`runId = null`) vẫn đọc được qua `GET /match/:id`.
 **FE unit** — `RunWithSelector` (chọn/bỏ chọn, chặn rỗng, mặc định), `MatchResultCard` (3 trạng thái), `StepResult` (N card, chế độ gập theo N).
 **FE E2E** — một test cho mỗi row ✅ ở §5, tại `client/e2e/multi-provider-compare/`. Provider thật chặn bằng route interception.

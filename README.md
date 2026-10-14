@@ -114,7 +114,7 @@ Env vars (see `server/.env.example`):
 - `OPENROUTER_API_KEY` — the system fallback key. Without it, and without a credential of your own, running a match returns 503. `OPENROUTER_BASE_URL` / `OPENROUTER_CHAT_MODEL` / `OPENROUTER_EMBED_MODEL` are optional overrides.
 - `CREDENTIAL_ENCRYPTION_KEY` — base64 of exactly 32 bytes (`openssl rand -base64 32`). Required for `/ai-credentials`; missing or wrong length makes those endpoints return 503 while everything else keeps working. Changing or losing it makes stored credentials undecryptable.
 
-- Sign-in through Ducker ID — optional at boot; without the `OIDC_*` group `/auth/login` and `/auth/callback` return 503 and the rest keeps working:
+- Sign-in through Ducker ID — optional at boot; without the `OIDC_*` group `/auth/login` and `/auth/callback` redirect to `/?authError=server` (a page navigation never lands on raw JSON) and the rest keeps working:
   - `OIDC_ISSUER` (`http://localhost:3000`, the Ducker ID client origin — not the API port `5000`), `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` (`http://localhost:5200/api/v1/auth/callback`).
   - `SESSION_SECRET` — at least 32 characters (`openssl rand -base64 48`). `SESSION_TTL_DAYS` (default `7`).
   - `GUEST_TTL_HOURS` (default `24`), `GUEST_MATCH_LIMIT_PER_DAY` (default `5`) — guest mode.
@@ -134,20 +134,18 @@ pnpm dev                      # http://localhost:5300
 **3. Tests**
 
 ```bash
-cd server && pnpm test        # Jest unit tests
-cd server && pnpm test:e2e    # Jest + supertest, needs the database
-cd client && pnpm test        # Vitest unit tests (run serially)
-cd client && pnpm test:e2e    # Playwright; both servers must be running, and
-                              # E2E_DATABASE_URL + CREDENTIAL_ENCRYPTION_KEY set
-                              # (first run: pnpm exec playwright install chromium)
+cd server && pnpm test              # Jest unit tests
+cd client && pnpm test              # Vitest unit tests (run serially)
+cd automation-testing && pnpm test  # Playwright e2e + API tests; both servers must be
+                                    # running, see automation-testing/README.md
 ```
 
 ## Project structure
 
 ```
 .
+├── automation-testing/         Playwright e2e (UI) + API tests, one folder per feature
 ├── client/                     TanStack Start web app (port 5300)
-│   ├── e2e/                    Playwright specs, one folder per feature
 │   └── src/
 │       ├── components/         Shared UI pieces (document rows, modals, previews)
 │       ├── constants/          API endpoint paths, upload limits

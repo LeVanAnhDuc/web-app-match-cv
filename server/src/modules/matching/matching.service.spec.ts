@@ -9,7 +9,9 @@ import { AiProviderError } from "../ai/ai.service";
 import { MatchingService } from "./matching.service";
 
 // Pure-scoring unit tests only — persistence + AI orchestration methods
-// are covered by matching.e2e-spec.ts (with AiService overridden via DI).
+// were covered by matching.e2e-spec.ts, now ported to
+// automation-testing/src/tests/api/cv-jd-matching-wizard/matching.api.ts; the
+// cases that needed AiService overridden via DI are test.fixme there.
 function makeService(): MatchingService {
   // The pure methods under test (cosine/keywordScore/combineOverall) never
   // touch the injected collaborators, so undefined stand-ins are sufficient.

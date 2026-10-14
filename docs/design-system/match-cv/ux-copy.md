@@ -2,7 +2,7 @@
 
 > **Trả lời:** Câu chữ trên UI viết thế nào, EN và VI?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-10-04 · commit —
+> **Cập nhật:** 2026-10-14 · commit —
 > **Cập nhật khi:** thêm màn hình mới · đổi tone · thêm chuỗi i18n
 
 > Rút từ mock `cv-jd-matching-wizard` (user duyệt 2026-07-24). Token nằm ở
@@ -20,7 +20,8 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | step.cv | CV / Resume | CV / Hồ sơ |
 | step.review | Review | Xem lại |
 | step.result | Result | Kết quả |
-| stepper.progress | Step {n} of 4 | Bước {n}/4 |
+
+> `stepper.progress` ("Step {n} of 4") đã gỡ khỏi bảng: không còn trong locale lẫn code (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test).
 
 ## 3. Step 1–2 (input JD/CV)
 
@@ -47,7 +48,7 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | action.back | Back | Quay lại |
 | action.runMatch | Run match | Chạy so khớp |
 | action.startOver | Start over | Làm lại |
-| action.saveReport | Save report | Lưu báo cáo |
+| ~~action.saveReport~~ | ~~Save report~~ | ~~Lưu báo cáo~~ — **bỏ**: nút đã gỡ khỏi UI (backlog nợ #8), không còn trong locale (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test) |
 
 ## 5. Step 4 (result)
 
@@ -77,11 +78,13 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | wizard.stepJd.description | Start by providing the details of the position you are hiring for. | Bắt đầu bằng cách cung cấp thông tin về vị trí bạn đang tuyển. |
 | wizard.stepCv.title | Candidate CV / Resume | CV / Hồ sơ ứng viên |
 | wizard.stepCv.description | Provide the experience details for the candidate you're analyzing. | Cung cấp thông tin kinh nghiệm của ứng viên bạn đang phân tích. |
-| wizard.comingSoon | Coming in Plan 2 | Sẽ có ở Plan 2 |
+| ~~wizard.comingSoon~~ | ~~Coming in Plan 2~~ | ~~Sẽ có ở Plan 2~~ — **bỏ**: còn trong locale nhưng không component nào dùng (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test) |
 | paste.placeholder | Paste the text content here | Dán nội dung văn bản vào đây |
 | dropzone.title | Drop your file here or `<highlight>`browse`</highlight>` | Kéo thả file vào đây hoặc `<highlight>`chọn file`</highlight>` |
 
-> Interpolation dùng `{{var}}` (i18next), vd `stepper.progress` = "Step {{n}} of 4". Source-of-truth runtime: `client/src/i18n/{en,vi}.json`.
+> `review.hint` ("Data is editable…") còn trong locale nhưng **bỏ**: step 3 Review là read-only (`02-requirements/scope.md`), không component nào dùng key này (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test).
+>
+> Interpolation dùng `{{var}}` (i18next), vd `err.fileSize` = "File exceeds the {{max}} limit". Source-of-truth runtime: `client/src/i18n/{en,vi}.json`.
 
 ## 8. Plan 2 additions (matching)
 

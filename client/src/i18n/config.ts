@@ -12,7 +12,7 @@ i18n.use(initReactI18next).init({
 
 // Dev-only hook so E2E can drive i18n.changeLanguage() without a UI switcher
 // (no language switcher exists yet — Plan 2). Never present in production
-// builds. See client/e2e/cv-jd-matching-wizard/i18n.e2e.ts.
+// builds. See automation-testing/src/tests/e2e/cv-jd-matching-wizard/i18n.e2e.ts.
 if (import.meta.env.DEV && typeof window !== "undefined") {
   (window as unknown as { __i18n: typeof i18n }).__i18n = i18n;
 }
