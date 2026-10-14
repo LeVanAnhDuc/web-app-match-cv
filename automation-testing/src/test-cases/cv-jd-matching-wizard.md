@@ -30,7 +30,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** e2e · **Priority:** P1
 - **Bước:** dán JD → Next → dán CV → Next (bước 3) → Back → Next → Back → Back
 - **Mong đợi:** sau Back về bước 2, Next bật sẵn (không phải nạp lại) và đưa lại bước 3 với đúng CV/JD cũ; Back về bước 1, Next cũng bật sẵn
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-01](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-01)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-01](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-01)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/stepper.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-004 — đổi JD sau khi đã chạy match thì chặn lại bước 4
@@ -185,7 +185,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Tiền điều kiện:** DOCX thật (sample.docx + phần đệm lưu không nén) đúng 10 485 760 byte
 - **Bước:** upload
 - **Mong đợi:** 201, `sourceFormat: "docx"` (khớp biên client ở TC-016)
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-02](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-02)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-02](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-02)
 - **Automated:** `tests/api/cv-jd-matching-wizard/document-input.api.ts`
 
 ### TC-CVJDMATCHINGWIZARD-022 — vừa sai loại vừa quá cỡ thì server báo lỗi loại
@@ -273,7 +273,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** api · **Priority:** P2
 - **Bước:** `Accept-Language: vi`, `save: true`, title 201 ký tự
 - **Mong đợi:** 400 với message tiếng Việt (không phải câu tiếng Anh thô của class-validator)
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-03](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-03)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-03](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-03)
 - **Automated:** `tests/api/cv-jd-matching-wizard/document-input.api.ts`
 
 ### TC-CVJDMATCHINGWIZARD-033 — phiên khách không xem được danh sách tài liệu
@@ -335,7 +335,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** `GET /documents` bị chèn lỗi 500 (fault injection, decisions Q7)
 - **Mong đợi:** có alert lỗi trong vùng nạp, không hiện `reuse.empty.jd`
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-04](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-04)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-04](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-04)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/saved-documents.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-040 — ngày của tài liệu đã lưu theo ngôn ngữ giao diện
@@ -362,7 +362,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** e2e · **Priority:** P1
 - **Bước:** khách đi tới bước 3
 - **Mong đợi:** `credentials.runWith.privacyList` với "System key" hiện trước nút Run match
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-05](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-05)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-05](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-05)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/guest.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-043 — khách không thấy các hành động trên thẻ kết quả
@@ -396,7 +396,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** dán JD → Next → xoá JD trong DB → dán CV → Next
 - **Mong đợi:** alert lỗi + nút Back, không còn `review.loading`
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-06](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-06)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-06](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-06)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/review.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-047 — người đã đăng nhập thấy bên nhận nội dung CV/JD trước khi chạy
@@ -440,7 +440,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** stub `POST /match` trễ 3 s
 - **Mong đợi:** thẻ `aria-busy="true"` chứa `credentials.systemKey`; vùng `aria-live="polite"` có mặt; xong thì hết skeleton, có điểm
-- **Kiểm chứng thêm:** đang lệch — [BUG-CVJDMATCHINGWIZARD-07](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-07)
+- **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-07](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-07)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/result.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-052 — kết quả thành công hiện tiêu đề provider, ba điểm phần trăm và báo cáo mở sẵn
