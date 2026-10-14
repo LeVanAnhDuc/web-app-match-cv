@@ -239,6 +239,19 @@ describe("AppShell", () => {
     expect(body.style.flexDirection).toBe("column");
   });
 
+  it("closes the drawer after a nav item in it is clicked", async () => {
+    mockAuth(USER);
+    renderShell();
+
+    fireEvent.click(await screen.findByRole("button", { name: /open menu/i }));
+    const drawer = await screen.findByRole("dialog");
+    fireEvent.click(within(drawer).getByRole("link", { name: /curriculum/i }));
+
+    await waitFor(() =>
+      expect(document.querySelector(".ant-drawer-open")).toBeNull()
+    );
+  });
+
   it("account menu is keyboard-operable", async () => {
     mockAuth(USER);
     renderShell();

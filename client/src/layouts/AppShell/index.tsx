@@ -111,7 +111,7 @@ const AppShell = ({
           body: { padding: 0, display: "flex", flexDirection: "column" }
         }}
       >
-        <Sidebar />
+        <Sidebar onNavigate={() => setIsDrawerOpen(false)} />
       </Drawer>
     </div>
   );

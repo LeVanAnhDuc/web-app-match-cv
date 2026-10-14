@@ -50,7 +50,15 @@ const idleClassName = "text-muted hover:bg-surface-subtle hover:text-body";
 const activeClassName =
   "bg-primary/10 font-semibold text-accent before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-primary before:content-['']";
 
-const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
+// `onNavigate` lets the mobile Drawer close itself once a nav item is clicked;
+// the shell does not remount on route change, so nothing else would close it.
+const Sidebar = ({
+  collapsed = false,
+  onNavigate
+}: {
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) => {
   const { t } = useTranslation();
   const { status, isUser } = useAuth();
   const items = isUser ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.guest);
@@ -69,6 +77,7 @@ const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
               to={to}
               activeOptions={{ exact }}
               aria-label={collapsed ? label : undefined}
+              onClick={onNavigate}
               className={`${baseClassName} ${
                 collapsed ? "justify-center px-0" : "px-3"
               } ${idleClassName}`}

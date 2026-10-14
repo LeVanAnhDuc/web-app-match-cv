@@ -98,7 +98,7 @@ Theo rule `components.md` (dùng chung ≥2 view, no business logic), mỗi comp
 
 ### 4.4 Sidebar — `views/AppShell`
 
-**Layout**: `lg` mở `w-72` ↔ rail `w-16`, `transition-[width] duration-200`. `<lg` không đổi: header + hamburger + Drawer, Drawer luôn render bản mở rộng.
+**Layout**: `lg` mở `w-72` ↔ rail `w-16`, `transition-[width] duration-200`. `<lg` không đổi: header + hamburger + Drawer, Drawer luôn render bản mở rộng và tự đóng khi bấm một mục nav.
 
 **Toggle**: antd `<Button type="text">` icon `PanelLeftClose` / `PanelLeftOpen` (lucide) cuối hàng brand; `aria-expanded` + `aria-controls="app-sidebar"` + `aria-label` = `t('nav.collapse'|'nav.expand')`. Rail: brand chỉ còn logo 8×8 canh giữa, nút toggle xuống dòng dưới.
 
