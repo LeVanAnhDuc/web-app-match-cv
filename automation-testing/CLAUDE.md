@@ -143,6 +143,18 @@ Thêm/sửa TC xong chạy `pnpm coverage:check --write` để sinh lại matrix
   `defects/<module>.md`. File dùng chung (`api/`, `fixtures/*.fixture.ts`, `data/copy.ts`, `components/`, `base.page.ts`,
   `config/`, `utils/`) cần đổi → báo lại, không tự sửa.
 
+## Dùng trong flow phát triển feature
+
+Repo app bật bộ test này bằng dòng `Regression tests: <đường dẫn tới thư mục này>/ (/write-tests)` trong `CLAUDE.md` của nó.
+Flow làm feature có hook (vd `feature-flow` của skill `scaffold-webapp-project`) đọc dòng đó và chạy `/write-tests` hai lần:
+
+1. **Pha A — ngay sau khi thiết kế được duyệt, trước khi code:** requirement, decision, test case. **Chỉ tài liệu** — chưa
+   page object, locator hay spec vì chưa có giao diện, endpoint, response thật. User duyệt test case trước khi lên plan.
+2. **Pha B — sau khi build và đã nhìn app chạy thật qua MCP:** planner quan sát qua Playwright MCP → page object + spec →
+   **chạy test** → healer sửa script (không sửa kỳ vọng). Quan sát không thay được việc chạy test.
+3. Bug của feature đang làm thì sửa code; `test.fail()` chỉ dành cho bug của tính năng đã ship.
+4. Test e2e/API của app chỉ nằm ở đây; `pnpm test` xanh trước khi hoàn tất feature.
+
 ## Chạy
 
 | Lệnh | Chạy gì |
