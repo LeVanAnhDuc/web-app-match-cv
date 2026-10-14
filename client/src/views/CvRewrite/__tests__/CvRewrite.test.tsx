@@ -270,6 +270,37 @@ describe("CvRewrite", () => {
     expect(accept).not.toHaveBeenCalled();
   });
 
+  it("sends a single save when Save is pressed twice in a row", async () => {
+    mockGenerate(proposal);
+    // A slow server: the save stays in flight, and the mocked isPending stays
+    // false — the window before React re-renders the button as loading.
+    const accept = vi.fn(
+      (_input: AcceptCvRewriteInput) => new Promise<DocumentDto>(() => {})
+    );
+    vi.mocked(useAcceptCvRewrite).mockReturnValue({
+      mutateAsync: accept,
+      isPending: false
+    } as unknown as UseMutationResult<
+      DocumentDto,
+      Error,
+      AcceptCvRewriteInput
+    >);
+
+    renderPage();
+    await generate();
+
+    fireEvent.click(screen.getAllByRole("checkbox")[0]); // select all
+    fireEvent.click(screen.getByRole("button", { name: /Save as new CV/ }));
+    const save = screen.getByRole("button", { name: "Save" });
+    fireEvent.click(save);
+    await waitFor(() => expect(accept).toHaveBeenCalledTimes(1));
+    fireEvent.click(save);
+
+    // Give the second submission time to get through validation.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(accept).toHaveBeenCalledTimes(1);
+  });
+
   it("clears previous approvals when the suggestions are regenerated", async () => {
     mockGenerate(proposal);
 
