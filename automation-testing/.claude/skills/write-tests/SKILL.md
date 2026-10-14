@@ -32,6 +32,8 @@ Khi một feature mới đang được làm theo flow của project (vd skill `f
 Ở pha A, thiết kế vừa duyệt đã là quyết định của user: **không hỏi lại** những gì nó đã chốt, chỉ hỏi chỗ còn mơ hồ cho việc
 kiểm thử (biên, lỗi, quyền, trạng thái). Test case viết cho hành vi **sẽ** có, nên chưa có `Automated:` — để `manual — chờ
 pha B` rồi pha B điền đường dẫn spec. Cổng duyệt test case ở bước 6 là cổng duy nhất của pha A.
+Pha A chỉ viết **tài liệu**: không page object, không locator, không spec e2e/API, không client endpoint — chưa có giao
+diện, element, endpoint hay response thật để nhìn. Mọi thứ đó viết ở pha B, sau khi planner quan sát app đang chạy.
 Gọi đứng riêng (module đã ship, không qua flow feature) → chạy liền bước 1→9 như dưới.
 
 ## Bước 1: Tự đọc nguồn requirement
