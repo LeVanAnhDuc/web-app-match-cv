@@ -113,6 +113,11 @@ const MatchResultCard = ({
   } | null>(null);
   const [running, setRunning] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
+  // Unmounted only after the close animation: antd hands focus back to the
+  // "Write cover letter" button in afterClose, which never runs if the Modal
+  // is torn down the moment it closes. Remounting per open keeps the dialog's
+  // state fresh each time.
+  const [letterMounted, setLetterMounted] = useState(false);
   const firedRef = useRef(false);
 
   const fire = async () => {
@@ -296,7 +301,10 @@ const MatchResultCard = ({
             <Button
               className={HEADER_ACTION_CLASS}
               icon={<Mail size={16} />}
-              onClick={() => setLetterOpen(true)}
+              onClick={() => {
+                setLetterMounted(true);
+                setLetterOpen(true);
+              }}
             >
               {t("coverLetter.open")}
             </Button>
@@ -360,12 +368,13 @@ const MatchResultCard = ({
           />
         )}
       </div>
-      {letterOpen && (
+      {letterMounted && (
         <CoverLetterModal
-          open
+          open={letterOpen}
           matchResultId={result.id}
           defaultCredentialId={result.credentialId}
           onClose={() => setLetterOpen(false)}
+          afterClose={() => setLetterMounted(false)}
         />
       )}
     </SectionCard>

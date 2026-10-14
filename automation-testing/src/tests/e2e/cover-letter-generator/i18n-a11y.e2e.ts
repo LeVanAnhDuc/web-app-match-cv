@@ -77,8 +77,6 @@ test.describe("cover letter — language, secrets, keyboard", () => {
     "focus moves into the dialog, Escape closes it and focus returns to the button",
     { tag: ["@TC-COVERLETTERGENERATOR-063"] },
     async ({ coverLetterPage, coverLetterSeed }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-06
-      test.fail();
       const match = await coverLetterSeed.match();
       await coverLetterSeed.letter(match);
       await coverLetterPage.openRun(match.runId);

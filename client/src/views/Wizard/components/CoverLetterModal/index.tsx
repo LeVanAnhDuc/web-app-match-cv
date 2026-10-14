@@ -59,13 +59,15 @@ const CoverLetterModal = ({
   open,
   matchResultId,
   defaultCredentialId,
-  onClose
+  onClose,
+  afterClose
 }: {
   open: boolean;
   matchResultId: string;
   /** The credential that produced the match — the sensible default. */
   defaultCredentialId: string | null;
   onClose: () => void;
+  afterClose?: () => void;
 }) => {
   const { t, i18n } = useTranslation();
   const lettersQuery = useCoverLetters(matchResultId, open);
@@ -215,6 +217,7 @@ const CoverLetterModal = ({
     <Modal
       open={open}
       onCancel={onClose}
+      afterClose={afterClose}
       footer={null}
       width={880}
       destroyOnHidden
