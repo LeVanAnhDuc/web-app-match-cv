@@ -223,7 +223,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** bước 3 với 1 credential
 - **Mong đợi:** có `role="group"` tên "Run with" chứa đủ 2 checkbox
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-05
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-05](../defects/multi-provider-compare.md#bug-multiprovidercompare-05)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-025 — bỏ chọn hết thì Run match bị khoá, báo chọn ít nhất một key và không gửi request nào
@@ -323,7 +323,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Tiền điều kiện:** credential Gemini; stub: credential → `gemini · gemini-2.5-flash` 71; key hệ thống → `openai · stub-model-x` 84
 - **Bước:** tick System key trước rồi credential → Run match
 - **Mong đợi:** 2 card; card 1 "Google Gemini · gemini-2.5-flash" (71), card 2 "OpenAI · stub-model-x" (84) — thứ tự dòng, tiêu đề theo kết quả
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-06
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-06](../defects/multi-provider-compare.md#bug-multiprovidercompare-06)
 - **Automated:** `tests/e2e/multi-provider-compare/progressive-results.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-036 — mỗi card gửi đúng một POST /match cùng runId, key hệ thống không gửi credentialId
@@ -348,7 +348,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** key hệ thống trả sau 8 s
 - **Mong đợi:** card đang chạy có `aria-busy="true"`
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-01
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-01](../defects/multi-provider-compare.md#bug-multiprovidercompare-01)
 - **Automated:** `tests/e2e/multi-provider-compare/progressive-results.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-039 — mọi request của run cùng chờ một lúc
@@ -416,7 +416,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** như TC-045
 - **Mong đợi:** alert card 1 chứa "Credential not found." (không phải "Could not reach the provider.")
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-02
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-02](../defects/multi-provider-compare.md#bug-multiprovidercompare-02)
 - **Automated:** `tests/e2e/multi-provider-compare/partial-failure.e2e.ts`
 
 ## UI — tải lại và mở lại run

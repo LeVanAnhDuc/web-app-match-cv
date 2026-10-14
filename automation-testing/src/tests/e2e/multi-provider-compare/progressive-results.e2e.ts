@@ -83,8 +83,6 @@ test.describe("bước 4 — N card hiện dần", () => {
     "card đang chạy được đánh dấu aria-busy",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-038"] },
     async ({ compareWizardPage: wizard, mpcMatchStub }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-01
-      test.fail();
       await mpcMatchStub.script({ [SYSTEM]: { result: {}, delayMs: 8_000 } });
       await wizard.goto();
       await wizard.advanceToReview(MPC_TEXT.jd, MPC_TEXT.cv);

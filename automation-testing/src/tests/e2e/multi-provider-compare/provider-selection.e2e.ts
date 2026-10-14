@@ -35,8 +35,6 @@ test.describe("chọn provider ở bước 3", () => {
     "danh sách checkbox là một nhóm có tên Run with",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-024"] },
     async ({ compareWizardPage: wizard, mpcCredentials }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-05
-      test.fail();
       await mpcCredentials.add("openrouter");
       await wizard.goto();
       await wizard.advanceToReview(MPC_TEXT.jd, MPC_TEXT.cv);
