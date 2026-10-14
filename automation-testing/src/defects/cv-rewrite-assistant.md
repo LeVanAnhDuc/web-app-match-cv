@@ -6,13 +6,11 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-CVREWRITEASSISTANT-01](#bug-cvrewriteassistant-01) | Trung bình | TC-CVREWRITEASSISTANT-058 | Tên toàn khoảng trắng lọt qua modal, server 400, UI báo nhầm "thay đổi không còn khớp CV" |
-| [BUG-CVREWRITEASSISTANT-02](#bug-cvrewriteassistant-02) | Thấp | TC-CVREWRITEASSISTANT-065 | Checkbox của các thay đổi cùng section có tên truy cập trùng nhau |
-| [BUG-CVREWRITEASSISTANT-03](#bug-cvrewriteassistant-03) | Thấp | TC-CVREWRITEASSISTANT-066 | Mở modal "Save as a new CV" không focus vào ô tên |
-| [BUG-CVREWRITEASSISTANT-04](#bug-cvrewriteassistant-04) | Thấp | TC-CVREWRITEASSISTANT-043 | Skeleton lúc sinh không mang `aria-busy="true"` |
-| [BUG-CVREWRITEASSISTANT-05](#bug-cvrewriteassistant-05) | Trung bình | TC-CVREWRITEASSISTANT-061 | Double-click "Save" trong modal gửi hai `POST /cv-rewrite/accept` → hai CV con |
+_(không còn)_
+
+## Đã sửa
+
+Lượt sửa 2026-10-15 (branch `fix/open-bugs`): cả năm bug đã sửa, `test.fail()` đã gỡ khỏi spec.
 
 ### BUG-CVREWRITEASSISTANT-01
 
@@ -23,6 +21,7 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
   gửi `title.trim()` = `""`, server trả 400 (title trim rồi `Length(1,200)`), `RewriteReview.runAccept` map mọi 400 thành
   `rewrite.err.notGrounded` ("One of the approved changes no longer matches your CV…") — sai lý do
   (`client/src/views/CvRewrite/components/SaveRewriteModal/index.tsx`, `mains/RewriteReview/index.tsx`)
+- **Đã sửa:** root cause — rule `required` của antd thiếu `whitespace: true` nên tên toàn khoảng trắng qua được validate, server 400 và UI map thành `notGrounded`. Fix — thêm `whitespace: true` vào rule; modal báo `save.nameRequired` và không gửi request (commit: ef69625).
 
 ### BUG-CVREWRITEASSISTANT-02
 
@@ -32,6 +31,7 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
   `getByRole('checkbox', { name })` phân biệt được (design §7 row 12, NFR-A11Y-04)
 - **Thực tế:** `ChangeCard` đặt `aria-label` của group và checkbox = `sectionHint` → cả hai đều là "Experience"
   (`client/src/views/CvRewrite/components/ChangeCard/index.tsx`)
+- **Đã sửa:** root cause — `ChangeCard` dùng mỗi `sectionHint` làm `aria-label` nên các thay đổi cùng section trùng tên. Fix — tên truy cập của group và checkbox kèm vị trí, khoá mới `rewrite.change.accessibleName` ("Experience — change 1 of 2" / "Experience — thay đổi 1/2") (commit: 09f1546).
 
 ### BUG-CVREWRITEASSISTANT-03
 
@@ -40,6 +40,7 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
 - **Mong đợi:** ô "Document name" nhận focus ngay khi modal mở (NFR-A11Y-02, design §7 row 12)
 - **Thực tế:** antd `Modal` (rc-dialog 9.6) focus vào sentinel của dialog; `Input` không có `autoFocus` → người dùng bàn
   phím phải Tab thêm mới tới ô tên (`SaveRewriteModal/index.tsx`)
+- **Đã sửa:** root cause — rc-dialog tự focus wrapper khi mở nên ô tên không nhận focus. Fix — `SaveRewriteModal` focus ô tên trong `afterOpenChange` qua ref, cùng cách `CredentialFormModal` (commit: ef69625).
 
 ### BUG-CVREWRITEASSISTANT-04
 
@@ -49,6 +50,7 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
 - **Thực tế:** `RewriteReview` truyền `aria-busy="true"` cho `SectionCard`, nhưng `SectionCard` chỉ nhận các prop khai báo
   và không rải phần còn lại xuống `<div>` → thuộc tính không có trong DOM (`client/src/components/SectionCard/index.tsx`).
   Cùng nguyên nhân có ở skeleton của `MatchResultCard` (module khác)
+- **Đã sửa:** root cause — `SectionCard` không khai báo `aria-busy` nên bỏ thuộc tính này. Fix — sửa chung với BUG-MULTIPROVIDERCOMPARE-01 / BUG-CVJDMATCHINGWIZARD-07: `SectionCard` đặt `aria-busy` lên `div` gốc; module này chỉ gỡ `test.fail()` (commit: 1585c8d).
 
 ### BUG-CVREWRITEASSISTANT-05
 
@@ -60,7 +62,4 @@ suite cùng ngày. Lượt chạy 2026-10-14 (app, app-tablet, app-mobile) tái 
   `accept.isPending` đã re-render, nên cú click thứ hai lọt qua trước khi nút chuyển sang loading; server không có
   idempotency (D4) nên mỗi request tạo một `Document`
   (`client/src/views/CvRewrite/components/SaveRewriteModal/index.tsx`, `mains/RewriteReview/index.tsx`)
-
-## Đã sửa
-
-_(chưa có)_
+- **Đã sửa:** root cause — `form.submit()` validate bất đồng bộ và nút chỉ chuyển loading sau khi `accept.isPending` re-render, nên cú click thứ hai lọt qua. Fix — `RewriteReview.runAccept` chặn bằng ref đồng bộ, chỉ mở lại khi accept lỗi (commit: 452404e).
