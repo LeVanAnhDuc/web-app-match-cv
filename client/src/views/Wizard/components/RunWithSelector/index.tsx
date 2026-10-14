@@ -80,37 +80,40 @@ const RunWithSelector = ({
       <p className="text-xs font-semibold tracking-wider text-muted uppercase">
         {t("credentials.runWith.title")}
       </p>
-      <Checkbox.Group
-        aria-label={t("credentials.runWith.title")}
-        className="flex w-full flex-col gap-2"
-        value={value.map(toValue)}
-        onChange={(next) => onChange(next.map((v) => toId(v)))}
-      >
-        {credentials.map((credential) => (
-          <Checkbox key={credential.id} value={credential.id}>
-            <span className="inline-flex flex-wrap items-center gap-2">
-              <Tag className="!me-0">{providerLabel(credential.provider)}</Tag>
-              <span className="text-sm text-body">{credential.label}</span>
-              <span className="font-mono text-xs text-muted">
-                {MASK}
-                {credential.keyLast4}
+      <div role="group" aria-label={t("credentials.runWith.title")}>
+        <Checkbox.Group
+          className="flex w-full flex-col gap-2"
+          value={value.map(toValue)}
+          onChange={(next) => onChange(next.map((v) => toId(v)))}
+        >
+          {credentials.map((credential) => (
+            <Checkbox key={credential.id} value={credential.id}>
+              <span className="inline-flex flex-wrap items-center gap-2">
+                <Tag className="!me-0">
+                  {providerLabel(credential.provider)}
+                </Tag>
+                <span className="text-sm text-body">{credential.label}</span>
+                <span className="font-mono text-xs text-muted">
+                  {MASK}
+                  {credential.keyLast4}
+                </span>
+                <TestStatusTag
+                  status={credential.lastTestStatus}
+                  testedAt={null}
+                />
               </span>
-              <TestStatusTag
-                status={credential.lastTestStatus}
-                testedAt={null}
-              />
+            </Checkbox>
+          ))}
+          <Checkbox value={SYSTEM_KEY_VALUE}>
+            <span className="inline-flex items-center gap-2">
+              <span className="text-sm text-body">
+                {t("credentials.systemKey")}
+              </span>
+              <Tag className="!me-0">{t("credentials.systemKeyTag")}</Tag>
             </span>
           </Checkbox>
-        ))}
-        <Checkbox value={SYSTEM_KEY_VALUE}>
-          <span className="inline-flex items-center gap-2">
-            <span className="text-sm text-body">
-              {t("credentials.systemKey")}
-            </span>
-            <Tag className="!me-0">{t("credentials.systemKeyTag")}</Tag>
-          </span>
-        </Checkbox>
-      </Checkbox.Group>
+        </Checkbox.Group>
+      </div>
       <Button
         size="small"
         icon={<Plus size={14} />}

@@ -57,6 +57,16 @@ function mockCredentials(credentials: Array<AiCredentialDto>) {
 describe("RunWithSelector", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it("exposes the checkboxes as a group named Run with", () => {
+    mockCredentials([base]);
+    render(<RunWithSelector value={[]} onChange={vi.fn()} />);
+
+    const group = screen.getByRole("group", { name: "Run with" });
+    expect(group).toContainElement(
+      screen.getByRole("checkbox", { name: /Mine/ })
+    );
+  });
+
   it("defaults to the most recently used credential", async () => {
     mockCredentials([
       { ...base, id: "a", label: "Older", lastUsedAt: "2026-08-01T00:00:00Z" },
