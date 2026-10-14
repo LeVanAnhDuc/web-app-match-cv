@@ -39,7 +39,7 @@ const AppShell = ({
     <div className="flex min-h-dvh bg-app lg:h-dvh lg:overflow-hidden">
       <aside
         id="app-sidebar"
-        className={`hidden shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-200 lg:flex ${
+        className={`hidden shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-200 motion-reduce:duration-0 lg:flex ${
           isCollapsed ? "w-16" : "w-72"
         }`}
       >

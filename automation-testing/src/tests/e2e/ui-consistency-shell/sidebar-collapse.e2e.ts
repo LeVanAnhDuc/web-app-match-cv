@@ -159,8 +159,6 @@ test.describe("desktop sidebar", () => {
     shellLayoutPage,
     page,
   }) => {
-    // BUG: defects/ui-consistency-shell.md#bug-uiconsistencyshell-02
-    test.fail();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await shellLayoutPage.goto("/");
     await expect(shellLayoutPage.shell.collapseButton()).toBeVisible();
