@@ -1,27 +1,35 @@
-# UICONSISTENCYSHELL — bug
+# UICONSISTENCYSHELL — Bug log
 
-## Gom từ `docs/specs/ui-consistency-shell/e2e-bugs.md`
+## Đang mở
 
-Nguyên văn bug log e2e cũ, gom về lúc scaffold. Chưa đổi sang `### BUG-…`: `/write-tests ui-consistency-shell` chuyển (đang mở / đã sửa).
+| Bug | Mức | TC | Tóm tắt |
+|---|---|---|---|
+| [BUG-UICONSISTENCYSHELL-01](#bug-uiconsistencyshell-01) | Trung bình | TC-UICONSISTENCYSHELL-022 | Drawer mobile không tự đóng sau khi bấm một mục nav |
+| [BUG-UICONSISTENCYSHELL-02](#bug-uiconsistencyshell-02) | Thấp | TC-UICONSISTENCYSHELL-016 | Sidebar vẫn có chuyển động 200ms khi bật `prefers-reduced-motion` |
 
-### E2E Bugs — ui-consistency-shell
+### BUG-UICONSISTENCYSHELL-01
 
-Append-only log của các vòng dual-gate fail (§4.3). Tối đa 3 vòng rồi dừng.
+- **TC:** TC-UICONSISTENCYSHELL-022 · **Requirement:** REQ-UICONSISTENCYSHELL-19
+- **Bước tái hiện:** viewport < 1024px (vd 390px) → bấm "Open menu" → bấm "Curriculum Vitae" trong drawer.
+- **Mong đợi:** chuyển sang `/cv` và drawer đóng.
+- **Thực tế:** URL đổi sang `/cv` nhưng drawer vẫn mở che nội dung; phải bấm Close / Esc / nền. `AppShell` chỉ đặt
+  `isDrawerOpen=false` trong `onClose` của Drawer, không có effect theo route (`client/src/layouts/AppShell/index.tsx`).
+  Quan sát lại 2026-10-14 trên dev.
 
-#### Round 1 — 2026-08-08
+### BUG-UICONSISTENCYSHELL-02
 
-- **Gate fail**: A (`pnpm test:e2e --project=desktop e2e/ui-consistency-shell`) — 2/7 fail.
-- **Scenario**: 11 `[state] collapse to rail…` và 11 `[state] a collapsed desktop preference does not affect the mobile drawer`.
-- **Triệu chứng**: `getByText("Curriculum Vitae")` resolve ra 2 element (strict-mode violation / assertion sai). Observed: locator khớp cả `span` trong stat card Home lẫn `span` nhãn nav. Expected: chỉ khớp nhãn trong sidebar.
-- **Root cause**: đổi `home.stat.savedCvs` sang cùng chuỗi "Curriculum Vitae" với `nav.savedCvs` (đúng theo design §4.4) khiến locator không phạm vi trở nên mơ hồ. **Lỗi ở test, không phải ở app.**
-- **Fix đã làm**: `e2e/ui-consistency-shell/sidebar.e2e.ts` — scope locator vào `page.locator("#app-sidebar")` (test rail) và `page.getByRole("dialog")` (test drawer), kèm comment nêu lý do.
-- **Kết quả re-verify**: 6/7 pass (1 fail còn lại → Round 2).
+- **TC:** TC-UICONSISTENCYSHELL-016 · **Requirement:** REQ-UICONSISTENCYSHELL-20
+- **Bước tái hiện:** desktop, bật `prefers-reduced-motion: reduce` (devtools / `page.emulateMedia`) → mở `/` → đọc
+  `transition-duration` của `#app-sidebar` (hoặc bấm thu gọn).
+- **Mong đợi:** `0s` — đổi bề rộng tức thì (NFR-A11Y-05).
+- **Thực tế:** `0.2s`: aside dùng `transition-[width] duration-200` không có biến thể `motion-reduce:`, `styles.css`
+  không có media query `prefers-reduced-motion`.
 
-#### Round 2 — 2026-08-08
+## Đã sửa
 
-- **Gate fail**: A — 1/7 fail.
-- **Scenario**: 11 `[state] collapse to rail, survives navigation and reload`.
-- **Triệu chứng**: sau `page.reload()`, nút hiển thị "Collapse sidebar" (đang mở) thay vì "Expand sidebar" (rail) — trạng thái persist không được áp dụng.
-- **Root cause**: `test.beforeEach` gọi `page.addInitScript(() => localStorage.clear())`. Init script của Playwright **chạy lại ở mỗi lần navigation**, kể cả `reload()` → xoá đúng giá trị vừa ghi trước khi app hydrate. Mỗi test Playwright vốn đã có browser context riêng nên localStorage đã sạch sẵn; `beforeEach` này thừa. **Lỗi ở test, không phải ở app** — persist thật sự hoạt động (đã có unit test `ui.test.ts` + xác nhận lại ở gate B).
-- **Fix đã làm**: bỏ `beforeEach` clear, thêm comment cảnh báo không dùng init script để clear storage trong file này.
-- **Kết quả re-verify**: 7/7 pass. Full suite 3 viewport: 135/135 pass (3 fail ở lần chạy trước là do server `:5200` tự restart giữa run — `TypeError: fetch failed`, PID đổi 2764→24956; chạy lại project `tablet` cho 45/45 pass).
+_(chưa có)_
+
+<!-- Bug log cũ (docs/specs/ui-consistency-shell/e2e-bugs.md, Round 1 + 2, 2026-08-08) đã bỏ: cả hai là lỗi của
+     script test (locator không phạm vi trùng nhãn stat card; init script xoá localStorage mỗi lần reload), không phải
+     lỗi app. Bài học giữ lại trong spec: locator nav đi qua AppShell (scope #app-sidebar / drawer), và không clear
+     storage bằng init script (comment đầu sidebar-collapse.e2e.ts). -->

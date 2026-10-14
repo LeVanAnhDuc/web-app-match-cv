@@ -1,14 +1,15 @@
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 import { resolveEnv } from "@/config/env";
-import { buildGrepInvert } from "@/config/env-guard";
+import { buildGrepInvert, grepFlagsFrom } from "@/config/env-guard";
 import { findUrls } from "@/config/urls";
 
 const env = resolveEnv(process.env.ENV);
-const includeFull = process.env.FULL === "1";
 // Page objects navigate with relative URLs. undefined on an env without a host (fixtures then fail clearly).
 const baseURL = findUrls(env)?.webUrl;
-const grepInvert = buildGrepInvert(env, includeFull);
+// Filtered out of a normal run: @e2e-full (unless FULL=1), @live-ai (unless LIVE_AI=1 — real provider, costs money),
+// @creates-data on prd.
+const grepInvert = buildGrepInvert(env, grepFlagsFrom(process.env));
 
 // Signed-in runs reuse the session seeded by the "session" project (src/utils/auth-state.ts): a User + Session row and the
 // matching mcv_session cookie, so no spec pays the OIDC round-trip. Guest specs run with no cookie at all.

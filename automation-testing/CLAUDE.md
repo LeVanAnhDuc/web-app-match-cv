@@ -21,12 +21,13 @@ match-cv-automation-testing/
     ├── defects/<module>.md            BUG-<MODULE>-NN — app đang sai ở đâu, đang mở / đã sửa
     ├── config/                        môi trường: env, env-guard, urls, accounts (đọc .env)
     ├── utils/                         tiện ích không biết UI / ENV (mail.tm, otp, totp, rate-gate…), kèm *.test.ts
-    ├── data/                          copy.ts (text UI / message server nguyên văn), test-data.ts
-    ├── api/                           client REST, một file một resource, gộp theo namespace ở api/index.ts
-    │                                  (api.auth.login, api.as(session).users.exists)
+    ├── data/                          copy.ts (t / serverMessage đọc file locale thật của app), test-data/<module>.ts, files/
+    ├── api/                           client REST, một file một controller, gộp theo namespace ở api/index.ts
+    │                                  (api.documents.list(), anonApi.match.create(...), api.as(user).me.export())
     ├── components/                    UI lặp lại giữa nhiều trang
     ├── pages/                         Page Object, kế thừa pages/base.page.ts
-    ├── fixtures/                      *.fixture.ts gộp bằng mergeTests ở index.ts
+    ├── fixtures/                      *.fixture.ts dùng chung → shared.fixture.ts; modules/<module>.fixture.ts (slot
+    │                                  riêng từng module); tất cả gộp bằng mergeTests ở index.ts
     └── tests/
         ├── seed.spec.ts               seed cho agent planner/generator
         ├── setup/*.setup.ts           tạo dữ liệu một lần (pnpm provision)
@@ -70,11 +71,18 @@ Phụ thuộc chỉ đi xuống: `tests → fixtures → pages / components / ap
 - Alias `@/*` = `src/*`. Trong cùng thư mục dùng đường dẫn tương đối (`./env`).
 
 **Page object:** một class mỗi trang, `<Name>Page` trong `kebab-case.page.ts`, constructor nhận `Page`, có `goto()` nếu
-trang có URL riêng (đường dẫn tương đối — project đặt `baseURL`). Dialog/modal riêng của trang là class con trong
-cùng file. Page object mới thì thêm vào `fixtures/pages.fixture.ts`; tab thứ hai thì `new XxxPage(otherPage)`.
+trang có URL riêng (đường dẫn tương đối — project đặt `baseURL`, sau `page.goto` gọi `waitForAppReady()`). Dialog/modal
+riêng của trang là class con trong cùng file. Page object mới thì đăng ký ở slot của module
+(`fixtures/modules/<module>.fixture.ts`); tab thứ hai thì `new XxxPage(otherPage)`. Sidebar/header/drawer: `AppShell`
+(fixture `shell`, hoặc `xxxPage.shell`). Tiếng Việt: `xxxPage.setLanguage("vi")` (dev hook `window.__i18n`).
 
-**Text:** assert text lấy từ `data/copy.ts` (UI) hoặc `serverMessage` (message BE theo error code), không viết chuỗi
-trực tiếp trong spec. Chuỗi mới phải chép nguyên văn từ file locale FE / `messages.properties` BE và ghi nguồn.
+**Text:** assert text lấy từ `t(key, lng)` (UI, `client/src/locales/<lng>/translation.json`) hoặc
+`serverMessage(key, lng)` (BE, `server/src/i18n/<lng>/*.json`) trong `data/copy.ts` — cả hai đọc file của app lúc
+chạy, không chép tay, không viết chuỗi trực tiếp trong spec.
+
+**AI (D1):** UI spec stub mọi endpoint gọi AI (`POST /match`, `/cover-letters`, `/cv-rewrite`, `/ai-credentials/:id/test`)
+bằng fixture `network`; mọi thứ khác đi backend thật. API spec chỉ phủ nhánh quyết định trước khi gọi provider. Chỉ test
+`@live-ai` được chạm provider thật; không test nào chạm OIDC thật (module auth dùng fake IdP riêng).
 
 ## Tag
 
@@ -87,6 +95,7 @@ Gắn qua `{ tag: [...] }`, không viết trong tên test.
 | `@email` | test dùng fixture `inbox` (đọc email qua mail.tm, chậm và phụ thuộc bên ngoài) |
 | `@creates-data` | test tạo dữ liệu thật (user, workspace…). Bị chặn trên prd |
 | `@e2e-full` | luồng xuyên module (vd sign-up → sign-in), chỉ chạy với `pnpm test:full` |
+| `@live-ai` | test gọi AI provider THẬT (contract, công thức điểm, chấm tiếng Việt). Chỉ chạy khi `LIVE_AI=1` (tốn tiền; dev server cần `OPENROUTER_API_KEY`), bị lọc và bị `guard` chặn khi thiếu |
 
 ```ts
 test("email chưa đăng ký hiện thông báo", { tag: ["@TC-SIGNIN-007", "@smoke"] }, async ({ signInPage }) => {
@@ -127,8 +136,12 @@ Thêm/sửa TC xong chạy `pnpm coverage:check --write` để sinh lại matrix
 - Mỗi test độc lập: không phụ thuộc thứ tự, không dùng chung dữ liệu tạo ở test khác (trừ `@e2e-full`).
   Chạy riêng được: `pnpm exec playwright test -g "@TC-SIGNIN-007"`.
 - Không ghi secret vào file nào ngoài `.env`.
-- Mọi request API đi qua client trong `api/` (fixture `api`), không gọi `request` trần. Resource mới = file
-  `<resource>.client.ts` + một namespace trong `api/index.ts` (cần đăng nhập thì nằm trong `as(session)`), xem `src/api/README.md`.
+- Mọi request API đi qua client trong `api/` (fixture `api` = user e2e, `anonApi` = ẩn danh, `apiAs(user)` = user khác),
+  không gọi `request` / `fetch` trần. Mọi endpoint của server đã có method; xem bảng ở `src/api/README.md`.
+- Agent/người viết một module chỉ sửa file của module đó: `fixtures/modules/<module>.fixture.ts`,
+  `data/test-data/<module>.ts`, `pages/<area>/`, `tests/{e2e,api}/<module>/`, `docs/…/<module>.md`, `test-cases/<module>.md`,
+  `defects/<module>.md`. File dùng chung (`api/`, `fixtures/*.fixture.ts`, `data/copy.ts`, `components/`, `base.page.ts`,
+  `config/`, `utils/`) cần đổi → báo lại, không tự sửa.
 
 ## Chạy
 
@@ -137,10 +150,11 @@ Thêm/sửa TC xong chạy `pnpm coverage:check --write` để sinh lại matrix
 | `pnpm test` | toàn bộ test trên ENV trong `.env` (mặc định dev), trừ `@e2e-full` |
 | `pnpm test:smoke` | chỉ `@smoke` |
 | `pnpm test:full` | tất cả, kể cả `@e2e-full` |
+| `LIVE_AI=1` trong `.env` | thêm các test `@live-ai` vào mọi lệnh trên |
 | `pnpm test:stg` | như `pnpm test`, trên stg |
 | `pnpm test src/tests/e2e/sign-in` | một module, một tầng |
 | `pnpm test -g "@TC-SIGNIN-007"` | một test case |
-| `pnpm test:unit` | unit test `config/`, `utils/` |
+| `pnpm test:unit` | unit test `config/`, `utils/`, `data/` |
 | `pnpm provision` | chạy `src/tests/setup/*.setup.ts` (tạo dữ liệu còn thiếu) |
 | `pnpm coverage:check [--write]` | REQ ↔ TC ↔ spec ↔ bug; `--write` sinh lại `src/docs/traceability-matrix.md` |
 | `pnpm typecheck` | TypeScript |

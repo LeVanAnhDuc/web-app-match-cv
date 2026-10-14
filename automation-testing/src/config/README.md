@@ -5,7 +5,8 @@
 | File | Nội dung |
 |---|---|
 | `env.ts` | `resolveEnv` (đọc `ENV`, mặc định `dev`), `requireVar` (đọc biến `.env`, thiếu thì báo rõ tên) |
-| `env-guard.ts` | `buildGrepInvert` (lọc tag theo ENV trong `playwright.config.ts`), `assertAllowed` (chặn `@creates-data` trên prd, lớp 2) |
+| `env-guard.ts` | `buildGrepInvert(env, { includeFull, liveAi })` (lọc `@e2e-full`, `@live-ai`, `@creates-data` trên prd trong `playwright.config.ts`), `grepFlagsFrom(process.env)` (`FULL=1`, `LIVE_AI=1`), `assertAllowed` (lớp 2: chặn `@creates-data` trên prd và `@live-ai` khi thiếu `LIVE_AI=1`, kể cả khi `--grep` vượt lọc) |
+| `database.ts` | `databaseUrl()` — `E2E_DATABASE_URL` (Postgres dev, chỉ DB bỏ đi được) |
 | `urls.ts` | URL web và URL gốc API theo ENV (hai URL độc lập, lấy từ source app lúc scaffold) |
 | `accounts.ts` | Tài khoản test đọc từ `.env` |
 | `*.test.ts` | Unit test, chạy bằng `pnpm test:unit` |

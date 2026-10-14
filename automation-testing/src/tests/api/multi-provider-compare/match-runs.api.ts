@@ -1,260 +1,249 @@
 import { randomUUID } from "node:crypto";
 import { test, expect } from "@/fixtures";
-import type { HttpFactory } from "@/api/http.client";
-import { countRows, insertMatchResult, insertMatchRun, sql } from "@/utils/db";
-import { createSignedInUser, createUser, deleteUsers } from "@/utils/sessions";
+import type { ApiClient } from "@/api";
+import { serverMessage } from "@/data/copy";
+import { MPC_TEXT } from "@/data/test-data/multi-provider-compare";
+import { insertMatchResult, insertMatchRun } from "@/utils/db";
+import { createGuestUser, createSignedInUser, createUser, deleteUsers, type SeededUser } from "@/utils/sessions";
 
-// Ported from server/test/match-runs.e2e-spec.ts. That suite replaced AiService with FakeAiService (deterministic
-// embeddings, `failNext` to kill the provider). Over HTTP the dev server's AiService is real, so every case that needs
-// POST /match to actually RUN (results under a run, the failed-row contract) is fixme. Opening runs, reading them, and
-// the run/document checks POST /match makes before any provider call run live.
+// POST /match/runs (opens a run, no AI call) and GET /match/runs/:id (reads it back). Results under a run can only be
+// written by POST /match, which calls the provider, so stored results are inserted in the DB (D1).
 
-const MATCH = "/match";
-const RUNS = "/match/runs";
+test.describe("match runs", () => {
+  let owner: SeededUser;
+  let client: ApiClient;
+  let otherUserId: string;
+  let cvId: string;
+  let jdId: string;
 
-interface IdBody {
-  id: string;
-}
-
-interface RunBody {
-  id: string;
-  cvDocumentId: string;
-  jdDocumentId: string;
-  createdAt: string;
-  results?: ResultBody[];
-}
-
-interface ResultBody {
-  id: string;
-  runId: string | null;
-  status: string;
-  errorCode: string | null;
-  provider: string;
-  chatModel: string;
-  overallScore: number;
-}
-
-const ERROR_CODES = ["invalid_key", "no_quota", "model_unavailable", "timeout", "unreachable"];
-
-test.describe("MatchRuns (e2e)", () => {
-  let userId: string;
-  let cookie: string;
-  const documentIds: string[] = [];
-  const runIds: string[] = [];
-  let cvDocId: string;
-  let jdDocId: string;
-
-  const createDoc = async (http: HttpFactory, kind: "CV" | "JD", text: string) => {
-    const res = await http(cookie).post("/documents", { data: { kind, sourceText: text, save: false } });
-    const { id } = res.body as IdBody;
-    documentIds.push(id);
-    return id;
-  };
-
-  const openRun = async (http: HttpFactory, cv = cvDocId, jd = jdDocId) => {
-    const res = await http(cookie).post(RUNS, { data: { cvDocumentId: cv, jdDocumentId: jd } });
-    if (res.status === 201) runIds.push((res.body as RunBody).id);
-    return res;
-  };
-
-  test.beforeAll(async ({ http }) => {
-    ({ userId, cookie } = await createSignedInUser());
-
-    cvDocId = await createDoc(http, "CV", "Senior backend engineer with NestJS.");
-    jdDocId = await createDoc(http, "JD", "Hiring a senior backend engineer.");
+  test.beforeAll(async ({ apiAs }) => {
+    owner = await createSignedInUser();
+    otherUserId = await createUser();
+    client = apiAs(owner);
+    cvId = (await client.documents.create({ kind: "CV", sourceText: MPC_TEXT.cv, save: false })).json().id;
+    jdId = (await client.documents.create({ kind: "JD", sourceText: MPC_TEXT.jd, save: false })).json().id;
   });
 
   test.afterAll(async () => {
-    // Results cascade with their run; anything runless is cleaned by document.
-    if (runIds.length) await sql('DELETE FROM "MatchRun" WHERE id = ANY($1::text[])', [runIds]);
-    await sql('DELETE FROM "MatchResult" WHERE "cvDocumentId" = ANY($1::text[])', [documentIds]);
-    await sql('DELETE FROM "Document" WHERE id = ANY($1::text[])', [documentIds]);
-    await deleteUsers([userId]);
+    // Cascades documents, runs and results of both users.
+    await deleteUsers([owner.userId, otherUserId]);
   });
 
   test.describe("POST /match/runs", () => {
-    test("[EP] opens a run for an owned CV/JD pair", async ({ http }) => {
-      const res = await openRun(http);
+    test("mở run cho cặp CV/JD của mình", { tag: ["@TC-MULTIPROVIDERCOMPARE-001", "@smoke"] }, async () => {
+      const res = await client.match.createRun({ cvDocumentId: cvId, jdDocumentId: jdId });
 
       expect(res.status).toBe(201);
-      const body = res.body as RunBody;
-      expect(body.cvDocumentId).toBe(cvDocId);
-      expect(body.jdDocumentId).toBe(jdDocId);
-      expect(body.id).toEqual(expect.any(String));
-    });
-
-    test("[EP] a document that is not yours → 400", async ({ http }) => {
-      const res = await openRun(http, randomUUID(), jdDocId);
-      expect(res.status).toBe(400);
-    });
-
-    test("[EP] swapped kinds → 400", async ({ http }) => {
-      const res = await openRun(http, jdDocId, cvDocId);
-      expect(res.status).toBe(400);
-    });
-  });
-
-  test.describe("POST /match with a runId", () => {
-    // FIXME(migrated): needs AiService (FakeAiService) injected in-process; over HTTP both POST /match calls would call the real OpenRouter. Decide in /write-tests multi-provider-compare.
-    test.fixme("[EP] groups several providers under one run", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-
-      const first = await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
+      const run = res.json();
+      expect(run).toEqual({
+        id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        cvDocumentId: cvId,
+        jdDocumentId: jdId,
+        createdAt: expect.any(String),
       });
-      const second = await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
-
-      expect(first.status).toBe(201);
-      expect(second.status).toBe(201);
-      expect((first.body as ResultBody).runId).toBe(run.id);
-      expect((second.body as ResultBody).status).toBe("succeeded");
-
-      const detail = await http(cookie).get(`${RUNS}/${run.id}`);
-      expect(detail.status).toBe(200);
-      expect((detail.body as RunBody).results).toHaveLength(2);
+      expect(Number.isNaN(Date.parse(run.createdAt))).toBe(false);
     });
 
-    test("[DT] a runId that is not yours → 404, and no result is created", async ({ http }) => {
-      const otherUserId = await createUser();
-      const foreign = await insertMatchRun({
-        userId: otherUserId,
-        cvDocumentId: cvDocId,
-        jdDocumentId: jdDocId,
-      });
-
-      try {
-        const before = await countRows("MatchResult");
-        const res = await http(cookie).post(MATCH, {
-          data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: foreign },
-        });
-
-        expect(res.status).toBe(404);
-        expect(await countRows("MatchResult")).toBe(before);
-      } finally {
-        // Cascades the foreign run, which points at OUR documents.
-        await deleteUsers([otherUserId]);
+    test("id tài liệu không phải UUID hoặc thiếu thì trả 400", { tag: ["@TC-MULTIPROVIDERCOMPARE-002"] }, async () => {
+      for (const body of [
+        { cvDocumentId: "not-a-uuid", jdDocumentId: jdId },
+        { cvDocumentId: cvId, jdDocumentId: "123" },
+        { cvDocumentId: cvId },
+        {},
+      ]) {
+        const res = await client.match.createRun(body);
+        expect(res.status, JSON.stringify(body)).toBe(400);
       }
     });
 
-    test("[DT] a runId for a different pair of documents → 400", async ({ http }) => {
-      const otherCv = await createDoc(http, "CV", "Another CV entirely.");
-      const run = (await openRun(http, otherCv, jdDocId)).body as RunBody;
+    test(
+      "tài liệu không thuộc mình hoặc không tồn tại thì trả 400 documentNotOwned",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-003", "@smoke"] },
+      async ({ apiAs }) => {
+        const stranger = await createSignedInUser();
+        try {
+          const theirs = (await apiAs(stranger).documents.create({ kind: "CV", sourceText: MPC_TEXT.cv, save: false }))
+            .json().id;
+          for (const body of [
+            { cvDocumentId: theirs, jdDocumentId: jdId },
+            { cvDocumentId: randomUUID(), jdDocumentId: jdId },
+            { cvDocumentId: cvId, jdDocumentId: randomUUID() },
+          ]) {
+            const res = await client.match.createRun(body);
+            expect(res.status).toBe(400);
+            expect(res.error().message).toBe(serverMessage("matching.errors.documentNotOwned"));
+          }
+        } finally {
+          await deleteUsers([stranger.userId]);
+        }
+      }
+    );
 
-      const res = await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
+    test("đảo loại CV/JD thì trả 400 invalidDocumentKind", { tag: ["@TC-MULTIPROVIDERCOMPARE-004"] }, async () => {
+      const res = await client.match.createRun({ cvDocumentId: jdId, jdDocumentId: cvId });
 
       expect(res.status).toBe(400);
-    });
-  });
-
-  test.describe("provider failure", () => {
-    // FIXME(migrated): needs AiService (FakeAiService.failNext = AiProviderError("no_quota")) injected in-process; over HTTP this would call the real OpenRouter. Decide in /write-tests multi-provider-compare.
-    test.fixme("[EP] a dead provider yields 201 with status=failed, not 503", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-      // in-process: FakeAiService.failNext = new AiProviderError("no_quota");
-
-      const res = await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
-
-      expect(res.status).toBe(201);
-      const body = res.body as ResultBody;
-      expect(body.status).toBe("failed");
-      expect(body.errorCode).toBe("no_quota");
-      expect(body.overallScore).toBe(0);
-      // The snapshot survives so the card can still say which provider died.
-      expect(body.provider).toBe("openrouter");
-      expect(body.chatModel).toBe("openai/gpt-4o-mini");
+      expect(res.error().message).toBe(serverMessage("matching.errors.invalidDocumentKind"));
     });
 
-    // FIXME(migrated): needs AiService (FakeAiService.failNext = AiProviderError("unreachable")) injected in-process; over HTTP this would call the real OpenRouter. Decide in /write-tests multi-provider-compare.
-    test.fixme("[EP] errorCode stays inside the closed set — never a provider message", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-      // in-process: FakeAiService.failNext = new AiProviderError("unreachable");
+    test(
+      "khách mở được run cho cặp tài liệu của mình",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-005", "@creates-data"] },
+      async ({ apiAs }) => {
+        const guest = await createGuestUser();
+        try {
+          const guestApi = apiAs(guest);
+          const guestCv = (await guestApi.documents.create({ kind: "CV", sourceText: MPC_TEXT.cv, save: false })).json().id;
+          const guestJd = (await guestApi.documents.create({ kind: "JD", sourceText: MPC_TEXT.jd, save: false })).json().id;
 
-      const res = await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
+          const res = await guestApi.match.createRun({ cvDocumentId: guestCv, jdDocumentId: guestJd });
 
-      const body = res.body as ResultBody;
-      expect(ERROR_CODES).toContain(body.errorCode);
-      expect(JSON.stringify(body)).not.toContain("fake-key");
-    });
-
-    // FIXME(migrated): needs AiService (FakeAiService.failNext = AiProviderError("invalid_key"), then a succeeding call) injected in-process; over HTTP both POST /match calls would call the real OpenRouter. Decide in /write-tests multi-provider-compare.
-    test.fixme("[ST] one failure does not take down the rest of the run", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-
-      // in-process: FakeAiService.failNext = new AiProviderError("invalid_key");
-      await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
-      await http(cookie).post(MATCH, {
-        data: { cvDocumentId: cvDocId, jdDocumentId: jdDocId, runId: run.id },
-      });
-
-      const detail = await http(cookie).get(`${RUNS}/${run.id}`);
-      const results = (detail.body as RunBody).results ?? [];
-      expect(results).toHaveLength(2);
-      expect(results.filter((r) => r.status === "failed")).toHaveLength(1);
-      expect(results.filter((r) => r.status === "succeeded")).toHaveLength(1);
-    });
+          expect(res.status).toBe(201);
+          expect(res.json()).toMatchObject({ cvDocumentId: guestCv, jdDocumentId: guestJd });
+        } finally {
+          await deleteUsers([guest.userId]);
+        }
+      }
+    );
   });
 
   test.describe("GET /match/runs/:id", () => {
-    test("[EP] is not shadowed by GET /match/:id", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-      const res = await http(cookie).get(`${RUNS}/${run.id}`);
-      // If the route order were wrong, "runs" would be parsed as a match id
-      // and ParseUUIDPipe would answer 400.
-      expect(res.status).toBe(200);
-    });
+    test(
+      "run mới đọc lại được với danh sách kết quả rỗng, không bị GET /match/:id nuốt",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-006"] },
+      async () => {
+        const run = (await client.match.createRun({ cvDocumentId: cvId, jdDocumentId: jdId })).json();
 
-    test("[EP] a run with no results yet returns an empty list, not a 404", async ({ http }) => {
-      const run = (await openRun(http)).body as RunBody;
-      const res = await http(cookie).get(`${RUNS}/${run.id}`);
+        const res = await client.match.getRun(run.id);
 
-      expect(res.status).toBe(200);
-      expect((res.body as RunBody).results).toEqual([]);
-    });
-
-    test("[authz] another user's run → 404", async ({ http }) => {
-      const otherUserId = await createUser();
-      const foreign = await insertMatchRun({
-        userId: otherUserId,
-        cvDocumentId: cvDocId,
-        jdDocumentId: jdDocId,
-      });
-
-      try {
-        const res = await http(cookie).get(`${RUNS}/${foreign}`);
-        expect(res.status).toBe(404);
-      } finally {
-        await deleteUsers([otherUserId]);
+        // Were "runs" captured as a match id, ParseUUIDPipe would answer 400.
+        expect(res.status).toBe(200);
+        expect(res.json()).toEqual({ ...run, results: [] });
       }
+    );
+
+    test(
+      "run đọc lại gồm mọi kết quả kể cả lần lỗi và lần thử lại, theo thời gian tăng dần",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-007"] },
+      async () => {
+        const run = (await client.match.createRun({ cvDocumentId: cvId, jdDocumentId: jdId })).json();
+        const base = { userId: owner.userId, cvDocumentId: cvId, jdDocumentId: jdId, runId: run.id };
+        const at = (s: number) => new Date(Date.now() - 60_000 + s * 1_000);
+        // Inserted out of order on purpose: the read must sort by createdAt, not by insertion.
+        const gemini = await insertMatchResult({ ...base, provider: "gemini", chatModel: "gemini-2.5-flash", scores: [70, 75, 62], createdAt: at(3) });
+        const failed = await insertMatchResult({ ...base, status: "failed", errorCode: "timeout", scores: [0, 0, 0], createdAt: at(1) });
+        const retried = await insertMatchResult({ ...base, scores: [81, 88, 70], createdAt: at(2) });
+
+        const res = await client.match.getRun(run.id);
+
+        expect(res.status).toBe(200);
+        const results = res.json().results;
+        expect(results.map((r) => r.id)).toEqual([failed, retried, gemini]);
+        expect(results[0]).toMatchObject({ status: "failed", errorCode: "timeout", overallScore: 0, runId: run.id });
+        expect(results[1]).toMatchObject({ status: "succeeded", errorCode: null, overallScore: 81, runId: run.id });
+        expect(results[2]).toMatchObject({ provider: "gemini", chatModel: "gemini-2.5-flash", credentialId: null });
+      }
+    );
+
+    test(
+      "run của người khác hoặc không tồn tại trả 404 runNotFound",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-008", "@smoke"] },
+      async () => {
+        const foreign = await insertMatchRun({ userId: otherUserId, cvDocumentId: cvId, jdDocumentId: jdId });
+
+        for (const id of [foreign, randomUUID()]) {
+          const res = await client.match.getRun(id);
+          expect(res.status).toBe(404);
+          expect(res.error().message).toBe(serverMessage("matching.errors.runNotFound"));
+        }
+      }
+    );
+
+    test("id run không phải UUID trả 400", { tag: ["@TC-MULTIPROVIDERCOMPARE-009"] }, async () => {
+      const res = await client.match.getRun("not-a-uuid");
+      expect(res.status).toBe(400);
     });
-  });
 
-  test.describe("rows that predate runs", () => {
-    test("[EP] a runless result is still readable and reports succeeded", async ({ http }) => {
-      const legacy = await insertMatchResult({
-        userId,
-        cvDocumentId: cvDocId,
-        jdDocumentId: jdDocId,
-        scores: [71, 80, 60],
-        report: { strengths: [], gaps: [], suggestions: [] },
-      });
+    test(
+      "kết quả cũ không có run vẫn đọc được với runId null và trạng thái succeeded",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-010"] },
+      async () => {
+        const legacy = await insertMatchResult({
+          userId: owner.userId,
+          cvDocumentId: cvId,
+          jdDocumentId: jdId,
+          scores: [71, 80, 60],
+        });
 
-      const res = await http(cookie).get(`${MATCH}/${legacy}`);
+        const res = await client.match.get(legacy);
 
-      expect(res.status).toBe(200);
-      const body = res.body as ResultBody;
-      expect(body.runId).toBeNull();
-      expect(body.status).toBe("succeeded");
-      expect(body.errorCode).toBeNull();
-    });
+        expect(res.status).toBe(200);
+        expect(res.json()).toMatchObject({ id: legacy, runId: null, status: "succeeded", errorCode: null, overallScore: 71 });
+      }
+    );
+
+    test(
+      "kết quả có đủ trường run và provider, không bao giờ chứa key",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-011"] },
+      async () => {
+        const run = (await client.match.createRun({ cvDocumentId: cvId, jdDocumentId: jdId })).json();
+        const id = await insertMatchResult({
+          userId: owner.userId,
+          cvDocumentId: cvId,
+          jdDocumentId: jdId,
+          runId: run.id,
+          provider: "openai",
+          chatModel: "gpt-4o-mini",
+          embedModel: "text-embedding-3-small",
+        });
+
+        const res = await client.match.get(id);
+
+        expect(res.status).toBe(200);
+        const body = res.json();
+        expect(Object.keys(body).sort()).toEqual(
+          [
+            "id",
+            "cvDocumentId",
+            "jdDocumentId",
+            "overallScore",
+            "semanticScore",
+            "keywordScore",
+            "report",
+            "credentialId",
+            "runId",
+            "status",
+            "errorCode",
+            "provider",
+            "chatModel",
+            "embedModel",
+            "createdAt",
+          ].sort()
+        );
+        expect(body).toMatchObject({ runId: run.id, provider: "openai", chatModel: "gpt-4o-mini", embedModel: "text-embedding-3-small" });
+        expect(JSON.stringify(body)).not.toMatch(/apiKey|encryptedKey|keyIv|keyTag/i);
+      }
+    );
+
+    test(
+      "message lỗi của run trả tiếng Việt khi client chọn vi",
+      { tag: ["@TC-MULTIPROVIDERCOMPARE-012"] },
+      async () => {
+        const vi = client.lang("vi");
+
+        const missing = await vi.match.getRun(randomUUID());
+        expect(missing.error().message).toBe(serverMessage("matching.errors.runNotFound", "vi"));
+
+        const notOwned = await vi.match.createRun({ cvDocumentId: randomUUID(), jdDocumentId: jdId });
+        expect(notOwned.error().message).toBe(serverMessage("matching.errors.documentNotOwned", "vi"));
+
+        // Rejected before any provider call: the run is about another CV.
+        const otherCv = (await client.documents.create({ kind: "CV", sourceText: "Another CV entirely.", save: false })).json().id;
+        const run = (await client.match.createRun({ cvDocumentId: otherCv, jdDocumentId: jdId })).json();
+        const mismatch = await vi.match.create({ cvDocumentId: cvId, jdDocumentId: jdId, runId: run.id });
+        expect(mismatch.status).toBe(400);
+        expect(mismatch.error().message).toBe(serverMessage("matching.errors.runDocumentMismatch", "vi"));
+      }
+    );
   });
 });

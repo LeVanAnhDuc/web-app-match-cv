@@ -1,118 +1,93 @@
-import { expect, test, type Page } from "@playwright/test";
-import { cleanDocuments } from "@/utils/db-cleanup";
-import { gotoWizard, nextButton, pasteText, stubMatchApi } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { CV_TEXT, JD_TEXT, MATCH_URL, matchResultStub, uniqueText } from "@/data/test-data/cv-jd-matching-wizard";
 
-// Responsive layout invariants for the wizard, reconciled for
-// home-dashboard-library: the wizard now lives INSIDE the app shell (the
-// sidebar/drawer nav is the shell's — covered by
-// e2e/home-dashboard-library), so this file only asserts the wizard's own
-// per-viewport invariants (no horizontal overflow, primary CTA reachable,
-// single stepper, step-3 panes rendered). Runs in all three projects
-// (desktop / tablet / mobile); assertions hold for every class.
+// Per-viewport invariants of the wizard (REQ-52). Runs in app (1280×720), app-tablet (820×1180) and app-mobile
+// (390×844); every assertion holds for all three, except the 44 px touch target which only applies below 768 px.
+// The shell's own sidebar/drawer layout belongs to module ui-consistency-shell.
 
-const JD_TEXT = "JD text for the responsive step-3 layout check.";
-const CV_TEXT = "CV text for the responsive step-3 layout check.";
+const MD_BREAKPOINT = 768;
+const MIN_TOUCH_TARGET = 44;
 
-async function hasHorizontalScroll(page: Page): Promise<boolean> {
-  return page.evaluate(
-    // +1 tolerance: sub-pixel layout rounding must not read as an overflow.
-    () => document.documentElement.scrollWidth > window.innerWidth + 1
+test.describe("responsive layout", () => {
+  test(
+    "bước 1 không scroll ngang và Next nằm trong viewport",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-084"] },
+    async ({ wizardPage }) => {
+      await wizardPage.goto();
+      expect(await wizardPage.hasHorizontalScroll()).toBe(false);
+      await expect(wizardPage.nextButton()).toBeInViewport();
+    }
   );
-}
 
-/** Walk step 1 -> 2 -> 3, waiting on each arrival (render-based review). */
-async function advanceToReview(page: Page): Promise<void> {
-  await gotoWizard(page);
+  test(
+    "stepper chỉ render một lần, nhãn bước vẫn trong accessibility tree",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-085"] },
+    async ({ wizardPage }) => {
+      await wizardPage.goto();
+      for (const step of [1, 2, 3, 4] as const) {
+        await expect(wizardPage.stepperDot(step)).toHaveCount(1);
+        await expect(wizardPage.stepLabel(step)).toHaveCount(1);
+      }
+    }
+  );
 
-  await pasteText(page, JD_TEXT);
-  await nextButton(page).click();
-  await expect(
-    page.getByRole("heading", { name: "Candidate CV / Resume" })
-  ).toBeVisible();
+  test(
+    "sang bước mới thì header bước nằm trong viewport",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-086"] },
+    async ({ wizardPage }) => {
+      await wizardPage.goto();
+      await wizardPage.pasteText(uniqueText(JD_TEXT));
+      await wizardPage.scrollToBottom();
 
-  await pasteText(page, CV_TEXT);
-  await nextButton(page).click();
-  await expect(
-    page.getByRole("heading", { name: "Review documents" })
-  ).toBeVisible();
-  await expect(page.getByText(JD_TEXT)).toBeVisible();
-  await expect(page.getByText(CV_TEXT)).toBeVisible();
-}
+      await wizardPage.nextButton().click();
 
-test.beforeEach(async () => {
-  await cleanDocuments();
-});
+      await expect(wizardPage.stepHeading("cv")).toBeVisible();
+      await expect(wizardPage.stepHeading("cv")).toBeInViewport();
+      await expect(wizardPage.nextButton()).toBeInViewport();
+    }
+  );
 
-test.describe("wizard responsive layout", () => {
-  test("step 1 has no horizontal scroll and keeps the primary CTA in view", async ({
-    page
-  }) => {
-    await gotoWizard(page);
+  test(
+    "bước 3 không scroll ngang và Run match nằm trong viewport",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-087"] },
+    async ({ wizardPage }) => {
+      await wizardPage.goto();
+      await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
 
-    expect(await hasHorizontalScroll(page)).toBe(false);
-    await expect(nextButton(page)).toBeInViewport();
-  });
+      expect(await wizardPage.hasHorizontalScroll()).toBe(false);
+      await expect(wizardPage.runMatchButton()).toBeInViewport();
+    }
+  );
 
-  test("the stepper renders exactly once at every viewport", async ({
-    page
-  }) => {
-    await gotoWizard(page);
+  test(
+    "bước 4 vừa chiều ngang và Start over cuộn tới được",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-088"] },
+    async ({ wizardPage, network }) => {
+      await network.stubJson(MATCH_URL, matchResultStub(), { method: "POST", status: 201 });
+      await wizardPage.goto();
+      await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
+      await wizardPage.runMatch();
+      await expect(wizardPage.scoreMeter("overall")).toBeVisible();
 
-    // Single-markup stepper (no duplicated desktop/mobile variants) — the
-    // Playwright strict-mode locators depend on there being exactly one.
-    await expect(page.getByTestId("stepper-step-1")).toHaveCount(1);
-    await expect(page.getByTestId("stepper-step-4")).toHaveCount(1);
-  });
+      expect(await wizardPage.hasHorizontalScroll()).toBe(false);
+      await wizardPage.startOverButton().scrollIntoViewIfNeeded();
+      await expect(wizardPage.startOverButton()).toBeInViewport();
+    }
+  );
 
-  test("advancing a step brings the new step header into view", async ({
-    page
-  }) => {
-    await gotoWizard(page);
-    await pasteText(page, "JD text for the responsive scroll-reset check.");
+  test(
+    "nút footer cao ít nhất 44 px dưới 768 px",
+    { tag: ["@TC-CVJDMATCHINGWIZARD-089"] },
+    async ({ wizardPage }) => {
+      const width = wizardPage.page.viewportSize()?.width ?? 0;
+      test.skip(width >= MD_BREAKPOINT, "touch-target rule applies below 768 px only (app-mobile)");
+      await wizardPage.goto();
+      await wizardPage.pasteText(uniqueText(JD_TEXT));
 
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await nextButton(page).click();
-
-    const heading = page.getByRole("heading", {
-      name: "Candidate CV / Resume"
-    });
-    await expect(heading).toBeVisible();
-    await expect(heading).toBeInViewport();
-  });
-
-  test("step 3 renders both panes with no horizontal scroll and Run match reachable", async ({
-    page
-  }) => {
-    await stubMatchApi(page);
-    await advanceToReview(page);
-
-    // Both original documents rendered read-only.
-    await expect(page.getByText(JD_TEXT)).toBeVisible();
-    await expect(page.getByText(CV_TEXT)).toBeVisible();
-
-    expect(await hasHorizontalScroll(page)).toBe(false);
-    await expect(
-      page.getByRole("button", { name: "Run match" })
-    ).toBeInViewport();
-  });
-
-  test("step 4 result fits the viewport width with the footer reachable", async ({
-    page
-  }) => {
-    await stubMatchApi(page);
-    await advanceToReview(page);
-
-    await page.getByRole("button", { name: "Run match" }).click();
-
-    await expect(page.getByText("Overall match")).toBeVisible();
-    expect(await hasHorizontalScroll(page)).toBe(false);
-    // Reconciled for multi-provider-compare: step 4 became a scrollable list of
-    // result cards with the actions below it, rather than one card with a
-    // sticky footer. Reachable now means "scrolls into view", not "always on
-    // screen" — pinning a footer above N cards would cost more room than it
-    // saves once several providers are compared.
-    const startOver = page.getByRole("button", { name: "Start over" });
-    await startOver.scrollIntoViewIfNeeded();
-    await expect(startOver).toBeInViewport();
-  });
+      for (const button of [wizardPage.backButton(), wizardPage.nextButton()]) {
+        const box = await button.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+      }
+    }
+  );
 });

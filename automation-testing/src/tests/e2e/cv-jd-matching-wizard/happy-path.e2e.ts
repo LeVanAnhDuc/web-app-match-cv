@@ -1,63 +1,41 @@
-import { expect, test } from "@playwright/test";
-import {
-  backButton,
-  gotoWizard,
-  nextButton,
-  pasteText,
-  stepperStep,
-  switchToPasteTab,
-  turnSaveOff
-} from "./helpers";
+import { expect, test } from "@/fixtures";
+import { CV_TEXT, JD_TEXT, MATCH_URL, matchResultStub, uniqueText } from "@/data/test-data/cv-jd-matching-wizard";
 
-// design.md §7 row 1 (Happy path, paste-text variant) + row 6 (wizard step
-// guard: no Back on step 1). Step 3+ real-content coverage (Plan 2) lives in
-// review-and-result.e2e.ts; this file stays step 1-2 (Plan 1 scope) plus the
-// step-3 arrival smoke below.
-test.describe("happy path — paste JD then paste CV", () => {
-  test("advances step 1 -> 2 -> 3 (Review) via paste text", async ({
-    page
-  }) => {
-    await gotoWizard(page);
+// The main journey US-01 end to end on the real backend, POST /match stubbed (D1), watching for console errors and
+// 5xx responses on the way (REQ-53).
 
-    // Step 1 (JD): first-step guard — no Back available.
-    await expect(
-      page.getByRole("heading", { name: "Input Job Description" })
-    ).toBeVisible();
-    await expect(backButton(page)).toBeDisabled();
-    await expect(nextButton(page)).toBeDisabled();
+/**
+ * Dev-build noise that says nothing about the wizard: antd/React warnings (e.g. the global
+ * "[antd: App] When using cssVar…" warning, see decisions/ui-consistency-shell.md), also as the Vite dev server echoes
+ * them back into the browser console prefixed "[Server]". Same list as cv-rewrite-assistant/quality.e2e.ts.
+ */
+const BENIGN_CONSOLE = [/^Warning:/, /\[antd:/, /React DevTools/];
 
-    await switchToPasteTab(page);
-    await pasteText(
-      page,
-      "We are hiring a senior backend engineer with NestJS experience."
-    );
-    await turnSaveOff(page); // keep this run DB-neutral; save+reuse covered separately
+test(
+  "luồng chính dán JD, dán CV, review, chạy match tới kết quả không lỗi console hay 5xx",
+  { tag: ["@TC-CVJDMATCHINGWIZARD-090", "@smoke"] },
+  async ({ wizardPage, network, page }) => {
+    const consoleErrors: string[] = [];
+    const serverErrors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error" && !BENIGN_CONSOLE.some((re) => re.test(msg.text()))) consoleErrors.push(msg.text());
+    });
+    page.on("pageerror", (error) => consoleErrors.push(error.message));
+    page.on("response", (response) => {
+      if (response.status() >= 500) serverErrors.push(`${response.status()} ${response.url()}`);
+    });
+    const result = matchResultStub();
+    await network.stubJson(MATCH_URL, result, { method: "POST", status: 201 });
+    const jd = uniqueText(JD_TEXT);
+    const cv = uniqueText(CV_TEXT);
 
-    await expect(nextButton(page)).toBeEnabled();
-    await nextButton(page).click();
+    await wizardPage.goto();
+    await wizardPage.advanceToReview(jd, cv);
+    await wizardPage.runMatch();
 
-    // Step 2 (CV): Back is now enabled.
-    await expect(
-      page.getByRole("heading", { name: "Candidate CV / Resume" })
-    ).toBeVisible();
-    await expect(backButton(page)).toBeEnabled();
-    await expect(nextButton(page)).toBeDisabled();
-
-    await switchToPasteTab(page);
-    await pasteText(
-      page,
-      "Senior backend engineer, 6 years experience with Node.js and NestJS."
-    );
-    await turnSaveOff(page);
-
-    await expect(nextButton(page)).toBeEnabled();
-    await nextButton(page).click();
-
-    // Step 3 (Review): both original documents rendered read-only.
-    await expect(
-      page.getByRole("heading", { name: "Review documents" })
-    ).toBeVisible();
-    await expect(stepperStep(page, 3)).toHaveAttribute("data-status", "active");
-    await expect(stepperStep(page, 4)).toHaveAttribute("data-status", "idle");
-  });
-});
+    await expect(wizardPage.scoreMeter("overall")).toHaveAttribute("aria-valuenow", String(result.overallScore));
+    await expect(wizardPage.reportItem(result.report.strengths[0])).toBeVisible();
+    expect(consoleErrors).toEqual([]);
+    expect(serverErrors).toEqual([]);
+  }
+);

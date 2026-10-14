@@ -19,6 +19,9 @@ Quy ước đầy đủ (cấu trúc, phân lớp, tag, format, luật cứng): 
 - `CREDENTIAL_ENCRYPTION_KEY` đặt trong `../server/.env` (base64 đúng 32 byte, `openssl rand -base64 32`). Thiếu thì
   `POST /api/v1/ai-credentials` trả 503 và mọi spec seed credential đều đỏ (ai-credentials, cover-letter-generator,
   cv-rewrite-assistant, cv-version-comparison, multi-provider-compare).
+- Module `auth` tự bật IdP giả + một instance server riêng từ `../server/dist/src/main.js`: dev server đang `start:dev`
+  giữ bản build mới; không chạy dev server thì `cd ../server && pnpm build` trước.
+- `@live-ai` (vài test gọi OpenRouter thật, tốn tiền) chỉ chạy khi `.env` có `LIVE_AI=1` và server có `OPENROUTER_API_KEY`.
 - App chạy ở cổng khác (git worktree) → `E2E_BASE_URL` / `E2E_API_BASE` trong `.env`; server phải cho phép origin đó qua
   `CLIENT_ORIGIN`.
 

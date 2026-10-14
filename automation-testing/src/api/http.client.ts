@@ -90,7 +90,11 @@ export function createHttp(
         maxRedirects: options.maxRedirects ?? 0,
         failOnStatusCode: false,
       });
-      return toResponse(res.status(), res.headersArray(), await res.body());
+      const response = toResponse(res.status(), res.headersArray(), await res.body());
+      // Release the buffered response before the context goes: disposing the context with a live response object
+      // occasionally surfaced "Object with guid response@… was not bound" in whatever page call was awaiting next.
+      await res.dispose();
+      return response;
     } finally {
       await context.dispose();
     }
