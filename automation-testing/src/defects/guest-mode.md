@@ -21,4 +21,4 @@ _(không có)_
 - **Thực tế:** `used` = 1 sau mỗi request như vậy. `server/src/modules/matching/matching.service.ts` `createMatch` gọi
   `guestUsage.consume(ip)` trước `requireOwnedPair` và `requireRunMatches`; năm request sai là khách hết lượt cả ngày
   trên IP đó mà không chạy được match nào.
-- **Đã sửa:** root cause — `createMatch` gọi `guestUsage.consume(ip)` trước `requireOwnedPair` / `requireRunMatches`; fix — giữ 403 credential ở đầu, chuyển bước trừ lượt xuống sau hai kiểm tra đó, vẫn trước call AI (commit: _pending_).
+- **Đã sửa:** root cause — `createMatch` gọi `guestUsage.consume(ip)` trước `requireOwnedPair` / `requireRunMatches`; fix — giữ 403 credential ở đầu, chuyển bước trừ lượt xuống sau hai kiểm tra đó, vẫn trước call AI (commit: c54b3f7).
