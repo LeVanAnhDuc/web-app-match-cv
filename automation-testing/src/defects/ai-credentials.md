@@ -2,16 +2,9 @@
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-AICREDENTIALS-01](#bug-aicredentials-01) | Trung bình | TC-AICREDENTIALS-070 | Server kiểm độ dài label trước khi trim: `"   "` được lưu thành label rỗng, label 60 ký tự có khoảng trắng hai đầu bị 400 |
-| [BUG-AICREDENTIALS-02](#bug-aicredentials-02) | Trung bình | TC-AICREDENTIALS-071 | Form tạo nhận Name chỉ gồm khoảng trắng và gửi lên server |
-| [BUG-AICREDENTIALS-03](#bug-aicredentials-03) | Thấp | TC-AICREDENTIALS-077 | Model quá 120 ký tự báo "Use at most 60 characters" (câu của Name) |
-| [BUG-AICREDENTIALS-04](#bug-aicredentials-04) | Thấp | TC-AICREDENTIALS-059 | Mở modal credential, focus nằm ở khung modal chứ không ở trường đầu tiên |
-| [BUG-AICREDENTIALS-05](#bug-aicredentials-05) | Thấp | TC-AICREDENTIALS-062 | Nhóm checkbox "Run with" không lộ ra là một nhóm có tên với công nghệ hỗ trợ |
-| [BUG-AICREDENTIALS-06](#bug-aicredentials-06) | Trung bình | TC-AICREDENTIALS-087 | Trên mobile 390 px, nút Add credential (≈152×32) và các action dòng nhỏ hơn 44×44 px |
-| [BUG-AICREDENTIALS-09](#bug-aicredentials-09) | Trung bình | TC-AICREDENTIALS-034 | Chỉ đổi tên trong modal sửa vẫn xoá kết quả kiểm tra: dòng về "Not tested" |
-| [BUG-AICREDENTIALS-10](#bug-aicredentials-10) | Thấp | TC-AICREDENTIALS-085 | Double-click Save gửi hai `POST /ai-credentials` (cái thứ hai 409) — nút chưa bị khoá khi click thứ hai tới |
+_(không có)_
+
+## Đã sửa
 
 ### BUG-AICREDENTIALS-01
 
@@ -19,6 +12,7 @@
 - **Bước tái hiện:** `POST /api/v1/ai-credentials` `{ provider: "openrouter", label: "   ", apiKey: <20+ ký tự> }`; rồi label = 1 space + 60 ký tự + 1 space.
 - **Mong đợi:** label được trim trước khi kiểm `1–60`: `"   "` → 400; label đệm → 201 với label 60 ký tự đã trim.
 - **Thực tế:** `"   "` → 201, credential lưu với label `""` (một user chỉ có được một cái như vậy, cái thứ hai 409); label đệm → 400. `CreateAiCredentialDto` có `@Length(1, 60)` trên giá trị thô, `AiCredentialsService.create` trim sau đó. `UpdateAiCredentialDto` cùng lỗi.
+- **Đã sửa:** root cause — `@Length(1, 60)` của `CreateAiCredentialDto`/`UpdateAiCredentialDto` chạy trên label thô, service mới trim. Fix — `@Transform(trimIfString)` trên `label` để rule thấy đúng giá trị sẽ lưu (commit: fe67497).
 
 ### BUG-AICREDENTIALS-02
 
@@ -26,6 +20,7 @@
 - **Bước tái hiện:** `/ai-credentials` → Add credential → Name `"   "`, API key hợp lệ → Save.
 - **Mong đợi:** lỗi "This field is required" dưới Name, không request nào được gửi.
 - **Thực tế:** rule `required` của antd coi `"   "` là có giá trị; form gửi `POST /ai-credentials` và (do BUG-AICREDENTIALS-01) tạo credential tên rỗng. `CredentialFormModal` thiếu `whitespace: true` cho Name.
+- **Đã sửa:** root cause — rule `required` của Name thiếu `whitespace: true`. Fix — thêm `whitespace: true` (commit: 0a0ee35).
 
 ### BUG-AICREDENTIALS-03
 
@@ -33,6 +28,7 @@
 - **Bước tái hiện:** Add credential → Chat model 121 ký tự → Save.
 - **Mong đợi:** bị chặn với thông báo nêu giới hạn 120 ký tự.
 - **Thực tế:** bị chặn (đúng) nhưng thông báo là `credentials.form.labelTooLong` "Use at most 60 characters" — rule `max: MODEL_MAX` của hai ô model dùng chung message của Name. Cần key copy mới (vd "Use at most 120 characters").
+- **Đã sửa:** root cause — rule `max: MODEL_MAX` của hai ô model dùng message `labelTooLong`. Fix — key mới `credentials.form.modelTooLong` ("Use at most 120 characters" / "Tối đa 120 ký tự") (commit: 0a0ee35).
 
 ### BUG-AICREDENTIALS-04
 
@@ -40,6 +36,7 @@
 - **Bước tái hiện:** `/ai-credentials` → bấm Add credential.
 - **Mong đợi:** focus vào trường đầu tiên của form (Provider) — `design.md` §7 row 12.
 - **Thực tế:** focus nằm ở phần tử bọc modal (`div tabindex=0`); người dùng bàn phím phải Tab thêm mới vào form. `Esc` đóng và trả focus về nút (đúng, TC-AICREDENTIALS-060).
+- **Đã sửa:** root cause — rc-dialog focus vào wrapper khi mở. Fix — `afterOpenChange` đưa focus vào Provider (tạo) hoặc Name (sửa, Provider bị khoá) (commit: 0a0ee35).
 
 ### BUG-AICREDENTIALS-05
 
@@ -47,6 +44,7 @@
 - **Bước tái hiện:** wizard → dán JD, CV → step 3 → đọc cây accessibility của khối "Run with".
 - **Mong đợi:** một `role="group"` tên "Run with" chứa các checkbox.
 - **Thực tế:** `Checkbox.Group` nhận `aria-label` nhưng render `div` không có role, nên tên không được công nghệ hỗ trợ đọc (ARIA cấm đặt tên cho `generic`); các checkbox hiện như danh sách rời. `getByLabel("Run with")` vẫn tìm thấy div, nên test cũ báo đạt.
+- **Đã sửa:** root cause — `Checkbox.Group` render `div` không role nên `aria-label` nằm trên phần tử `generic`. Fix — bọc nhóm trong `div role="group"` mang cùng nhãn (commit: 0bebfce).
 
 ### BUG-AICREDENTIALS-06
 
@@ -54,6 +52,7 @@
 - **Bước tái hiện:** viewport 390×844 cảm ứng → `/ai-credentials` có một credential → đo nút.
 - **Mong đợi:** Add credential, Test, Edit, Delete đều ≥ 44×44 px (NFR-A11Y-03).
 - **Thực tế:** Add credential ≈ 152×32; action dòng là `Button size="small"` (≈ 24 px cao). Đã ghi là nợ #7 trong `docs/04-state/backlog.md`.
+- **Đã sửa:** root cause — Add credential là `Button` mặc định 32px, action dòng `size="small"` 24px. Fix — `!h-11` dưới `md`, giữ chiều cao gọn từ `md` (commit: f2ca322).
 
 ### BUG-AICREDENTIALS-09
 
@@ -64,6 +63,7 @@
   `chatModel: ""` / `embedModel: ""` trong `PATCH`; `AiCredentialsService.update` coi mọi field model có mặt (kể cả rỗng →
   `null`, không đổi gì) là "đổi model" và xoá `lastTestStatus`/`lastTestedAt`. API chỉ gửi `label` thì giữ đúng
   (TC-AICREDENTIALS-032), nên lỗi chỉ lộ qua UI.
+- **Đã sửa:** root cause — `AiCredentialsService.update` coi mọi field model có mặt là "đổi model". Fix — so giá trị đã chuẩn hoá với giá trị đang lưu, chỉ field thật sự khác mới ghi và mới xoá kết quả kiểm tra (commit: 2ab532b).
 
 ### BUG-AICREDENTIALS-10
 
@@ -73,8 +73,7 @@
 - **Thực tế:** hai `POST` cùng body. `handleSubmit` chờ `form.validateFields()` (async) trước khi mutation bắt đầu, nên
   `pending` chưa bật khi click thứ hai tới. Chỉ một credential được lưu vì cái thứ hai đụng `@@unique([userId,label])` → 409,
   và nhánh 409 có thể gắn "You already have a credential with this name" vào ô Name của modal vừa lưu thành công.
-
-## Đã sửa
+- **Đã sửa:** root cause — `pending` chỉ bật sau khi `validateFields` xong và React render lại, click thứ hai lọt vào khoảng đó. Fix — ref khoá đồng bộ ngay click đầu, giữ tới khi lưu xong (commit: 0a0ee35).
 
 ### BUG-AICREDENTIALS-07
 
