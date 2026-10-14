@@ -9,7 +9,7 @@ Magic value / giá trị domain lặp lại → đặt thành **named constant**
 ## Quy tắc
 
 1. **Named constant thay vì magic literal**: số/regex/threshold có ý nghĩa domain đặt tên `UPPER_SNAKE_CASE`:
-   - `MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024`, `ALLOWED_FILE_TYPE_REGEX` (documents.controller).
+   - `MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024`, `ALLOWED_FILE_TYPE_REGEX` (documents/upload-file-pipe.ts).
    - `TITLE_FALLBACK_LENGTH = 80` (documents.service).
    - `SEMANTIC_WEIGHT = 0.6`, `KEYWORD_WEIGHT = 0.4`, `MIN_TOKEN_LENGTH = 2`, `MAX_MATCH_CHARS = 20_000` (matching.service).
    - `PARSE_TIMEOUT_MS = 15_000`, `MAX_EXTRACTED_CHARS = 2_000_000`, `PDF_MIME`, `DOCX_MIME` (parsing.ts).
