@@ -43,9 +43,13 @@ const RunWithSelector = ({
 
   // Two separate jobs, deliberately not merged:
   //  - seed a sensible default ONCE, when the list first arrives;
-  //  - afterwards only drop ids that no longer exist (deleted in another tab).
+  //  - afterwards only drop ids that no longer exist (deleted in another tab)
+  //    and keep the rest in row order.
   // Re-seeding on every empty selection would make it impossible to untick
   // everything, which the step has to allow so it can say "pick at least one".
+  // Row order matters because step 4 draws one card per id in this order; the
+  // group's own onChange only sorts by its `options` prop, which is empty when
+  // the checkboxes are children, so it hands back click order.
   useEffect(() => {
     if (!credentialsQuery.isSuccess) return;
 
@@ -57,12 +61,14 @@ const RunWithSelector = ({
       }
     }
 
-    const known = new Set<string | null>([
-      null,
-      ...credentials.map((c) => c.id)
-    ]);
-    const surviving = value.filter((id) => known.has(id));
-    if (surviving.length !== value.length) onChange(surviving);
+    const rows: Array<string | null> = [...credentials.map((c) => c.id), null];
+    const ordered = rows.filter((id) => value.includes(id));
+    if (
+      ordered.length !== value.length ||
+      ordered.some((id, index) => id !== value[index])
+    ) {
+      onChange(ordered);
+    }
   }, [credentialsQuery.isSuccess, credentials, value, onChange]);
 
   const providerLabel = (id: AiCredentialDto["provider"]) =>

@@ -116,6 +116,13 @@ describe("RunWithSelector", () => {
     );
   });
 
+  it("keeps the selection in row order, not in the order it was ticked", async () => {
+    mockCredentials([{ ...base, id: "a", label: "Gemini key" }]);
+    const onChange = vi.fn();
+    render(<RunWithSelector value={[null, "a"]} onChange={onChange} />);
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(["a", null]));
+  });
+
   it("offers the system key as its own choice", () => {
     mockCredentials([{ ...base, id: "a" }]);
     render(<RunWithSelector value={["a"]} onChange={vi.fn()} />);

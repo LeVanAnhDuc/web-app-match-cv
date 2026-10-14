@@ -10,8 +10,6 @@ test.describe("bước 4 — N card hiện dần", () => {
     "hai provider cho hai card theo thứ tự danh sách, tiêu đề lấy từ chính kết quả",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-035", "@smoke"] },
     async ({ compareWizardPage: wizard, mpcCredentials, mpcMatchStub, mpcApi }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-06
-      test.fail();
       const labels = Object.fromEntries((await mpcApi.aiCredentials.providers()).json().map((p) => [p.id, p.label]));
       const gemini = await mpcCredentials.add("gemini");
       // The system-key row answers as "openai · stub-model-x": the card must show what the RESULT says, not the
