@@ -191,12 +191,13 @@ export class DocumentsService {
 
     if (dto.parentId !== null) {
       if (dto.parentId === id) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_SELF",
+          message: tDoc(
             "documents.errors.lineageSelf",
             "A document cannot be a version of itself."
           )
-        );
+        });
       }
       const parent = await this.prisma.document.findFirst({
         where: { id: dto.parentId, userId }
@@ -205,20 +206,22 @@ export class DocumentsService {
       // It also keeps another user's document indistinguishable from a
       // non-existent one.
       if (!parent) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_PARENT_NOT_FOUND",
+          message: tDoc(
             "documents.errors.lineageParentNotFound",
             "The document you picked as the previous version was not found."
           )
-        );
+        });
       }
       if (parent.kind !== doc.kind) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_KIND_MISMATCH",
+          message: tDoc(
             "documents.errors.lineageKindMismatch",
             "A CV can only be a version of another CV, and a JD of another JD."
           )
-        );
+        });
       }
       const { parents, complete } = await this.loadAncestors(
         dto.parentId,
@@ -230,20 +233,22 @@ export class DocumentsService {
       // statement about how far we looked, not about the data. Without this,
       // building a 21-link chain and then closing it is a supported operation.
       if (!complete) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_TOO_DEEP",
+          message: tDoc(
             "documents.errors.lineageTooDeep",
             "This version history is too long to extend safely."
           )
-        );
+        });
       }
       if (wouldCreateCycle(id, dto.parentId, parents)) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_CYCLE",
+          message: tDoc(
             "documents.errors.lineageCycle",
             "That would make the two documents versions of each other."
           )
-        );
+        });
       }
     }
 

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  type HttpException,
   NotFoundException
 } from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
@@ -54,6 +55,16 @@ function build(documents: Array<ReturnType<typeof doc>>) {
     peek: () => undefined
   };
   return { service: new DocumentsService(prisma, currentUser), update };
+}
+
+/** The machine-readable `code` a rejection carries, so the client never has to guess the reason. */
+async function rejectionCode(promise: Promise<unknown>): Promise<unknown> {
+  try {
+    await promise;
+  } catch (error) {
+    return ((error as HttpException).getResponse() as { code?: unknown }).code;
+  }
+  throw new Error("expected a rejection");
 }
 
 // Lineage is the manual half of Goal 9 — the only way a hand-edited CV gets the
@@ -140,6 +151,40 @@ describe("DocumentsService.setParent", () => {
       service.setParent("cv-0", { parentId: "cv-1" })
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(update).not.toHaveBeenCalled();
+  });
+
+  // The library modal tells "too long" apart from "itself / its own newer
+  // version" by this code, not by the translated message.
+  it("tags every lineage rejection with a code of its own", async () => {
+    const chain = Array.from({ length: 25 }, (_, index) =>
+      doc({
+        id: `cv-${index}`,
+        parentId: index === 24 ? null : `cv-${index + 1}`
+      })
+    );
+    const { service } = build([
+      doc(),
+      doc({ id: "cv-v1", parentId: "cv-v2" }),
+      doc({ id: "jd-1", kind: "JD" }),
+      doc({ id: "fresh" }),
+      ...chain
+    ]);
+
+    const codes = [
+      await rejectionCode(service.setParent("cv-v2", { parentId: "cv-v2" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "nope" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "jd-1" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "cv-v1" })),
+      await rejectionCode(service.setParent("fresh", { parentId: "cv-0" }))
+    ];
+
+    expect(codes).toEqual([
+      "LINEAGE_SELF",
+      "LINEAGE_PARENT_NOT_FOUND",
+      "LINEAGE_KIND_MISMATCH",
+      "LINEAGE_CYCLE",
+      "LINEAGE_TOO_DEEP"
+    ]);
   });
 
   it("still accepts a chain it can walk to the end", async () => {

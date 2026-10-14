@@ -229,12 +229,13 @@ src/app.module.ts                      SỬA — đăng ký ComparisonModule
 Luật:
 
 - Document phải thuộc user (`findFirst({ id, userId })`) → **404** `comparison.errors.documentNotFound`.
-- `kind !== CV` → **400** `comparison.errors.notCv`. (JD không có khái niệm "bản cải tiến" trong sản phẩm này.)
-- `parentId === null` → **400** `comparison.errors.noParent` — *"This CV is not marked as a new version of another CV."* FE bắt và gợi ý khai báo lineage.
+- `kind !== CV` → **400** `comparison.errors.notCv`, `code: "NOT_CV"`. (JD không có khái niệm "bản cải tiến" trong sản phẩm này.)
+- `parentId === null` → **400** `comparison.errors.noParent`, `code: "NO_PARENT"` — *"This CV is not marked as a new version of another CV."* FE bắt và gợi ý khai báo lineage.
 - Parent bị xoá (`SET NULL` của ADR #15 nghĩa là `parentId` chỉ về `null`, không dangling) → rơi vào đúng nhánh trên. Parent tồn tại nhưng của user khác là bất khả (mọi document tạo ra đều gắn `userId` của người tạo), vẫn check `userId` khi nạp cho chắc.
 - `jdOptions` = mọi JD mà **ít nhất một** trong hai bản có `MatchResult` `succeeded`, sắp theo lần match mới nhất giảm dần. **Không** filter theo `isSaved` — CV/JD transient của wizard vẫn là dữ liệu thật.
 - `jdDocumentId` không truyền → chọn mặc định: JD đầu tiên **có đủ cả hai bên**; không có thì JD đầu danh sách; danh sách rỗng → `jdDocumentId = null` + mọi field kết quả `null`.
-- `jdDocumentId` truyền nhưng không nằm trong `jdOptions` → **400** `comparison.errors.jdNotComparable` (thay vì im lặng đổi sang JD khác — user sẽ tưởng mình đang xem JD mình chọn).
+- `jdDocumentId` truyền nhưng không nằm trong `jdOptions` → **400** `comparison.errors.jdNotComparable`, `code: "JD_NOT_COMPARABLE"` (thay vì im lặng đổi sang JD khác — user sẽ tưởng mình đang xem JD mình chọn).
+- Mỗi 400 trả body `{ code, message }` (cùng dạng `SIGN_IN_REQUIRED` của auth): `message` đã dịch để đọc, `code` để FE chọn câu hiển thị — FE **không** đoán lý do theo việc URL có `?jd` hay không.
 - Endpoint **không** gọi AI → giữ throttle global, không cần `@Throttle` riêng.
 
 `CvComparisonDto`:
@@ -270,10 +271,11 @@ Luật `DocumentsService.setParent`:
 
 - Document phải thuộc user → **404**.
 - `parentId === null` → gỡ liên kết (hợp lệ, đây là cách sửa khi khai nhầm).
-- `parentId === id` → **400** `documents.errors.lineageSelf`.
-- Parent không tồn tại / không thuộc user → **400** `documents.errors.lineageParentNotFound` (400 chứ không 404: `:id` trong path tồn tại, cái sai nằm ở **body**).
-- `parent.kind !== doc.kind` → **400** `documents.errors.lineageKindMismatch`.
-- Đi ngược chuỗi từ `parent`; gặp lại `id` → **400** `documents.errors.lineageCycle`. Vòng lặp chặn cứng ở `MAX_LINEAGE_DEPTH = 20` để một dữ liệu hỏng không treo được request.
+- `parentId === id` → **400** `documents.errors.lineageSelf`, `code: "LINEAGE_SELF"`.
+- Parent không tồn tại / không thuộc user → **400** `documents.errors.lineageParentNotFound`, `code: "LINEAGE_PARENT_NOT_FOUND"` (400 chứ không 404: `:id` trong path tồn tại, cái sai nằm ở **body**).
+- `parent.kind !== doc.kind` → **400** `documents.errors.lineageKindMismatch`, `code: "LINEAGE_KIND_MISMATCH"`.
+- Đi ngược chuỗi từ `parent`; gặp lại `id` → **400** `documents.errors.lineageCycle`, `code: "LINEAGE_CYCLE"`. Vòng lặp chặn cứng ở `MAX_LINEAGE_DEPTH = 20` để một dữ liệu hỏng không treo được request; chuỗi tổ tiên dài hơn mức đó → **400** `documents.errors.lineageTooDeep`, `code: "LINEAGE_TOO_DEEP"` (fail-closed).
+- Mọi 400 trả `{ code, message }`; modal lineage chọn câu theo `code`.
 
 ### 4.4 Số phiên bản — đóng open question §12
 

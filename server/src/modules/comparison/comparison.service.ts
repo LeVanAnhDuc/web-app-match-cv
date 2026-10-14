@@ -111,12 +111,13 @@ export class ComparisonService {
       );
     }
     if (revisionDoc.kind !== DocumentKind.CV) {
-      throw new BadRequestException(
-        tCompare(
+      throw new BadRequestException({
+        code: "NOT_CV",
+        message: tCompare(
           "comparison.errors.notCv",
           "Only a CV can be compared against a previous version."
         )
-      );
+      });
     }
 
     const baseDoc = revisionDoc.parentId
@@ -127,23 +128,25 @@ export class ComparisonService {
     // Also the branch a deleted original lands in: ADR #15 nulls the link
     // rather than cascading, so there is never a dangling parentId.
     if (!baseDoc) {
-      throw new BadRequestException(
-        tCompare(
+      throw new BadRequestException({
+        code: "NO_PARENT",
+        message: tCompare(
           "comparison.errors.noParent",
           "This CV is not marked as a new version of another CV."
         )
-      );
+      });
     }
     // Defence in depth: setParent already refuses a cross-kind link, so this is
     // unreachable today — but the column itself allows one, and a JD parent
     // would silently produce a "score delta" against a job description.
     if (baseDoc.kind !== DocumentKind.CV) {
-      throw new BadRequestException(
-        tCompare(
+      throw new BadRequestException({
+        code: "NOT_CV",
+        message: tCompare(
           "comparison.errors.notCv",
           "Only a CV can be compared against a previous version."
         )
-      );
+      });
     }
 
     const ancestors = await this.loadAncestors(revisionDoc, userId);
@@ -225,12 +228,13 @@ export class ComparisonService {
   ): string | null {
     if (requested) {
       if (!options.some((option) => option.id === requested)) {
-        throw new BadRequestException(
-          tCompare(
+        throw new BadRequestException({
+          code: "JD_NOT_COMPARABLE",
+          message: tCompare(
             "comparison.errors.jdNotComparable",
             "Neither version has been matched against that job description."
           )
-        );
+        });
       }
       return requested;
     }

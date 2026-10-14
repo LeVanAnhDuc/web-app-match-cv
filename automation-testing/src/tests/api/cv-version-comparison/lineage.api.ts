@@ -155,8 +155,6 @@ test.describe("cv-version-comparison — lineage endpoint", () => {
     "mỗi lớp lỗi 400 trả code máy đọc được riêng",
     { tag: ["@TC-CVVERSIONCOMPARISON-029"] },
     async ({ cvcSeed }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-02
-      test.fail();
       const { v2 } = await cvcSeed.happyPair();
       const root = await cvcSeed.cv();
       const jd = await cvcSeed.jd();
