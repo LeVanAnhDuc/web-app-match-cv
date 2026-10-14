@@ -212,6 +212,25 @@ describe("CvRewrite", () => {
     });
   });
 
+  it("gives each change checkbox its own accessible name", async () => {
+    mockGenerate(proposal);
+
+    renderPage();
+    await generate();
+
+    // Both changes share sectionHint "Experience"; a screen reader user
+    // still has to be able to tell the two checkboxes apart.
+    const names = screen
+      .getAllByRole("checkbox")
+      .slice(1)
+      .map((box) => box.getAttribute("aria-label"));
+    expect(names).toHaveLength(2);
+    expect(new Set(names).size).toBe(2);
+    expect(
+      screen.getByRole("checkbox", { name: "Experience — change 1 of 2" })
+    ).toBeInTheDocument();
+  });
+
   it("clears previous approvals when the suggestions are regenerated", async () => {
     mockGenerate(proposal);
 

@@ -245,7 +245,8 @@
       "original": "Hiện có trong CV",
       "suggested": "Đề xuất viết lại",
       "removal": "Xoá dòng này",
-      "untitled": "Thay đổi đề xuất"
+      "untitled": "Thay đổi đề xuất",
+      "accessibleName": "{{section}} — thay đổi {{position}}/{{total}}"
     },
     "changes": {
       "title": "Thay đổi đề xuất",

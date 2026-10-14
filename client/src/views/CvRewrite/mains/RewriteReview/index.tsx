@@ -237,10 +237,12 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
               />
             ) : (
               <ul className="space-y-4">
-                {proposal.changes.map((change) => (
+                {proposal.changes.map((change, index) => (
                   <ChangeCard
                     key={change.id}
                     change={change}
+                    position={index + 1}
+                    total={proposal.changes.length}
                     checked={checked.has(change.id)}
                     onToggle={(next) => toggle(change.id, next)}
                   />

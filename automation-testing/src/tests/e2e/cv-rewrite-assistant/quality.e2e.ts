@@ -131,8 +131,6 @@ test.describe("cv rewrite — data, language, keyboard", () => {
     "checkbox của các thay đổi có tên truy cập phân biệt",
     { tag: ["@TC-CVREWRITEASSISTANT-065", "@creates-data"] },
     async ({ rewriteData, rewritePage, network }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-02
-      test.fail();
       const seed = await rewriteData.match();
       // Both default changes carry sectionHint "Experience".
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), GENERATE);

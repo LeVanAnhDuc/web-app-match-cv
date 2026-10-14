@@ -245,7 +245,8 @@
       "original": "Currently in your CV",
       "suggested": "Suggested wording",
       "removal": "Removes this line",
-      "untitled": "Suggested change"
+      "untitled": "Suggested change",
+      "accessibleName": "{{section}} — change {{position}} of {{total}}"
     },
     "changes": {
       "title": "Suggested changes",
