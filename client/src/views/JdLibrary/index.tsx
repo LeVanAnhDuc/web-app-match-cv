@@ -18,7 +18,7 @@ const JdLibrary = () => {
       {library.contextHolder}
       <JdLibraryHeader count={settled ? library.docs.length : null} />
       {library.isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
-      {library.isError && <JdLibraryError />}
+      {library.isError && <JdLibraryError onRetry={library.retryLoad} />}
       {settled && library.docs.length === 0 && <JdLibraryEmpty />}
       {library.docs.length > 0 && (
         <JdDocumentList
@@ -34,6 +34,7 @@ const JdLibrary = () => {
         open={library.previewId !== null}
         doc={library.previewDoc}
         loading={library.previewLoading}
+        error={library.previewError}
         onClose={library.closePreview}
       />
       <DocumentRenameModal

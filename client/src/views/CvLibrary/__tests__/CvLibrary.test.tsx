@@ -219,6 +219,29 @@ describe("CvLibrary", () => {
     expect(screen.queryByText("No saved CVs yet")).toBeNull();
   });
 
+  it("retries a failed load from the error state", async () => {
+    const refetch = vi.fn();
+    vi.mocked(useSavedDocuments).mockReturnValue(
+      asQuery<Array<DocumentSummaryDto>>(undefined, { isError: true, refetch })
+    );
+    await renderLibrary();
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("shows the preview error instead of spinning when the document cannot load", async () => {
+    vi.mocked(useDocument).mockReturnValue(
+      asQuery<DocumentDto>(undefined, { isError: true })
+    );
+    await renderLibrary();
+    openActionsMenu(0);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Preview" }));
+    expect(
+      await screen.findByText("Couldn't load this file. Please try again.")
+    ).toBeDefined();
+    expect(screen.queryByTestId("doc-preview")).toBeNull();
+  });
+
   it("opens the preview modal rendering DocumentPreview", async () => {
     await renderLibrary();
     openActionsMenu(0);

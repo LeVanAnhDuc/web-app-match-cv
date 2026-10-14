@@ -18,7 +18,7 @@ const CvLibrary = () => {
       {library.contextHolder}
       <CvLibraryHeader count={settled ? library.docs.length : null} />
       {library.isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
-      {library.isError && <CvLibraryError />}
+      {library.isError && <CvLibraryError onRetry={library.retryLoad} />}
       {settled && library.docs.length === 0 && <CvLibraryEmpty />}
       {library.docs.length > 0 && (
         <CvDocumentList
@@ -35,6 +35,7 @@ const CvLibrary = () => {
         open={library.previewId !== null}
         doc={library.previewDoc}
         loading={library.previewLoading}
+        error={library.previewError}
         onClose={library.closePreview}
       />
       <DocumentRenameModal

@@ -83,8 +83,6 @@ test.describe("Xem trước tài liệu", { tag: ["@creates-data"] }, () => {
   });
 
   test("tài liệu vừa bị xoá ở nơi khác thì modal xem trước báo lỗi thay vì quay mãi", { tag: ["@TC-DOCUMENTS-068"] }, async ({ docLibraryPage, docOwner }) => {
-    // BUG: defects/documents.md#bug-documents-03
-    test.fail();
     const doc = await docOwner.paste("JD");
     await docLibraryPage.gotoLoaded("jd");
     // deleted in "another tab": the list on screen still shows the row
