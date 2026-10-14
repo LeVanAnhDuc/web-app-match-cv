@@ -64,8 +64,6 @@ test.describe("stepper & state", () => {
     "Back ở bước 2 và bước 3 giữ tài liệu đã nạp",
     { tag: ["@TC-CVJDMATCHINGWIZARD-003"] },
     async ({ wizardPage }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-01
-      test.fail();
       const jd = uniqueText(JD_TEXT);
       const cv = uniqueText(CV_TEXT);
       await wizardPage.goto();

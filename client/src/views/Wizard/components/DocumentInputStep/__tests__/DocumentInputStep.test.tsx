@@ -249,3 +249,88 @@ describe("DocumentInputStep as a guest", () => {
     );
   });
 });
+
+describe("DocumentInputStep — coming back to a step (Back)", () => {
+  it("keeps the document already chosen: Next is enabled and reuses it without a new request", async () => {
+    const fetchMock = stubSavedDocs([]);
+    const onNext = vi.fn();
+    render(
+      <DocumentInputStep
+        kind="CV"
+        currentDocId="cv-temp"
+        onBack={vi.fn()}
+        onNext={onNext}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    const next = await screen.findByRole("button", { name: /next/i });
+    expect(next).toBeEnabled();
+    fireEvent.click(next);
+
+    await waitFor(() => expect(onNext).toHaveBeenCalledWith("cv-temp"));
+    expect(
+      fetchMock.mock.calls.every(([, init]) => init?.method === undefined)
+    ).toBe(true);
+  });
+
+  it("shows a kept saved document as the selected radio", async () => {
+    stubSavedDocs([
+      {
+        id: "cv-saved",
+        kind: "CV",
+        title: "Backend Resume",
+        sourceFormat: "text",
+        parentId: null,
+        createdAt: "2023-10-12T00:00:00.000Z"
+      }
+    ]);
+    render(
+      <DocumentInputStep
+        kind="CV"
+        currentDocId="cv-saved"
+        onBack={vi.fn()}
+        onNext={vi.fn()}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    expect(
+      await screen.findByRole("radio", { name: /Backend Resume/ })
+    ).toBeChecked();
+  });
+
+  it("new input replaces the kept document", async () => {
+    stubSavedDocs([]);
+    const onNext = vi.fn();
+    render(
+      <DocumentInputStep
+        kind="CV"
+        currentDocId="cv-temp"
+        onBack={vi.fn()}
+        onNext={onNext}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    fireEvent.click(await screen.findByText(/paste text/i));
+    fireEvent.change(
+      await screen.findByPlaceholderText(/paste the text content here/i),
+      { target: { value: "A different CV" } }
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          ({
+            ok: true,
+            status: 201,
+            json: async () => ({ id: "cv-new" })
+          }) as Response
+      )
+    );
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
+    await waitFor(() => expect(onNext).toHaveBeenCalledWith("cv-new"));
+  });
+});
