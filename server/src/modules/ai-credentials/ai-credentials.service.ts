@@ -37,6 +37,15 @@ function normaliseOverride(
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/** The normalised override, or undefined when it equals what is stored. */
+function changedOverride(
+  value: string | undefined,
+  stored: string | null
+): string | null | undefined {
+  const next = normaliseOverride(value);
+  return next === stored ? undefined : next;
+}
+
 @Injectable()
 export class AiCredentialsService {
   constructor(
@@ -119,13 +128,16 @@ export class AiCredentialsService {
     dto: UpdateAiCredentialDto
   ): Promise<AiCredentialDto> {
     this.requireCrypto();
-    await this.findOwned(id);
+    const current = await this.findOwned(id);
 
     const data: Prisma.AiCredentialUpdateInput = {};
     if (dto.label !== undefined) data.label = dto.label.trim();
 
-    const chatModel = normaliseOverride(dto.chatModel);
-    const embedModel = normaliseOverride(dto.embedModel);
+    // Only a value that differs from the stored one counts as a model change.
+    // The edit modal always sends both fields (blank = default), so treating
+    // "present" as "changed" wiped the verdict on a plain rename.
+    const chatModel = changedOverride(dto.chatModel, current.chatModel);
+    const embedModel = changedOverride(dto.embedModel, current.embedModel);
     if (chatModel !== undefined) data.chatModel = chatModel;
     if (embedModel !== undefined) data.embedModel = embedModel;
 
