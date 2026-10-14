@@ -81,8 +81,6 @@ test.describe("guest quota", () => {
     "POST /match trên tài liệu không thuộc khách trả 400 documentNotOwned và không tốn lượt",
     { tag: ["@TC-GUESTMODE-015", "@smoke"] },
     async ({ anonApi, apiAs, guestModeData, guestModeQuota }) => {
-      // BUG: defects/guest-mode.md#bug-guestmode-01
-      test.fail();
       await guestModeQuota.clear();
       const guest = await guestModeData.guest();
       const other = await guestModeData.guest();
@@ -99,8 +97,6 @@ test.describe("guest quota", () => {
     "POST /match với runId của cặp tài liệu khác trả 400 và không tốn lượt",
     { tag: ["@TC-GUESTMODE-016"] },
     async ({ anonApi, apiAs, guestModeData, guestModeQuota }) => {
-      // BUG: defects/guest-mode.md#bug-guestmode-01
-      test.fail();
       await guestModeQuota.clear();
       const guest = await guestModeData.guest();
       const first = await guestModeData.pair(guest.userId);

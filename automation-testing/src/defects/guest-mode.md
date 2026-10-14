@@ -5,9 +5,9 @@ Không có mục `## Gom từ …` để chuyển: lúc scaffold module này ch�
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-GUESTMODE-01](#bug-guestmode-01) | Trung bình | TC-GUESTMODE-015, TC-GUESTMODE-016 | `POST /match` của khách trừ lượt trước khi kiểm quyền sở hữu tài liệu và run, nên request bị từ chối 4xx vẫn tốn một lượt miễn phí |
+_(không có)_
+
+## Đã sửa
 
 ### BUG-GUESTMODE-01
 
@@ -21,7 +21,4 @@ Không có mục `## Gom từ …` để chuyển: lúc scaffold module này ch�
 - **Thực tế:** `used` = 1 sau mỗi request như vậy. `server/src/modules/matching/matching.service.ts` `createMatch` gọi
   `guestUsage.consume(ip)` trước `requireOwnedPair` và `requireRunMatches`; năm request sai là khách hết lượt cả ngày
   trên IP đó mà không chạy được match nào.
-
-## Đã sửa
-
-_(chưa có)_
+- **Đã sửa:** root cause — `createMatch` gọi `guestUsage.consume(ip)` trước `requireOwnedPair` / `requireRunMatches`; fix — giữ 403 credential ở đầu, chuyển bước trừ lượt xuống sau hai kiểm tra đó, vẫn trước call AI (commit: _pending_).

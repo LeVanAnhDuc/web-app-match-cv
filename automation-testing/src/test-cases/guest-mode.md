@@ -153,7 +153,7 @@ TC-GUESTMODE-042 (429 thật nhờ cắm bộ đếm) và TC-GUESTMODE-025 (`@li
 - **Tiền điều kiện:** khách A, cặp tài liệu của khách B, bộ đếm trống
 - **Bước:** A `POST /match` với cặp của B
 - **Mong đợi:** 400 `matching.errors.documentNotOwned` (REQ-CVJDMATCHINGWIZARD-32) và `used` vẫn 0 (không gọi AI)
-- **Kiểm chứng thêm:** đang đỏ — BUG-GUESTMODE-01 (lượt bị trừ trước khi kiểm sở hữu)
+- **Kiểm chứng thêm:** BUG-GUESTMODE-01 đã sửa (lượt từng bị trừ trước khi kiểm sở hữu)
 - **Automated:** `tests/api/guest-mode/guest-quota.api.ts`
 
 ### TC-GUESTMODE-016 — POST /match với runId của cặp tài liệu khác trả 400 và không tốn lượt
@@ -163,7 +163,7 @@ TC-GUESTMODE-042 (429 thật nhờ cắm bộ đếm) và TC-GUESTMODE-025 (`@li
 - **Tiền điều kiện:** khách có hai cặp tài liệu, một run mở trên cặp thứ hai
 - **Bước:** `POST /match` cặp thứ nhất + `runId` của cặp thứ hai
 - **Mong đợi:** 400 `matching.errors.runDocumentMismatch`, `used` vẫn 0
-- **Kiểm chứng thêm:** đang đỏ — BUG-GUESTMODE-01
+- **Kiểm chứng thêm:** BUG-GUESTMODE-01 đã sửa
 - **Automated:** `tests/api/guest-mode/guest-quota.api.ts`
 
 ### TC-GUESTMODE-017 — POST /match với body sai trả 400 và không tốn lượt

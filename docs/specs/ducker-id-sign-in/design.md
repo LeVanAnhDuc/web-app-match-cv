@@ -132,7 +132,8 @@ Bảng `GuestUsage(ipHash, day, count)`, khoá chính `(ipHash, day)`, `day` là
 
 - Kiểm và tăng **nguyên tử** (`INSERT … ON CONFLICT DO UPDATE SET count = count + 1
   WHERE count < limit RETURNING count`) **trước** call AI: tốn tiền là lúc gọi, không
-  phải lúc thành công.
+  phải lúc thành công. Nhưng chỉ **sau** khi request đã hợp lệ (body, hai tài liệu thuộc
+  khách, `runId` khớp cặp) — request bị từ chối `4xx` không tốn lượt.
 - Áp ở `POST /match` khi user là khách. `POST /match/runs` không gọi AI nên không tính.
 - Hết lượt → `429` với `code: "GUEST_QUOTA_EXCEEDED"` + `resetsAt`.
 - `req.ip` với `trust proxy` **tắt** (app chưa deploy; bật nó khi chưa có proxy thật là

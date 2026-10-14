@@ -214,18 +214,29 @@ export class MatchingService {
     dto: CreateMatchDto,
     ctx: { ip: string }
   ): Promise<MatchResultDto> {
-    // Guests: system key only, capped per IP per UTC day (NFR-COST-04). Consume
-    // BEFORE the AI call - the money is spent when we call, not when it succeeds.
-    if (this.currentUser.isGuest()) {
-      if (dto.credentialId) {
-        throw new ForbiddenException({
-          code: "GUEST_FORBIDDEN_CREDENTIAL",
-          message: tMatch(
-            "matching.errors.guestCredential",
-            "Guests can only use the system AI key."
-          )
-        });
-      }
+    const isGuest = this.currentUser.isGuest();
+    // Guests run on the system key only.
+    if (isGuest && dto.credentialId) {
+      throw new ForbiddenException({
+        code: "GUEST_FORBIDDEN_CREDENTIAL",
+        message: tMatch(
+          "matching.errors.guestCredential",
+          "Guests can only use the system AI key."
+        )
+      });
+    }
+
+    const { userId, cvDoc, jdDoc } = await this.requireOwnedPair(
+      dto.cvDocumentId,
+      dto.jdDocumentId
+    );
+
+    if (dto.runId) await this.requireRunMatches(dto.runId, cvDoc.id, jdDoc.id);
+
+    // Guests are capped per IP per UTC day (NFR-COST-04). Consume only once the
+    // request is known valid, so a rejected 4xx costs nothing - but still
+    // BEFORE the AI call: the money is spent when we call, not when it succeeds.
+    if (isGuest) {
       const quota = await this.guestUsage.consume(ctx.ip);
       if (!quota.allowed) {
         throw new HttpException(
@@ -243,13 +254,6 @@ export class MatchingService {
         );
       }
     }
-
-    const { userId, cvDoc, jdDoc } = await this.requireOwnedPair(
-      dto.cvDocumentId,
-      dto.jdDocumentId
-    );
-
-    if (dto.runId) await this.requireRunMatches(dto.runId, cvDoc.id, jdDoc.id);
 
     // The user's own credential when they picked one, else the system key.
     const runtime = dto.credentialId

@@ -270,6 +270,29 @@ describe("MatchingService", () => {
       expect(guestUsage.consume).toHaveBeenCalledWith("1.2.3.4");
     });
 
+    it("does not consume quota when a document is not the guest's", async () => {
+      const { service, prisma, guestUsage } = makeOrchestrator({ guest: true });
+      prisma.document.findFirst.mockResolvedValueOnce(null);
+      const err = await service.createMatch(pair, CTX).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(guestUsage.consume).not.toHaveBeenCalled();
+    });
+
+    it("does not consume quota when the run is for another pair", async () => {
+      const { service, prisma, guestUsage } = makeOrchestrator({ guest: true });
+      prisma.matchRun.findFirst.mockResolvedValueOnce({
+        id: RUN_ID,
+        userId: USER_ID,
+        cvDocumentId: "other-cv",
+        jdDocumentId: JD_ID
+      });
+      const err = await service
+        .createMatch({ ...pair, runId: RUN_ID }, CTX)
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(guestUsage.consume).not.toHaveBeenCalled();
+    });
+
     it("never touches the quota for a signed-in user", async () => {
       const { service, guestUsage } = makeOrchestrator();
       await service.createMatch(pair, CTX);
