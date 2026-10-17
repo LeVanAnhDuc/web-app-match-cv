@@ -13,13 +13,30 @@ vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({
   default: "/assets/pdf.worker.min-hashed.mjs"
 }));
 
-vi.mock("react-pdf", () => ({
-  pdfjs: { GlobalWorkerOptions: { workerSrc: "" } },
-  Document: ({ children }: { children?: React.ReactNode }) => (
-    <div data-testid="mock-react-pdf-document">{children}</div>
-  ),
-  Page: () => <div data-testid="mock-react-pdf-page" />
-}));
+// Page count the mocked pdf.js reports once the document has loaded.
+const pdfPages = vi.hoisted(() => ({ count: 1 }));
+
+vi.mock("react-pdf", async () => {
+  const { useEffect } = await import("react");
+  return {
+    pdfjs: { GlobalWorkerOptions: { workerSrc: "" } },
+    Document: ({
+      children,
+      onLoadSuccess
+    }: {
+      children?: React.ReactNode;
+      onLoadSuccess?: (pdf: { numPages: number }) => void;
+    }) => {
+      useEffect(() => {
+        onLoadSuccess?.({ numPages: pdfPages.count });
+      }, [onLoadSuccess]);
+      return <div data-testid="mock-react-pdf-document">{children}</div>;
+    },
+    Page: ({ pageNumber }: { pageNumber: number }) => (
+      <div data-testid="mock-react-pdf-page" data-page={pageNumber} />
+    )
+  };
+});
 
 vi.mock("docx-preview", () => ({
   renderAsync: vi.fn().mockResolvedValue(undefined)
@@ -30,6 +47,25 @@ const mockedFetchDocumentFile = vi.mocked(fetchDocumentFile);
 describe("DocumentPreview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pdfPages.count = 1;
+  });
+
+  it("pdf — renders every page, not just the first", async () => {
+    pdfPages.count = 3;
+    mockedFetchDocumentFile.mockResolvedValue(new ArrayBuffer(8));
+
+    render(<DocumentPreview docId="doc-7" sourceFormat="pdf" rawText="" />);
+
+    const pages = await screen.findAllByTestId("mock-react-pdf-page");
+    await waitFor(() =>
+      expect(screen.getAllByTestId("mock-react-pdf-page")).toHaveLength(3)
+    );
+    expect(pages[0].getAttribute("data-page")).toBe("1");
+    expect(
+      screen
+        .getAllByTestId("mock-react-pdf-page")
+        .map((page) => page.getAttribute("data-page"))
+    ).toEqual(["1", "2", "3"]);
   });
 
   it("text — renders rawText directly, no fetch", () => {

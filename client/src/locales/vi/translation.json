@@ -31,6 +31,10 @@
       "empty": "Chưa có lượt ghép nào",
       "emptyCta": "Ghép ngay"
     },
+    "error": {
+      "documents": "Không tải được tài liệu đã lưu.",
+      "matches": "Không tải được các lượt ghép gần đây."
+    },
     "cols": {
       "cv": "CV",
       "jd": "JD",
@@ -106,7 +110,8 @@
   "review": {
     "hint": "Dữ liệu có thể chỉnh sửa. Sửa lỗi trước khi chạy so khớp.",
     "loading": "Đang tải tài liệu…",
-    "missingDocs": "Chưa chọn tài liệu. Quay lại để thêm CV và JD."
+    "missingDocs": "Chưa chọn tài liệu. Quay lại để thêm CV và JD.",
+    "loadFailed": "Không tải được tài liệu. Quay lại và nạp lại tài liệu."
   },
   "input": {
     "tab": {
@@ -177,6 +182,9 @@
       "confirm": "Lưu",
       "success": "Đã cập nhật lịch sử phiên bản",
       "rejected": "Liên kết này không hợp lệ — một tài liệu không thể là phiên bản của chính nó hoặc của bản mới hơn nó.",
+      "tooDeep": "Chuỗi phiên bản này đã quá dài, không thể nối thêm phiên bản.",
+      "parentNotFound": "Tài liệu bạn chọn làm phiên bản trước không còn tồn tại.",
+      "kindMismatch": "CV chỉ có thể là phiên bản của một CV khác, JD của một JD khác.",
       "failed": "Không lưu được. Vui lòng thử lại."
     }
   },
@@ -187,6 +195,7 @@
     "cv": {
       "title": "Hoặc chọn CV đã lưu"
     },
+    "loadError": "Không tải được danh sách tài liệu đã lưu.",
     "empty": {
       "jd": "Chưa có JD nào được lưu",
       "cv": "Chưa có CV nào được lưu",
@@ -239,7 +248,8 @@
       "original": "Hiện có trong CV",
       "suggested": "Đề xuất viết lại",
       "removal": "Xoá dòng này",
-      "untitled": "Thay đổi đề xuất"
+      "untitled": "Thay đổi đề xuất",
+      "accessibleName": "{{section}} — thay đổi {{position}}/{{total}}"
     },
     "changes": {
       "title": "Thay đổi đề xuất",
@@ -338,6 +348,7 @@
       "testing": "Đang kiểm tra kết nối…",
       "required": "Trường này bắt buộc",
       "labelTooLong": "Tối đa 60 ký tự",
+      "modelTooLong": "Tối đa 120 ký tự",
       "keyTooShort": "Key phải có ít nhất 20 ký tự",
       "keyTooLong": "Key tối đa 400 ký tự",
       "noWhitespace": "Không được chứa khoảng trắng"
@@ -383,7 +394,8 @@
       "untestedCount_one": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
       "untestedCount_other": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
       "privacyNone": "Chọn ít nhất một key để chạy so khớp.",
-      "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}."
+      "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}.",
+      "privacySystemEntry": "OpenRouter (key hệ thống)"
     }
   },
   "coverLetter": {
@@ -478,6 +490,7 @@
     "err": {
       "notFound": "CV không tồn tại hoặc không thuộc về bạn.",
       "noParent": "CV này chưa được khai là phiên bản mới của CV nào nên không có gì để so sánh.",
+      "notCv": "Chỉ CV mới so sánh được với phiên bản trước — đây là một JD.",
       "jdNotComparable": "Chưa phiên bản nào được match với JD đó.",
       "failed": "Không tải được kết quả so sánh. Vui lòng thử lại."
     }

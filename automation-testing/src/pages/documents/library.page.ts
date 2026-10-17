@@ -71,7 +71,7 @@ export class LibraryPage extends BasePage {
     return this.shell.main().getByRole("alert").filter({ hasText: this.text("library.loadError") });
   }
 
-  /** Retry control on the load-error state (REQ-DOCUMENTS-37: required, not implemented — BUG-DOCUMENTS-04). */
+  /** Retry control on the load-error state (REQ-DOCUMENTS-37). */
   retryButton(): Locator {
     return this.shell.main().getByRole("button", { name: /retry|try again|thử lại/i });
   }

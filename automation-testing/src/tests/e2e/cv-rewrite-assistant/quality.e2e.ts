@@ -131,8 +131,6 @@ test.describe("cv rewrite — data, language, keyboard", () => {
     "checkbox của các thay đổi có tên truy cập phân biệt",
     { tag: ["@TC-CVREWRITEASSISTANT-065", "@creates-data"] },
     async ({ rewriteData, rewritePage, network }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-02
-      test.fail();
       const seed = await rewriteData.match();
       // Both default changes carry sectionHint "Experience".
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), GENERATE);
@@ -151,8 +149,6 @@ test.describe("cv rewrite — data, language, keyboard", () => {
     "mở modal lưu thì focus vào ô tên",
     { tag: ["@TC-CVREWRITEASSISTANT-066", "@creates-data"] },
     async ({ rewriteData, rewritePage, network }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-03
-      test.fail();
       const seed = await rewriteData.match();
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), GENERATE);
       await rewritePage.open(seed.matchId);

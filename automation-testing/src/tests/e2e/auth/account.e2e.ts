@@ -74,8 +74,6 @@ test.describe("Signing out and an unreachable /auth/me (no shared session)", () 
     "/auth/me lỗi mạng thì hiện giao diện khách, không kẹt skeleton",
     { tag: ["@TC-AUTH-052"] },
     async ({ signInGatePage, network }) => {
-      // BUG: defects/auth.md#bug-auth-01
-      test.fail();
       await network.abort("**/api/v1/auth/me");
       await signInGatePage.goto("/cv");
       // React Query retries 3 times (≈7 s) before the hook may degrade to anonymous.

@@ -10,6 +10,7 @@ import {
   Pencil,
   Trash2
 } from "lucide-react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { MenuProps } from "antd";
 import type { DocumentSummaryDto } from "#/types/Documents";
@@ -37,6 +38,7 @@ const DocumentRow = ({
     new Date(doc.createdAt)
   );
   const canDownload = doc.sourceFormat !== "text";
+  const actionsRef = useRef<HTMLButtonElement>(null);
   // The delete item's label wraps Popconfirm's trigger in a <span> that stops
   // the click from bubbling to antd's Dropdown overlay, which closes the menu
   // on any inner click — that would dismiss the Popconfirm before the user
@@ -68,7 +70,13 @@ const DocumentRow = ({
       key: "setLineage",
       label: t("library.action.setLineage"),
       icon: <GitBranch size={16} aria-hidden="true" />,
-      onClick: onSetLineage
+      // The dialog returns focus to whatever held it when it opened. Left to
+      // itself that is this menu item, which is gone once the menu closes, so
+      // hand focus to the row's Actions button first.
+      onClick: () => {
+        actionsRef.current?.focus();
+        onSetLineage();
+      }
     },
     ...(canDownload
       ? [
@@ -127,6 +135,7 @@ const DocumentRow = ({
       <div className="flex shrink-0 items-center">
         <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
           <Button
+            ref={actionsRef}
             type="text"
             aria-label={t("library.action.menu")}
             icon={<MoreVertical size={16} aria-hidden="true" />}

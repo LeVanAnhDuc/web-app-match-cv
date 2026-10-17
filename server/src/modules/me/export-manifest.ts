@@ -1,7 +1,18 @@
-import type { AiCredential, Document, MatchResult, User } from "@prisma/client";
+import type {
+  AiCredential,
+  CoverLetter,
+  Document,
+  MatchResult,
+  MatchRun,
+  User
+} from "@prisma/client";
 
-/** Bumped whenever the exported shape changes, so an old export stays parseable. */
-const SCHEMA_VERSION = 1;
+/**
+ * Bumped whenever the exported shape changes, so an old export stays parseable.
+ * 2: added `coverLetters`, `matchRuns`, `matchResults[].runId`,
+ * `documents[].parentId` and the `user` profile (REQ-DATAEXPORT-34).
+ */
+const SCHEMA_VERSION = 2;
 /** 6 hex chars off the uuid — enough to separate two documents sharing a title. */
 const ID_SUFFIX_LENGTH = 6;
 /** Keeps the whole entry name inside the 255-char per-component filesystem limit. */
@@ -66,6 +77,8 @@ export interface ExportedDocument {
   sourceFormat: string;
   isSaved: boolean;
   createdAt: string;
+  /** Lineage: the document this one is a newer version of, if any. */
+  parentId: string | null;
   rawText: string;
   /** Path inside the archive, or null for paste-text documents. */
   file: string | null;
@@ -73,6 +86,8 @@ export interface ExportedDocument {
 
 export interface ExportedMatchResult {
   id: string;
+  /** The run (one press of "Run match") this result belongs to, if any. */
+  runId: string | null;
   cvDocumentId: string;
   jdDocumentId: string;
   overallScore: number;
@@ -104,12 +119,49 @@ export interface ExportedAiCredential {
   createdAt: string;
 }
 
+export interface ExportedMatchRun {
+  id: string;
+  cvDocumentId: string;
+  jdDocumentId: string;
+  createdAt: string;
+}
+
+export interface ExportedCoverLetter {
+  id: string;
+  matchResultId: string;
+  tone: string;
+  length: string;
+  language: string;
+  content: string;
+  omittedRequirements: Array<string>;
+  status: string;
+  errorCode: string | null;
+  edited: boolean;
+  credentialId: string | null;
+  provider: string;
+  chatModel: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExportedUser {
+  id: string;
+  role: string;
+  /** Profile mirrored from Ducker ID at sign-in; null when never provided. */
+  email: string | null;
+  fullName: string | null;
+  avatar: string | null;
+  createdAt: string;
+}
+
 export interface ExportManifest {
   schemaVersion: number;
   exportedAt: string;
-  user: { id: string; role: string; createdAt: string };
+  user: ExportedUser;
   documents: Array<ExportedDocument>;
   matchResults: Array<ExportedMatchResult>;
+  matchRuns: Array<ExportedMatchRun>;
+  coverLetters: Array<ExportedCoverLetter>;
   aiCredentials: Array<ExportedAiCredential>;
 }
 
@@ -118,7 +170,9 @@ export interface ExportManifest {
 // `User` fetched by the caller is typed `Role`, which is still assignable
 // into `string` — so a real Prisma row always satisfies this input type.
 export interface ExportInput {
-  user: Pick<User, "id" | "createdAt"> & { role: string };
+  user: Pick<User, "id" | "email" | "fullName" | "avatar" | "createdAt"> & {
+    role: string;
+  };
   documents: Array<
     Pick<
       Document,
@@ -130,6 +184,7 @@ export interface ExportInput {
       | "fileMime"
       | "isSaved"
       | "createdAt"
+      | "parentId"
     > & {
       /**
        * Whether this document has stored file bytes — computed by the
@@ -145,6 +200,7 @@ export interface ExportInput {
     Pick<
       MatchResult,
       | "id"
+      | "runId"
       | "cvDocumentId"
       | "jdDocumentId"
       | "overallScore"
@@ -157,6 +213,31 @@ export interface ExportInput {
       | "chatModel"
       | "embedModel"
     >
+  >;
+  matchRuns: Array<
+    Pick<MatchRun, "id" | "cvDocumentId" | "jdDocumentId" | "createdAt">
+  >;
+  // Enum columns are widened to `string`, for the same reason as `user.role`.
+  coverLetters: Array<
+    Pick<
+      CoverLetter,
+      | "id"
+      | "matchResultId"
+      | "content"
+      | "omittedRequirements"
+      | "errorCode"
+      | "edited"
+      | "credentialId"
+      | "chatModel"
+      | "createdAt"
+      | "updatedAt"
+    > & {
+      tone: string;
+      length: string;
+      language: string;
+      status: string;
+      provider: string;
+    }
   >;
   aiCredentials: Array<
     Pick<
@@ -194,6 +275,9 @@ export function buildExportManifest(input: ExportInput): ExportManifest {
     user: {
       id: input.user.id,
       role: String(input.user.role),
+      email: input.user.email ?? null,
+      fullName: input.user.fullName ?? null,
+      avatar: input.user.avatar ?? null,
       createdAt: input.user.createdAt.toISOString()
     },
     documents: input.documents.map((doc) => ({
@@ -203,6 +287,7 @@ export function buildExportManifest(input: ExportInput): ExportManifest {
       sourceFormat: String(doc.sourceFormat),
       isSaved: doc.isSaved,
       createdAt: doc.createdAt.toISOString(),
+      parentId: doc.parentId ?? null,
       rawText: doc.rawText.replace(NULL_BYTES, ""),
       // `hasFile` comes from the caller's `octet_length` probe against the
       // DB, not from reading the bytes here — this function never touches
@@ -213,6 +298,7 @@ export function buildExportManifest(input: ExportInput): ExportManifest {
     })),
     matchResults: input.matchResults.map((match) => ({
       id: match.id,
+      runId: match.runId ?? null,
       cvDocumentId: match.cvDocumentId,
       jdDocumentId: match.jdDocumentId,
       overallScore: match.overallScore,
@@ -224,6 +310,29 @@ export function buildExportManifest(input: ExportInput): ExportManifest {
       provider: String(match.provider),
       chatModel: match.chatModel,
       embedModel: match.embedModel
+    })),
+    matchRuns: input.matchRuns.map((run) => ({
+      id: run.id,
+      cvDocumentId: run.cvDocumentId,
+      jdDocumentId: run.jdDocumentId,
+      createdAt: run.createdAt.toISOString()
+    })),
+    coverLetters: input.coverLetters.map((letter) => ({
+      id: letter.id,
+      matchResultId: letter.matchResultId,
+      tone: String(letter.tone),
+      length: String(letter.length),
+      language: String(letter.language),
+      content: letter.content,
+      omittedRequirements: [...letter.omittedRequirements],
+      status: String(letter.status),
+      errorCode: letter.errorCode ?? null,
+      edited: letter.edited,
+      credentialId: letter.credentialId ?? null,
+      provider: String(letter.provider),
+      chatModel: letter.chatModel,
+      createdAt: letter.createdAt.toISOString(),
+      updatedAt: letter.updatedAt.toISOString()
     })),
     aiCredentials: input.aiCredentials.map((cred) => ({
       id: cred.id,

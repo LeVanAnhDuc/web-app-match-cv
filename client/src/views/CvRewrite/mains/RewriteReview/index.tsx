@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Alert, Button, Checkbox, Collapse, Skeleton, message } from "antd";
 import { Save, Sparkles, TriangleAlert } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SectionCard from "#/components/SectionCard";
 import { useAcceptCvRewrite, useGenerateCvRewrite } from "#/hooks/useCvRewrite";
@@ -47,6 +47,10 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false);
+  // accept.isPending only disables Save after a re-render, so a fast second
+  // click would send a second accept and create a second CV (no server-side
+  // idempotency, decision D4) — the guard has to be synchronous.
+  const acceptInFlight = useRef(false);
 
   // Default to whatever key produced the match — the user already consented to
   // that provider seeing this CV once.
@@ -98,7 +102,8 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
   };
 
   const runAccept = async (title: string) => {
-    if (!proposal) return;
+    if (!proposal || acceptInFlight.current) return;
+    acceptInFlight.current = true;
     setError(null);
     try {
       await accept.mutateAsync({
@@ -112,6 +117,9 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
       messageApi.success(t("rewrite.save.success"));
       void navigate({ to: "/cv" });
     } catch (caught) {
+      // Only a failure re-opens the gate: after a success the dialog is
+      // closing and the page is leaving, so a late click must not save again.
+      acceptInFlight.current = false;
       // Deliberately keeps the modal open and the ticks intact: losing an
       // approval pass to a transient 500 would be the worst part of this flow.
       setError(
@@ -237,10 +245,12 @@ const RewriteReview = ({ matchResultId }: { matchResultId: string }) => {
               />
             ) : (
               <ul className="space-y-4">
-                {proposal.changes.map((change) => (
+                {proposal.changes.map((change, index) => (
                   <ChangeCard
                     key={change.id}
                     change={change}
+                    position={index + 1}
+                    total={proposal.changes.length}
                     checked={checked.has(change.id)}
                     onToggle={(next) => toggle(change.id, next)}
                   />

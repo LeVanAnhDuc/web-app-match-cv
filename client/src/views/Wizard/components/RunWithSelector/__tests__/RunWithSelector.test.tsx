@@ -57,6 +57,16 @@ function mockCredentials(credentials: Array<AiCredentialDto>) {
 describe("RunWithSelector", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it("exposes the checkboxes as a group named Run with", () => {
+    mockCredentials([base]);
+    render(<RunWithSelector value={[]} onChange={vi.fn()} />);
+
+    const group = screen.getByRole("group", { name: "Run with" });
+    expect(group).toContainElement(
+      screen.getByRole("checkbox", { name: /Mine/ })
+    );
+  });
+
   it("defaults to the most recently used credential", async () => {
     mockCredentials([
       { ...base, id: "a", label: "Older", lastUsedAt: "2026-08-01T00:00:00Z" },
@@ -106,6 +116,13 @@ describe("RunWithSelector", () => {
     );
   });
 
+  it("keeps the selection in row order, not in the order it was ticked", async () => {
+    mockCredentials([{ ...base, id: "a", label: "Gemini key" }]);
+    const onChange = vi.fn();
+    render(<RunWithSelector value={[null, "a"]} onChange={onChange} />);
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(["a", null]));
+  });
+
   it("offers the system key as its own choice", () => {
     mockCredentials([{ ...base, id: "a" }]);
     render(<RunWithSelector value={["a"]} onChange={vi.fn()} />);
@@ -123,7 +140,18 @@ describe("RunWithSelector", () => {
 
     expect(
       screen.getByText(
-        "Your CV and JD text will be sent to: Google Gemini, OpenRouter, System key."
+        "Your CV and JD text will be sent to: Google Gemini, OpenRouter, OpenRouter (system key)."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("names OpenRouter when only the system key is selected", () => {
+    mockCredentials([{ ...base, id: "a" }]);
+    render(<RunWithSelector value={[null]} onChange={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        "Your CV and JD text will be sent to: OpenRouter (system key)."
       )
     ).toBeInTheDocument();
   });

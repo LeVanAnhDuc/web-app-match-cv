@@ -25,6 +25,7 @@ Báo lỗi bằng **NestJS built-in `HttpException` subclass** + message i18n. K
    );
    ```
 3. **KHÔNG `new Error(...)`** cho lỗi user-facing. **KHÔNG** dựng API positional/custom kiểu `new BadRequestError("msg", CODE)` (đó là convention của project Express tham chiếu — KHÔNG áp dụng ở đây). Không tự set body lỗi thủ công.
+   - **Client phải phân biệt các lớp lỗi cùng status** (vd 400 `noParent` vs `notCv`, 400 `lineageTooDeep` vs `lineageCycle`) → truyền object `{ code: "UPPER_SNAKE", message: tX(...) }` vào subclass, cùng dạng `SIGN_IN_REQUIRED` / `GUEST_QUOTA_EXCEEDED`. `code` ổn định để FE map câu hiển thị; KHÔNG để FE đoán lý do từ message hay từ URL.
 4. **Controller KHÔNG try/catch business error** — để nguyên cho Nest exception layer bắt và format. Chỉ catch khi cần chuyển đổi lỗi hạ tầng thành `HttpException` domain (vd `parsing.ts`: bắt lỗi parser lạ → ném `BadRequestException` với message i18n `parseFailed`; re-throw nếu đã là `HttpException`).
 5. **Lỗi validation DTO do global `ValidationPipe` lo** (`main.ts`, `whitelist + transform`) — tự trả `400` khi class-validator fail. KHÔNG tự validate + throw thủ công cho field mà decorator DTO đã cover (xem `dto.md`).
 6. File-upload validator (`ParseFilePipe` → `FileTypeValidator` / `MaxFileSizeValidator`) đặt `errorMessage` = thunk i18n (`tDoc(...)`) để giữ thông điệp đa ngôn ngữ nhất quán.

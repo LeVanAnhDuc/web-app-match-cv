@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  type HttpException,
+  NotFoundException
+} from "@nestjs/common";
 import { ComparisonService } from "./comparison.service";
 import type { CurrentUserService } from "../../common/current-user/current-user.service";
 import type { PrismaService } from "../../prisma/prisma.service";
@@ -72,6 +76,16 @@ function build(options: {
   };
 }
 
+/** The machine-readable `code` a rejection carries, so the client never has to guess the reason. */
+async function rejectionCode(promise: Promise<unknown>): Promise<unknown> {
+  try {
+    await promise;
+  } catch (error) {
+    return ((error as HttpException).getResponse() as { code?: unknown }).code;
+  }
+  throw new Error("expected a rejection");
+}
+
 describe("ComparisonService.compare", () => {
   it("rejects a document that is not the caller's", async () => {
     const { service } = build({ documents: [] });
@@ -99,6 +113,29 @@ describe("ComparisonService.compare", () => {
     await expect(service.compare(REVISION_ID, {})).rejects.toBeInstanceOf(
       BadRequestException
     );
+  });
+
+  // Each 400 names its own class, so the page shows the real reason instead of
+  // guessing from whether the URL pinned a JD.
+  it("tags every 400 with a code of its own", async () => {
+    const jd = build({ documents: [doc({ kind: "JD" })] });
+    const root = build({ documents: [doc({ parentId: null })] });
+    const pinned = build({
+      documents: [doc(), doc({ id: BASE_ID, parentId: null })],
+      matches: [match()]
+    });
+
+    expect(await rejectionCode(jd.service.compare(REVISION_ID, {}))).toBe(
+      "NOT_CV"
+    );
+    expect(await rejectionCode(root.service.compare(REVISION_ID, {}))).toBe(
+      "NO_PARENT"
+    );
+    expect(
+      await rejectionCode(
+        pinned.service.compare(REVISION_ID, { jdDocumentId: "jd-unrelated" })
+      )
+    ).toBe("JD_NOT_COMPARABLE");
   });
 
   it("numbers the versions from the parentId chain", async () => {

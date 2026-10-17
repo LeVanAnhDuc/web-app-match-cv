@@ -7,6 +7,7 @@ import SectionCard from "#/components/SectionCard";
 import { useMatchHistory } from "#/hooks/useMatch";
 import { useWizardStore } from "#/stores";
 import type { MatchSummaryDto } from "#/types/Matching";
+import LoadErrorAlert from "../../components/LoadErrorAlert";
 
 const RECENT_LIMIT = 5;
 
@@ -25,7 +26,7 @@ function scoreBand(score: number): keyof typeof SCORE_TONE {
 const RecentMatches = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { data, isLoading } = useMatchHistory();
+  const { data, isLoading, isError, refetch } = useMatchHistory();
 
   const history = data ?? [];
   const rows = history.slice(0, RECENT_LIMIT);
@@ -87,42 +88,51 @@ const RecentMatches = () => {
         ) : null
       }
     >
-      <Table<MatchSummaryDto>
-        rowKey="id"
-        columns={columns}
-        dataSource={rows}
-        loading={isLoading}
-        pagination={false}
-        scroll={{ x: "max-content" }}
-        onRow={(record) => ({
-          role: "button",
-          tabIndex: 0,
-          "aria-label": `${record.cvTitle} × ${record.jdTitle}`,
-          className: "cursor-pointer",
-          onClick: () => openResult(record.id),
-          onKeyDown: (event: React.KeyboardEvent) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              openResult(record.id);
+      {isError ? (
+        <div className="p-4 md:p-6">
+          <LoadErrorAlert
+            message={t("home.error.matches")}
+            onRetry={() => void refetch()}
+          />
+        </div>
+      ) : (
+        <Table<MatchSummaryDto>
+          rowKey="id"
+          columns={columns}
+          dataSource={rows}
+          loading={isLoading}
+          pagination={false}
+          scroll={{ x: "max-content" }}
+          onRow={(record) => ({
+            role: "button",
+            tabIndex: 0,
+            "aria-label": `${record.cvTitle} × ${record.jdTitle}`,
+            className: "cursor-pointer",
+            onClick: () => openResult(record.id),
+            onKeyDown: (event: React.KeyboardEvent) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openResult(record.id);
+              }
             }
-          }
-        })}
-        locale={{
-          emptyText: (
-            <div className="flex flex-col items-center gap-3 py-10">
-              <Inbox className="text-faint" size={32} />
-              <p className="text-muted">{t("home.recent.empty")}</p>
-              <Button
-                type="primary"
-                icon={<Sparkles size={16} />}
-                onClick={() => void navigate({ to: "/wizard" })}
-              >
-                {t("home.recent.emptyCta")}
-              </Button>
-            </div>
-          )
-        }}
-      />
+          })}
+          locale={{
+            emptyText: (
+              <div className="flex flex-col items-center gap-3 py-10">
+                <Inbox className="text-faint" size={32} />
+                <p className="text-muted">{t("home.recent.empty")}</p>
+                <Button
+                  type="primary"
+                  icon={<Sparkles size={16} />}
+                  onClick={() => void navigate({ to: "/wizard" })}
+                >
+                  {t("home.recent.emptyCta")}
+                </Button>
+              </div>
+            )
+          }}
+        />
+      )}
     </SectionCard>
   );
 };

@@ -11,6 +11,7 @@ import {
 } from "#/hooks/useDocuments";
 import { ApiError } from "#/libs/api";
 import type { DocumentSummaryDto } from "#/types/Documents";
+import { lineageErrorKey } from "#/utils";
 
 /**
  * Page hook for the saved-CV library (`/cv`): owns the saved-CV query, the
@@ -90,11 +91,7 @@ export function useCvLibrary() {
       setLineageTarget(null);
       void messageApi.success(t("library.lineage.success"));
     } catch (error) {
-      setLineageError(
-        error instanceof ApiError && error.status === 400
-          ? t("library.lineage.rejected")
-          : t("library.lineage.failed")
-      );
+      setLineageError(t(lineageErrorKey(error)));
     } finally {
       lineageInFlight.current = false;
     }
@@ -113,10 +110,12 @@ export function useCvLibrary() {
     docs: savedQuery.data ?? [],
     isLoading: savedQuery.isLoading,
     isError: savedQuery.isError,
+    retryLoad: () => void savedQuery.refetch(),
     deletingId,
     previewId,
     previewDoc: previewQuery.data,
     previewLoading: previewQuery.isLoading,
+    previewError: previewQuery.isError,
     renameTarget,
     renamePending: renameMutation.isPending,
     lineageTarget,

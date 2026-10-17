@@ -5,10 +5,9 @@ tìm thấy khi khám phá app ngày 2026-10-14.
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-AUTH-01](#bug-auth-01) | Trung bình | TC-AUTH-052 | `/auth/me` lỗi mạng → route cần tài khoản kẹt skeleton mãi, không về giao diện khách |
-| [BUG-AUTH-02](#bug-auth-02) | Thấp | TC-AUTH-053 | Cookie `mcv_session` không giải mã được (`%%%`) không bị server xoá |
+_(không có)_
+
+## Đã sửa
 
 ### BUG-AUTH-01
 
@@ -21,6 +20,11 @@ tìm thấy khi khám phá app ngày 2026-10-14.
   tục theo chu kỳ 0.7 s, 1.7 s, 3.7 s, 7.7 s, rồi lặp lại (≈19 lần trong 40 s). Nguyên nhân khả dĩ: khi query lỗi, shell
   chuyển sang giao diện khách và mount thêm observer `useAuth` (GuestCard / nút Sign in) → refetch on mount; query chưa
   từng có data nên quay về `pending` → `status` lại là `"loading"`.
+- **Đã sửa:** root cause — TanStack Query v5 đưa một query chưa từng có data về `pending` mỗi lần refetch, và
+  `retryOnMount` (mặc định bật) khiến observer `useAuth` mới của giao diện khách (GuestCard / nút Sign in) refetch
+  query đang lỗi → `status` lại thành `"loading"` → skeleton → giao diện khách unmount rồi mount lại → vòng lặp. Fix —
+  `useAuth` đặt `retryOnMount: false` và coi query đã từng lỗi (`errorUpdatedAt > 0`) là anonymous cho tới khi có data
+  (commit: ef874c9).
 
 ### BUG-AUTH-02
 
@@ -30,7 +34,6 @@ tìm thấy khi khám phá app ngày 2026-10-14.
   lệnh xoá, như với token lạ / hết hạn).
 - **Thực tế:** `status:"anonymous"` nhưng không có `Set-Cookie` — `readCookie` nuốt lỗi `decodeURIComponent` và trả `null`,
   nên `SessionMiddleware` coi như không có cookie và không xoá; trình duyệt giữ cookie hỏng mãi.
-
-## Đã sửa
-
-_(chưa có)_
+- **Đã sửa:** root cause — `readCookie` nuốt lỗi `decodeURIComponent` và trả `null`, nên `SessionMiddleware` không phân
+  biệt được cookie hỏng với không có cookie. Fix — giá trị không giải mã được trả về nguyên văn (như package `cookie`);
+  middleware tra không thấy session → coi anonymous và gửi lệnh xoá (commit: 2ee2d65).

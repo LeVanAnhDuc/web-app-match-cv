@@ -239,6 +239,26 @@ describe("AppShell", () => {
     expect(body.style.flexDirection).toBe("column");
   });
 
+  it("closes the drawer after a nav item in it is clicked", async () => {
+    mockAuth(USER);
+    renderShell();
+
+    fireEvent.click(await screen.findByRole("button", { name: /open menu/i }));
+    const drawer = await screen.findByRole("dialog");
+    fireEvent.click(within(drawer).getByRole("link", { name: /curriculum/i }));
+
+    await waitFor(() =>
+      expect(document.querySelector(".ant-drawer-open")).toBeNull()
+    );
+  });
+
+  it("drops the sidebar width transition under reduced motion", async () => {
+    renderShell();
+
+    const aside = await screen.findByRole("complementary", { hidden: true });
+    expect(aside.getAttribute("class")).toContain("motion-reduce:duration-0");
+  });
+
   it("account menu is keyboard-operable", async () => {
     mockAuth(USER);
     renderShell();

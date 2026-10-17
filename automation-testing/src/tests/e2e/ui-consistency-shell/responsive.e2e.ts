@@ -88,8 +88,6 @@ test.describe("signed-in user", () => {
     page,
   }) => {
     test.skip(!shellLayoutPage.isCompactViewport(), COMPACT_ONLY);
-    // BUG: defects/ui-consistency-shell.md#bug-uiconsistencyshell-01
-    test.fail();
     const { shell } = shellLayoutPage;
     await shellLayoutPage.goto("/");
     await shell.openDrawer();

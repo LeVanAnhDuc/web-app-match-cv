@@ -4,7 +4,7 @@ import {
   createRootRoute,
   createRouter
 } from "@tanstack/react-router";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseQueryResult } from "@tanstack/react-query";
 import "#/i18n/config";
@@ -33,6 +33,16 @@ function asQueryResult<T>(
   isLoading = false
 ): UseQueryResult<T> {
   return { data, isLoading, isError: false, error: null } as UseQueryResult<T>;
+}
+
+function asFailedQuery<T>(refetch = vi.fn()): UseQueryResult<T> {
+  return {
+    data: undefined,
+    isLoading: false,
+    isError: true,
+    error: new Error("500"),
+    refetch
+  } as unknown as UseQueryResult<T>;
 }
 
 const cvDocs: Array<DocumentSummaryDto> = [
@@ -217,6 +227,46 @@ describe("Home", () => {
 
     expect(await screen.findByText(/no matches yet/i)).toBeDefined();
     expect(screen.getByRole("button", { name: /match now/i })).toBeDefined();
+  });
+
+  describe("load failure", () => {
+    it("shows a retryable alert instead of 0 and the empty state when GET /match fails", async () => {
+      const refetch = vi.fn();
+      mockHooks();
+      vi.mocked(useMatchHistory).mockReturnValue(asFailedQuery(refetch));
+      renderHome();
+
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent(/could not load your recent matches/i);
+      expect(screen.queryByText(/no matches yet/i)).toBeNull();
+      const total = screen.getByTestId("home-stat-total-matches");
+      expect(within(total).queryByText("0")).toBeNull();
+      expect(within(total).getByText("—")).toBeDefined();
+
+      fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows a retryable alert instead of 0 when GET /documents fails", async () => {
+      const refetch = vi.fn();
+      mockHooks();
+      vi.mocked(useSavedDocuments).mockImplementation((kind) =>
+        kind === "CV" ? asFailedQuery(refetch) : asQueryResult(jdDocs)
+      );
+      renderHome();
+
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent(/could not load your saved documents/i);
+      const cvs = screen.getByTestId("home-stat-saved-cvs");
+      expect(within(cvs).queryByText("0")).toBeNull();
+      expect(within(cvs).getByText("—")).toBeDefined();
+      expect(
+        within(screen.getByTestId("home-stat-saved-jds")).getByText("1")
+      ).toBeDefined();
+
+      fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("guest", () => {

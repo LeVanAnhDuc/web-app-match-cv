@@ -61,8 +61,6 @@ test.describe("cover letter — saved drafts", () => {
     "each row shows when the draft was generated, so drafts with the same options can be told apart",
     { tag: ["@TC-COVERLETTERGENERATOR-047"] },
     async ({ coverLetterPage, coverLetterSeed }) => {
-      // BUG: defects/cover-letter-generator.md#bug-coverlettergenerator-02
-      test.fail();
       const match = await coverLetterSeed.match();
       const now = Date.now();
       await coverLetterSeed.letter(match, { createdAt: new Date(now - 26 * 3_600_000) });

@@ -298,6 +298,11 @@ export class WizardPage extends BasePage {
     return this.page.getByText(this.text("credentials.runWith.privacyList", { providers }));
   }
 
+  /** The guest's notice: "Your CV and JD text will be sent to OpenRouter using the system key." */
+  systemPrivacyNotice(): Locator {
+    return this.page.getByText(this.text("credentials.runWith.privacySystem"), { exact: true });
+  }
+
   runMatchButton(): Locator {
     return this.page.getByRole("button", { name: this.text("action.runMatch"), exact: true });
   }

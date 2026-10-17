@@ -184,7 +184,7 @@ describe("CvLibrary", () => {
   });
 
   it("keeps the lineage modal open and reports why a link was rejected", async () => {
-    lineageSpy.mockRejectedValue(new ApiError(400, "cycle"));
+    lineageSpy.mockRejectedValue(new ApiError(400, "cycle", "LINEAGE_CYCLE"));
     await renderLibrary();
     openActionsMenu(0);
     fireEvent.click(
@@ -217,6 +217,29 @@ describe("CvLibrary", () => {
     await renderLibrary();
     expect(screen.getByRole("alert")).toBeDefined();
     expect(screen.queryByText("No saved CVs yet")).toBeNull();
+  });
+
+  it("retries a failed load from the error state", async () => {
+    const refetch = vi.fn();
+    vi.mocked(useSavedDocuments).mockReturnValue(
+      asQuery<Array<DocumentSummaryDto>>(undefined, { isError: true, refetch })
+    );
+    await renderLibrary();
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("shows the preview error instead of spinning when the document cannot load", async () => {
+    vi.mocked(useDocument).mockReturnValue(
+      asQuery<DocumentDto>(undefined, { isError: true })
+    );
+    await renderLibrary();
+    openActionsMenu(0);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Preview" }));
+    expect(
+      await screen.findByText("Couldn't load this file. Please try again.")
+    ).toBeDefined();
+    expect(screen.queryByTestId("doc-preview")).toBeNull();
   });
 
   it("opens the preview modal rendering DocumentPreview", async () => {

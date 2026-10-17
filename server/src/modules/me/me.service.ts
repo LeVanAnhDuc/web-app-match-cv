@@ -44,56 +44,95 @@ export class MeService {
     const userId = this.currentUser.getUserId();
     const exportedAt = new Date();
 
-    const [user, documents, matchResults, aiCredentials, fileSizes] =
-      await this.prisma.$transaction(
-        [
-          this.prisma.user.findFirst({ where: { id: userId } }),
-          this.prisma.document.findMany({
-            where: { userId },
-            orderBy: { createdAt: "asc" },
-            select: {
-              id: true,
-              kind: true,
-              title: true,
-              sourceFormat: true,
-              rawText: true,
-              fileMime: true,
-              isSaved: true,
-              createdAt: true
-            }
-          }),
-          this.prisma.matchResult.findMany({
-            where: { userId },
-            orderBy: { createdAt: "asc" }
-          }),
-          // `encryptedKey`/`keyIv`/`keyTag` are deliberately left out of this
-          // `select` — the export never reads them, so there is no reason to
-          // pull ciphertext out of the DB and pass it across the module
-          // boundary just to have it sit unused on `aiCredentials`.
-          this.prisma.aiCredential.findMany({
-            where: { userId },
-            orderBy: { createdAt: "asc" },
-            select: {
-              id: true,
-              provider: true,
-              label: true,
-              keyLast4: true,
-              chatModel: true,
-              embedModel: true,
-              lastTestStatus: true,
-              lastTestedAt: true,
-              lastUsedAt: true,
-              createdAt: true
-            }
-          }),
-          this.prisma.$queryRaw<Array<{ id: string; size: number | null }>>`
+    const [
+      user,
+      documents,
+      matchResults,
+      matchRuns,
+      coverLetters,
+      aiCredentials,
+      fileSizes
+    ] = await this.prisma.$transaction(
+      [
+        this.prisma.user.findFirst({ where: { id: userId } }),
+        this.prisma.document.findMany({
+          where: { userId },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            kind: true,
+            title: true,
+            sourceFormat: true,
+            rawText: true,
+            fileMime: true,
+            isSaved: true,
+            createdAt: true,
+            parentId: true
+          }
+        }),
+        this.prisma.matchResult.findMany({
+          where: { userId },
+          orderBy: { createdAt: "asc" }
+        }),
+        this.prisma.matchRun.findMany({
+          where: { userId },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            cvDocumentId: true,
+            jdDocumentId: true,
+            createdAt: true
+          }
+        }),
+        this.prisma.coverLetter.findMany({
+          where: { userId },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            matchResultId: true,
+            tone: true,
+            length: true,
+            language: true,
+            content: true,
+            omittedRequirements: true,
+            status: true,
+            errorCode: true,
+            edited: true,
+            credentialId: true,
+            provider: true,
+            chatModel: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }),
+        // `encryptedKey`/`keyIv`/`keyTag` are deliberately left out of this
+        // `select` — the export never reads them, so there is no reason to
+        // pull ciphertext out of the DB and pass it across the module
+        // boundary just to have it sit unused on `aiCredentials`.
+        this.prisma.aiCredential.findMany({
+          where: { userId },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            provider: true,
+            label: true,
+            keyLast4: true,
+            chatModel: true,
+            embedModel: true,
+            lastTestStatus: true,
+            lastTestedAt: true,
+            lastUsedAt: true,
+            createdAt: true
+          }
+        }),
+        this.prisma.$queryRaw<Array<{ id: string; size: number | null }>>`
           SELECT "id", octet_length("fileData") AS "size"
           FROM "Document"
           WHERE "userId" = ${userId}
         `
-        ],
-        { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
-      );
+      ],
+      { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead }
+    );
 
     if (!user) {
       throw new NotFoundException(
@@ -119,6 +158,8 @@ export class MeService {
         hasFile: documentIdsWithFiles.has(doc.id)
       })),
       matchResults,
+      matchRuns,
+      coverLetters,
       aiCredentials,
       exportedAt
     });

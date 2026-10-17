@@ -121,8 +121,6 @@ test.describe("lỗi từng phần", () => {
     "lỗi HTTP của một card hiện message của server",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-046"] },
     async ({ compareWizardPage: wizard, mpcCredentials, mpcMatchStub }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-02
-      test.fail();
       const gone = await mpcCredentials.add("openai", "gone");
       await mpcMatchStub.script({
         [gone.id]: { status: 404, body: { statusCode: 404, message: serverMessage("aiCredentials.errors.notFound") } },

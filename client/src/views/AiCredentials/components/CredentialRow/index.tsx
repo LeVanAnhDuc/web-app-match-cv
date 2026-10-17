@@ -5,6 +5,9 @@ import TestStatusTag from "#/components/TestStatusTag";
 import type { AiCredentialDto, ProviderInfoDto } from "#/types/AiCredentials";
 
 const MASK = "••••";
+// antd's small Button is 24px tall; below `md` the row actions are touch
+// targets and need the 44px NFR-A11Y-03 asks for (MASTER.md §4).
+const ACTION_CLASS = "!h-11 md:!h-6";
 
 const CredentialRow = ({
   credential,
@@ -54,13 +57,19 @@ const CredentialRow = ({
       <div className="flex shrink-0 items-center gap-2">
         <Button
           size="small"
+          className={ACTION_CLASS}
           icon={<PlugZap size={14} />}
           loading={testing}
           onClick={onTest}
         >
           {t("credentials.actions.test")}
         </Button>
-        <Button size="small" icon={<Pencil size={14} />} onClick={onEdit}>
+        <Button
+          size="small"
+          className={ACTION_CLASS}
+          icon={<Pencil size={14} />}
+          onClick={onEdit}
+        >
           {t("credentials.actions.edit")}
         </Button>
         <Popconfirm
@@ -73,6 +82,7 @@ const CredentialRow = ({
         >
           <Button
             size="small"
+            className={ACTION_CLASS}
             danger
             icon={<Trash2 size={14} />}
             loading={deleting}

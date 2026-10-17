@@ -247,7 +247,7 @@ không phụ thuộc user e2e dùng chung. UI spec chạy ở desktop / tablet /
 - **Tiền điều kiện:** user có 2 kết quả `succeeded` (80, 70) và 1 kết quả `failed` (0, mới nhất)
 - **Bước:** mở `/`
 - **Mong đợi:** Total matches `2`, Highest `80%`, avg `75`; bảng chỉ 2 dòng, không có dòng `0%`
-- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts` (BUG-HOMEDASHBOARDLIBRARY-01)
+- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts`
 
 ### TC-HOMEDASHBOARDLIBRARY-035 — tải trang chủ chỉ gọi các endpoint đọc, không gọi AI
 
@@ -266,7 +266,7 @@ không phụ thuộc user e2e dùng chung. UI spec chạy ở desktop / tablet /
 - **Tiền điều kiện:** user có 1 kết quả; `GET /match` trả 500 (stub, Q2)
 - **Bước:** mở `/`
 - **Mong đợi:** trạng thái lỗi `role="alert"` trên trang; không hiện `home.recent.empty`; Total matches không hiện `0`
-- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts` (BUG-HOMEDASHBOARDLIBRARY-02)
+- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts`
 
 ### TC-HOMEDASHBOARDLIBRARY-037 — GET /documents lỗi thì thẻ thống kê báo lỗi thay vì số 0
 
@@ -275,7 +275,7 @@ không phụ thuộc user e2e dùng chung. UI spec chạy ở desktop / tablet /
 - **Tiền điều kiện:** user có 2 CV đã lưu; `GET /documents` trả 500 (stub, Q2)
 - **Bước:** mở `/`
 - **Mong đợi:** trạng thái lỗi `role="alert"` trên trang; thẻ CV không hiện `0`
-- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts` (BUG-HOMEDASHBOARDLIBRARY-02)
+- **Automated:** `tests/e2e/home-dashboard-library/dashboard.e2e.ts`
 
 ## E2E — bảng kết quả gần đây
 

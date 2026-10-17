@@ -51,12 +51,12 @@ client (TanStack Start)                     server (NestJS)                Postg
 
 | Method | Path | Behavior |
 |---|---|---|
-| `GET` | `/documents/:id/file` | Load doc theo `id` **+ userId**; 404 nếu không thuộc user. Nếu `fileData == null` (text) → 404 `documents.errors.noOriginalFile`. Set `Content-Type = fileMime`. Query `?download=1` → `Content-Disposition: attachment; filename="<title>.<ext>"`; mặc định `inline`. Trả buffer. |
+| `GET` | `/documents/:id/file` | Load doc theo `id` **+ userId**; 404 nếu không thuộc user. Nếu `fileData == null` (text) → 404 `documents.errors.noOriginalFile`. Set `Content-Type = fileMime`. Query `?download=1` → `Content-Disposition: attachment; filename="<title>.<ext>"`; mặc định `inline`. Title có ký tự ngoài ASCII → thêm `filename*=UTF-8''<title percent-encode>.<ext>` (RFC 5987) cạnh `filename` ASCII (REQ-DOCUMENTS-38). Trả buffer. |
 | `PATCH` | `/documents/:id` | Body `{ title }` (`@IsString @MaxLength(200)`, trim, non-empty). Load per-user (404). Update `title`. Trả `DocumentDto`. |
-| `DELETE` | `/documents/:id` | Load per-user (404). **Nếu tồn tại `MatchResult` tham chiếu (`cvDocumentId == id \|\| jdDocumentId == id`) → 409** `documents.errors.inUseByMatch`. Else xóa → 204. (Giữ lịch sử match nguyên vẹn, không cascade.) |
+| `DELETE` | `/documents/:id` | Load per-user (404). **Nếu tồn tại `MatchResult` tham chiếu (`cvDocumentId == id \|\| jdDocumentId == id`) → 409** `documents.errors.inUseByMatch`. Else xóa → 204, trong cùng transaction xoá kèm các `MatchRun` tham chiếu tài liệu mà **chưa có kết quả** (FK `ON DELETE NO ACTION`; run rỗng không mang lịch sử — REQ-DOCUMENTS-34). (Giữ lịch sử match nguyên vẹn, không cascade.) |
 | `GET` | `/match` | List `MatchResult` của user, newest-first. Trả `MatchSummaryDto[]`: `{ id, cvTitle, jdTitle, overallScore, createdAt }` (join lấy title CV/JD). |
 
-Không có endpoint `/stats` riêng — Home tính counts/avg/max client-side từ `GET /documents?kind=CV&saved=true`, `?kind=JD`, `GET /match`.
+Không có endpoint `/stats` riêng — Home tính counts/avg/max client-side từ `GET /documents?kind=CV&saved=true`, `?kind=JD`, `GET /match` (lịch sử chỉ gồm `MatchResult` `status=succeeded`; kết quả provider lỗi vẫn đọc được qua `GET /match/:id` và `GET /match/runs/:id`).
 
 ### 3.3 API Contract (DTO) — CHỐT
 - `MatchSummaryDto`: `{ id: string, cvTitle: string, jdTitle: string, overallScore: number, createdAt: string }`.
@@ -80,7 +80,7 @@ Header Content: tên trang + user stub (placeholder). **Không có toggle EN/VI*
 
 ### 4.2 Home `/` (chỉ thống kê + CTA)
 1. **Hero CTA** (nổi bật nhất): card lớn primary → nút "Bắt đầu Match" → `/wizard`.
-2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query. Lượt match / cao nhất / TB **chỉ tính `MatchResult` `status=succeeded`**, đếm theo từng `MatchResult` (chạy 3 provider = 3); kết quả `failed` (`overallScore=0`) không được kéo TB xuống (chốt 2026-10-14 khi viết automation test — code hiện còn tính cả `failed`, ghi defect ở `automation-testing/src/defects/home-dashboard-library.md`).
+2. **4 stat cards** (antd `Statistic`): CV đã lưu · JD đã lưu · Lượt match · Điểm cao nhất (%) + dòng phụ "TB: X%". Tính client-side từ 3 query. Lượt match / cao nhất / TB **chỉ tính `MatchResult` `status=succeeded`**, đếm theo từng `MatchResult` (chạy 3 provider = 3); kết quả `failed` (`overallScore=0`) không được kéo TB xuống (chốt 2026-10-14 khi viết automation test; từ 2026-10-15 `GET /match` chỉ trả kết quả `succeeded` nên bảng recent cũng không có dòng `failed` — BUG-HOMEDASHBOARDLIBRARY-01).
 3. **Lịch sử match gần đây**: 5 dòng `succeeded` mới nhất (chốt 2026-10-14, cùng defect trên) (cvTitle, jdTitle, `%` tag màu theo band, ngày format theo locale). Click → mở lại kết quả (step 4 với `matchId`). "Xem tất cả" khi >5.
 4. **Empty states**: chưa match → empty-state + nút "Match ngay"; stat = 0 vẫn hiện số 0.
 
@@ -89,7 +89,7 @@ Component chung `DocumentLibrary` prop `kind`.
 - List (antd `List`/`Table` responsive): title · badge định dạng (pdf/docx/text label người-đọc) · ngày (locale) · actions Preview / Rename / Download / Delete.
 - Data: `useSavedDocuments(kind)` (`GET /documents?kind&saved=true`).
 - **Preview** (`Modal`/`Drawer` lớn) — render **client-side, không iframe**:
-  - `pdf` → **`react-pdf`** (pdf.js, render canvas; `enableScripting` off — không chạy JS trong PDF). Fetch ArrayBuffer từ `GET /documents/:id/file` (same-origin, credentials) → `<Document file={{ data }}>`.
+  - `pdf` → **`react-pdf`** (pdf.js, render canvas; `enableScripting` off — không chạy JS trong PDF). Fetch ArrayBuffer từ `GET /documents/:id/file` (same-origin, credentials) → `<Document file={{ data }}>`, một `<Page>` cho **mỗi** trang (`numPages` từ `onLoadSuccess`; REQ-DOCUMENTS-35).
   - `docx` → **`docx-preview`** `renderAsync(blob, container)` (parse cục bộ qua jszip → DOM).
   - `text` → render `rawText` format sạch.
   - **SSR**: cả 2 lib chỉ chạy browser → **client-only component** (dynamic import / guard `typeof window`), không render server.

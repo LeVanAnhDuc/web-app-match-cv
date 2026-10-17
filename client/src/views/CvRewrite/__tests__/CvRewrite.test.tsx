@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
+import { ConfigProvider } from "antd";
 import "#/i18n/config";
 import { useAiCredentials, useProviders } from "#/hooks/useAiCredentials";
 import { useAcceptCvRewrite, useGenerateCvRewrite } from "#/hooks/useCvRewrite";
@@ -100,8 +101,14 @@ function asQuery<T>(data: T | undefined, over = {}) {
 // Rendered without a RouterProvider, like the wizard step tests: navigation
 // only happens after a successful save, and mounting a router here would make
 // every assertion race the router's own async transition.
-function renderPage() {
-  return render(<CvRewrite matchResultId={MATCH_ID} />);
+// The dialog only reports itself open (afterOpenChange) once its open motion
+// finishes, which jsdom never animates — focus tests switch motion off.
+function renderPage({ motion = true } = {}) {
+  return render(
+    <ConfigProvider theme={{ token: { motion } }}>
+      <CvRewrite matchResultId={MATCH_ID} />
+    </ConfigProvider>
+  );
 }
 
 function mockGenerate(result: CvRewriteProposalDto | Error) {
@@ -210,6 +217,88 @@ describe("CvRewrite", () => {
         }
       ]
     });
+  });
+
+  it("gives each change checkbox its own accessible name", async () => {
+    mockGenerate(proposal);
+
+    renderPage();
+    await generate();
+
+    // Both changes share sectionHint "Experience"; a screen reader user
+    // still has to be able to tell the two checkboxes apart.
+    const names = screen
+      .getAllByRole("checkbox")
+      .slice(1)
+      .map((box) => box.getAttribute("aria-label"));
+    expect(names).toHaveLength(2);
+    expect(new Set(names).size).toBe(2);
+    expect(
+      screen.getByRole("checkbox", { name: "Experience — change 1 of 2" })
+    ).toBeInTheDocument();
+  });
+
+  it("focuses the name field when the save dialog opens", async () => {
+    mockGenerate(proposal);
+
+    renderPage({ motion: false });
+    await generate();
+
+    fireEvent.click(screen.getAllByRole("checkbox")[1]);
+    fireEvent.click(screen.getByRole("button", { name: /Save as new CV/ }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Document name")).toHaveFocus()
+    );
+  });
+
+  it("rejects a whitespace-only name without calling the server", async () => {
+    mockGenerate(proposal);
+    const accept = mockAccept();
+
+    renderPage();
+    await generate();
+
+    fireEvent.click(screen.getAllByRole("checkbox")[1]);
+    fireEvent.click(screen.getByRole("button", { name: /Save as new CV/ }));
+    fireEvent.change(screen.getByLabelText("Document name"), {
+      target: { value: "   " }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Please enter a name")).toBeInTheDocument();
+    expect(accept).not.toHaveBeenCalled();
+  });
+
+  it("sends a single save when Save is pressed twice in a row", async () => {
+    mockGenerate(proposal);
+    // A slow server: the save stays in flight, and the mocked isPending stays
+    // false — the window before React re-renders the button as loading.
+    const accept = vi.fn(
+      (_input: AcceptCvRewriteInput) => new Promise<DocumentDto>(() => {})
+    );
+    vi.mocked(useAcceptCvRewrite).mockReturnValue({
+      mutateAsync: accept,
+      isPending: false
+    } as unknown as UseMutationResult<
+      DocumentDto,
+      Error,
+      AcceptCvRewriteInput
+    >);
+
+    renderPage();
+    await generate();
+
+    fireEvent.click(screen.getAllByRole("checkbox")[0]); // select all
+    fireEvent.click(screen.getByRole("button", { name: /Save as new CV/ }));
+    const save = screen.getByRole("button", { name: "Save" });
+    fireEvent.click(save);
+    await waitFor(() => expect(accept).toHaveBeenCalledTimes(1));
+    fireEvent.click(save);
+
+    // Give the second submission time to get through validation.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(accept).toHaveBeenCalledTimes(1);
   });
 
   it("clears previous approvals when the suggestions are regenerated", async () => {

@@ -145,8 +145,6 @@ test.describe("cv rewrite — page and generation", () => {
     "vùng chờ khi đang sinh được đánh dấu aria-busy trong vùng aria-live",
     { tag: ["@TC-CVREWRITEASSISTANT-043", "@creates-data"] },
     async ({ rewriteData, rewritePage, network }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-04
-      test.fail();
       const seed = await rewriteData.match();
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), { ...GENERATE, delayMs: 3_000 });
       await rewritePage.open(seed.matchId);

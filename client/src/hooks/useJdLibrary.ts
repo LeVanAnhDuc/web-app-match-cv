@@ -10,6 +10,7 @@ import {
 } from "#/hooks/useDocuments";
 import { ApiError } from "#/libs/api";
 import type { DocumentSummaryDto } from "#/types/Documents";
+import { lineageErrorKey } from "#/utils";
 
 /**
  * Page hook for the saved-JD library (`/jd`): owns the saved-JD query, the
@@ -89,11 +90,7 @@ export function useJdLibrary() {
       setLineageTarget(null);
       void messageApi.success(t("library.lineage.success"));
     } catch (error) {
-      setLineageError(
-        error instanceof ApiError && error.status === 400
-          ? t("library.lineage.rejected")
-          : t("library.lineage.failed")
-      );
+      setLineageError(t(lineageErrorKey(error)));
     } finally {
       lineageInFlight.current = false;
     }
@@ -109,10 +106,12 @@ export function useJdLibrary() {
     docs: savedQuery.data ?? [],
     isLoading: savedQuery.isLoading,
     isError: savedQuery.isError,
+    retryLoad: () => void savedQuery.refetch(),
     deletingId,
     previewId,
     previewDoc: previewQuery.data,
     previewLoading: previewQuery.isLoading,
+    previewError: previewQuery.isError,
     renameTarget,
     renamePending: renameMutation.isPending,
     lineageTarget,

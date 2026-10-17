@@ -57,8 +57,6 @@ test.describe("step 3 — review", () => {
     "tài liệu không còn thì bước 3 báo lỗi có lối thoát thay vì tải mãi",
     { tag: ["@TC-CVJDMATCHINGWIZARD-046"] },
     async ({ wizardPage }) => {
-      // BUG: defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-06
-      test.fail();
       await wizardPage.goto();
       const jdId = await wizardPage.submitJd(uniqueText(JD_TEXT));
       // The JD disappears between step 2 and step 3 (e.g. an expired guest document): GET /documents/:id → 404.
@@ -79,7 +77,7 @@ test.describe("step 3 — review", () => {
       await wizardPage.goto();
       await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
 
-      await expect(wizardPage.privacyNotice(t("credentials.systemKey"))).toBeVisible();
+      await expect(wizardPage.privacyNotice(t("credentials.runWith.privacySystemEntry"))).toBeVisible();
     }
   );
 

@@ -180,8 +180,6 @@ test.describe("ai-credentials — create and validate", () => {
     "form chặn tên chỉ gồm khoảng trắng",
     { tag: ["@TC-AICREDENTIALS-071"] },
     async ({ aiCredUser, aiCredentialsPage, network }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-02
-      test.fail();
       void aiCredUser;
       await network.stubJson(TEST_ENDPOINT, testResult("ok"), { method: "POST" });
       const creates = network.recordRequests(COLLECTION_ENDPOINT, { method: "POST" });
@@ -250,8 +248,6 @@ test.describe("ai-credentials — create and validate", () => {
     "form báo model quá 120 ký tự bằng đúng giới hạn 120",
     { tag: ["@TC-AICREDENTIALS-077"] },
     async ({ aiCredUser, aiCredentialsPage, network }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-03
-      test.fail();
       void aiCredUser;
       const creates = network.recordRequests(COLLECTION_ENDPOINT, { method: "POST" });
       await aiCredentialsPage.open();
@@ -312,8 +308,6 @@ test.describe("ai-credentials — create and validate", () => {
     "bấm Save hai lần nhanh chỉ tạo một credential",
     { tag: ["@TC-AICREDENTIALS-085"] },
     async ({ aiCredUser, aiCredentialsPage, network }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-10
-      test.fail();
       await network.stubJson(TEST_ENDPOINT, testResult("ok"), { method: "POST", delayMs: 1_000 });
       const creates = network.recordRequests(COLLECTION_ENDPOINT, { method: "POST" });
       const label = uniqueLabel("double");

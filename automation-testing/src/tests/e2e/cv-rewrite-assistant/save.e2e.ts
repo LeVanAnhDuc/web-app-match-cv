@@ -80,8 +80,6 @@ test.describe("cv rewrite — save as a new CV", () => {
     "tên chỉ có khoảng trắng bị chặn ở client",
     { tag: ["@TC-CVREWRITEASSISTANT-058", "@creates-data"] },
     async ({ rewriteData, rewritePage, network }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-01
-      test.fail();
       const seed = await rewriteData.match();
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), GENERATE);
       const accepts = network.recordRequests(REWRITE_ROUTES.accept, { method: "POST" });
@@ -147,8 +145,6 @@ test.describe("cv rewrite — save as a new CV", () => {
     "bấm Save hai lần chỉ tạo một CV",
     { tag: ["@TC-CVREWRITEASSISTANT-061", "@creates-data"] },
     async ({ rewriteData, rewritePage, network, page }) => {
-      // BUG: defects/cv-rewrite-assistant.md#bug-cvrewriteassistant-05
-      test.fail();
       const seed = await rewriteData.match();
       await network.stubJson(REWRITE_ROUTES.generate, proposal(seed), GENERATE);
       const accepts = network.recordRequests(REWRITE_ROUTES.accept, { method: "POST" });

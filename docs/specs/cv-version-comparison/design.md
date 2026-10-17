@@ -229,12 +229,13 @@ src/app.module.ts                      SỬA — đăng ký ComparisonModule
 Luật:
 
 - Document phải thuộc user (`findFirst({ id, userId })`) → **404** `comparison.errors.documentNotFound`.
-- `kind !== CV` → **400** `comparison.errors.notCv`. (JD không có khái niệm "bản cải tiến" trong sản phẩm này.)
-- `parentId === null` → **400** `comparison.errors.noParent` — *"This CV is not marked as a new version of another CV."* FE bắt và gợi ý khai báo lineage.
+- `kind !== CV` → **400** `comparison.errors.notCv`, `code: "NOT_CV"`. (JD không có khái niệm "bản cải tiến" trong sản phẩm này.)
+- `parentId === null` → **400** `comparison.errors.noParent`, `code: "NO_PARENT"` — *"This CV is not marked as a new version of another CV."* FE bắt và gợi ý khai báo lineage.
 - Parent bị xoá (`SET NULL` của ADR #15 nghĩa là `parentId` chỉ về `null`, không dangling) → rơi vào đúng nhánh trên. Parent tồn tại nhưng của user khác là bất khả (mọi document tạo ra đều gắn `userId` của người tạo), vẫn check `userId` khi nạp cho chắc.
 - `jdOptions` = mọi JD mà **ít nhất một** trong hai bản có `MatchResult` `succeeded`, sắp theo lần match mới nhất giảm dần. **Không** filter theo `isSaved` — CV/JD transient của wizard vẫn là dữ liệu thật.
 - `jdDocumentId` không truyền → chọn mặc định: JD đầu tiên **có đủ cả hai bên**; không có thì JD đầu danh sách; danh sách rỗng → `jdDocumentId = null` + mọi field kết quả `null`.
-- `jdDocumentId` truyền nhưng không nằm trong `jdOptions` → **400** `comparison.errors.jdNotComparable` (thay vì im lặng đổi sang JD khác — user sẽ tưởng mình đang xem JD mình chọn).
+- `jdDocumentId` truyền nhưng không nằm trong `jdOptions` → **400** `comparison.errors.jdNotComparable`, `code: "JD_NOT_COMPARABLE"` (thay vì im lặng đổi sang JD khác — user sẽ tưởng mình đang xem JD mình chọn).
+- Mỗi 400 trả body `{ code, message }` (cùng dạng `SIGN_IN_REQUIRED` của auth): `message` đã dịch để đọc, `code` để FE chọn câu hiển thị — FE **không** đoán lý do theo việc URL có `?jd` hay không.
 - Endpoint **không** gọi AI → giữ throttle global, không cần `@Throttle` riêng.
 
 `CvComparisonDto`:
@@ -270,10 +271,11 @@ Luật `DocumentsService.setParent`:
 
 - Document phải thuộc user → **404**.
 - `parentId === null` → gỡ liên kết (hợp lệ, đây là cách sửa khi khai nhầm).
-- `parentId === id` → **400** `documents.errors.lineageSelf`.
-- Parent không tồn tại / không thuộc user → **400** `documents.errors.lineageParentNotFound` (400 chứ không 404: `:id` trong path tồn tại, cái sai nằm ở **body**).
-- `parent.kind !== doc.kind` → **400** `documents.errors.lineageKindMismatch`.
-- Đi ngược chuỗi từ `parent`; gặp lại `id` → **400** `documents.errors.lineageCycle`. Vòng lặp chặn cứng ở `MAX_LINEAGE_DEPTH = 20` để một dữ liệu hỏng không treo được request.
+- `parentId === id` → **400** `documents.errors.lineageSelf`, `code: "LINEAGE_SELF"`.
+- Parent không tồn tại / không thuộc user → **400** `documents.errors.lineageParentNotFound`, `code: "LINEAGE_PARENT_NOT_FOUND"` (400 chứ không 404: `:id` trong path tồn tại, cái sai nằm ở **body**).
+- `parent.kind !== doc.kind` → **400** `documents.errors.lineageKindMismatch`, `code: "LINEAGE_KIND_MISMATCH"`.
+- Đi ngược chuỗi từ `parent`; gặp lại `id` → **400** `documents.errors.lineageCycle`, `code: "LINEAGE_CYCLE"`. Vòng lặp chặn cứng ở `MAX_LINEAGE_DEPTH = 20` để một dữ liệu hỏng không treo được request; chuỗi tổ tiên dài hơn mức đó → **400** `documents.errors.lineageTooDeep`, `code: "LINEAGE_TOO_DEEP"` (fail-closed).
+- Mọi 400 trả `{ code, message }`; modal lineage chọn câu theo `code`.
 
 ### 4.4 Số phiên bản — đóng open question §12
 
@@ -313,14 +315,14 @@ src/locales/{en,vi}/translation.json           SỬA
 ### 5.1 Luồng trang `/compare/$documentId?jd=<uuid>`
 
 1. `useComparison(documentId, jd)` → `GET /comparisons/:id`.
-2. Lỗi 400 `noParent` → `Alert` nói rõ *"CV này chưa được khai là bản mới của CV nào"* + link về `/cv`. Lỗi 404 → thông báo riêng. Lỗi khác → error UI, không trang trắng.
+2. Lỗi 400 chọn câu theo `code` của server, **không** theo việc URL có `?jd`: `NO_PARENT` → `compare.err.noParent` *"CV này chưa được khai là bản mới của CV nào"*; `NOT_CV` → `compare.err.notCv`; `JD_NOT_COMPARABLE` → `compare.err.jdNotComparable`. Mọi trường hợp có link về `/cv`. Lỗi 404 → thông báo riêng. Lỗi khác (kể cả 400 không có `code` đã biết) → `compare.err.failed`, không trang trắng.
 3. Header: **`Version 1 → Version 2`** kèm tên hai bản (`<tên bản cũ> → <tên bản mới>`), **không** có ngày tạo (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test — bản gốc đòi ngày tạo, code không hiện). Đây là câu trả lời cho *"tôi đang so cái gì với cái gì"*, và nó không thể suy được từ hai cái tên do user tự đặt.
 4. `Select` chọn JD. Đổi lựa chọn → `navigate({ search: { jd } })` → **URL là nguồn chân lý**, refresh và share link giữ nguyên JD đang xem (row 7 của matrix).
 5. `delta !== null` → `ScoreDelta`: 3 khối `Overall / Semantic / Keyword`, mỗi khối hiện **điểm mới** (`%`) và **delta có dấu** — không hiện điểm cũ: `+14` xanh + icon `TrendingUp` / `-6` (gạch nối ASCII, không phải U+2212) đỏ + icon `TrendingDown` / `0` xám + icon `Minus` (gạch ngang, không phải mũi tên), **không** dấu `+`; mỗi delta có nhãn `sr-only` cho screen reader (cập nhật 2026-10-14: khớp code, quyết định khi viết automation test — bản gốc ghi "điểm cũ → điểm mới" và `−6` U+2212).
 6. `delta === null` → `Alert` + nút **"Match this version"** (§2). Không render khối số nào.
 7. `gapDiff` → 3 `GapDiffList`: **Closed** (green, `CircleCheck`), **Still open** (amber, `TriangleAlert`), **New** (red, `CirclePlus`). `persisted` hiện **cả hai câu**: câu cũ mờ hơn, câu mới đậm. Nhóm rỗng vẫn render với empty text (`"None"`) — rỗng là thông tin, không phải chỗ trống.
 8. Dòng caveat §3.5 #3 nằm dưới 3 nhóm.
-9. `sameEmbedModel === false` hoặc `sameChatModel === false` → `Alert type="warning"` nêu tên hai model.
+9. `sameEmbedModel === false` hoặc `sameChatModel === false` → `Alert type="warning"` nêu tên **các model thực sự khác nhau** của mỗi bên: chỉ khác chat → hai chat model; chỉ khác embedding → hai embedding model; khác cả hai → `chat + embedding` mỗi bên.
 
 ### 5.2 Điểm vào
 
@@ -333,6 +335,10 @@ src/locales/{en,vi}/translation.json           SỬA
 `Select` các document **cùng kind, khác chính nó** lấy từ `useSavedDocuments(kind)` đang có; `allowClear` để gỡ liên kết. Confirm → `PATCH /documents/:id/parent` → invalidate `savedDocumentsQueryKey(kind)`. Nút confirm `disabled` khi không đổi gì, và `loading` trong lúc bay (chặn double-submit — row 11).
 
 Dùng `mutateAsync` + `try/catch`, **không** dùng callback `onSuccess`/`onError` của `mutate` — đã quan sát được là chúng không chạy trong codebase này (cùng lý do `RewriteReview` làm vậy).
+
+Bị từ chối (400) → `Alert` trong modal chọn câu theo `code` của server (`utils/lineage.ts`): `LINEAGE_SELF` / `LINEAGE_CYCLE` → `library.lineage.rejected`; `LINEAGE_TOO_DEEP` → `library.lineage.tooDeep`; `LINEAGE_PARENT_NOT_FOUND` → `library.lineage.parentNotFound`; `LINEAGE_KIND_MISMATCH` → `library.lineage.kindMismatch`; còn lại → `library.lineage.failed`.
+
+Focus: mỗi lần mở, modal đưa focus vào `Select` "Previous version". Mục menu "Mark as a new version of…" chuyển focus về nút **Actions** của hàng trước khi mở, nên khi đóng (`Esc` / Cancel / Save) antd trả focus về đúng nút đó.
 
 ## 6. Hợp đồng BE DTO ↔ FE type
 

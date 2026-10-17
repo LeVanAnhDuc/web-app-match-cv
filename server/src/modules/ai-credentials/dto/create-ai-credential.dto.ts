@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { AiProvider } from "@prisma/client";
+import { Transform } from "class-transformer";
 import { IsEnum, IsOptional, IsString, Length, Matches } from "class-validator";
 
 // A key pasted from a provider console never contains whitespace; rejecting it
@@ -10,6 +11,13 @@ export const API_KEY_MAX_LENGTH = 400;
 export const LABEL_MAX_LENGTH = 60;
 export const MODEL_MAX_LENGTH = 120;
 
+// The label is stored trimmed, so the 1–60 rule has to see the trimmed value:
+// otherwise "   " passes as a 3-character label and is saved as "", and a
+// 60-character label with padding is rejected although it would fit.
+export function trimIfString({ value }: { value: unknown }): unknown {
+  return typeof value === "string" ? value.trim() : value;
+}
+
 export class CreateAiCredentialDto {
   @ApiProperty({ enum: AiProvider })
   @IsEnum(AiProvider)
@@ -19,6 +27,7 @@ export class CreateAiCredentialDto {
     description: "User-chosen name. Must be unique among your credentials.",
     example: "My OpenRouter key"
   })
+  @Transform(trimIfString)
   @IsString()
   @Length(1, LABEL_MAX_LENGTH)
   label: string;

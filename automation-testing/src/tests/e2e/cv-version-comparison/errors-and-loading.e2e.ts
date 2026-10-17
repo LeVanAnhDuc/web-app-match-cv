@@ -87,8 +87,6 @@ test.describe("cv-version-comparison — errors and loading", () => {
     "JD được ghim trên CV chưa có bản trước vẫn báo là chưa có bản trước",
     { tag: ["@TC-CVVERSIONCOMPARISON-058"] },
     async ({ versionComparePage, cvcSeed }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-03
-      test.fail();
       const root = await cvcSeed.cv();
       const jd = await cvcSeed.jd();
       await cvcSeed.match(root, jd);
@@ -103,8 +101,6 @@ test.describe("cv-version-comparison — errors and loading", () => {
     "mở so sánh bằng id của JD không bị báo nhầm là chưa có bản trước",
     { tag: ["@TC-CVVERSIONCOMPARISON-059"] },
     async ({ versionComparePage, cvcSeed }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-03
-      test.fail();
       const jd = await cvcSeed.jd();
 
       await versionComparePage.goto(jd);

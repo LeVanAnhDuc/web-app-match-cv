@@ -15,10 +15,12 @@ import UploadPasteTabs from "../UploadPasteTabs";
 
 const DocumentInputStep = ({
   kind,
+  currentDocId = null,
   onNext,
   onBack
 }: {
   kind: DocumentKind;
+  currentDocId?: string | null;
   onNext: (docId: string) => void;
   onBack?: () => void;
 }) => {
@@ -41,7 +43,10 @@ const DocumentInputStep = ({
 
   const hasNewInput =
     mode === "upload" ? file !== null : pastedText.trim().length > 0;
-  const canSubmit = selectedSavedId !== null || hasNewInput;
+  // Back remounts this step with empty local state; the document already
+  // chosen for it (kept in the wizard store) stays usable until replaced.
+  const canSubmit =
+    selectedSavedId !== null || hasNewInput || currentDocId !== null;
 
   function resetDerived() {
     setSelectedSavedId(null);
@@ -105,6 +110,10 @@ const DocumentInputStep = ({
   async function handleNext() {
     if (selectedSavedId) {
       onNext(selectedSavedId);
+      return;
+    }
+    if (!hasNewInput && currentDocId) {
+      onNext(currentDocId);
       return;
     }
     if (!hasNewInput) {
@@ -209,7 +218,9 @@ const DocumentInputStep = ({
             </h3>
             <SavedDocRadioList
               kind={kind}
-              selectedId={selectedSavedId}
+              selectedId={
+                selectedSavedId ?? (hasNewInput ? null : currentDocId)
+              }
               onSelect={handleSelectSaved}
             />
           </div>

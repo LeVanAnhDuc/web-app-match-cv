@@ -12,6 +12,9 @@
     "lineageParentNotFound": "Không tìm thấy tài liệu bạn chọn làm phiên bản trước.",
     "lineageKindMismatch": "CV chỉ có thể là phiên bản của CV khác, JD của JD khác.",
     "lineageCycle": "Thao tác này sẽ khiến hai tài liệu là phiên bản của nhau.",
-    "lineageTooDeep": "Chuỗi phiên bản này quá dài để nối thêm một cách an toàn."
+    "lineageTooDeep": "Chuỗi phiên bản này quá dài để nối thêm một cách an toàn.",
+    "invalidKind": "Loại tài liệu phải là CV hoặc JD.",
+    "titleTooLong": "Tiêu đề tối đa 200 ký tự.",
+    "textTooLong": "Nội dung dán tối đa 100.000 ký tự."
   }
 }

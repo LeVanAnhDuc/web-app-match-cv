@@ -99,9 +99,11 @@ function comparison(over: Partial<CvComparisonDto> = {}): CvComparisonDto {
   };
 }
 
-async function renderPage() {
+async function renderPage(jdDocumentId?: string) {
   const rootRoute = createRootRoute({
-    component: () => <CvComparison documentId={DOC_ID} />
+    component: () => (
+      <CvComparison documentId={DOC_ID} jdDocumentId={jdDocumentId} />
+    )
   });
   const router = createRouter({
     routeTree: rootRoute,
@@ -193,6 +195,46 @@ describe("CvComparison", () => {
     ).toBeDefined();
   });
 
+  it("names the two embedding models when only the embedding model differs", async () => {
+    const base = comparison().baseResult!;
+    const revision = comparison().revisionResult!;
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(
+        comparison({
+          baseResult: { ...base, embedModel: "openai/text-embedding-3-small" },
+          revisionResult: {
+            ...revision,
+            embedModel: "openai/text-embedding-3-large"
+          },
+          sameEmbedModel: false
+        })
+      )
+    );
+    await renderPage();
+
+    const hint = screen.getByText(/are not strictly comparable/);
+    expect(hint).toHaveTextContent("openai/text-embedding-3-small");
+    expect(hint).toHaveTextContent("openai/text-embedding-3-large");
+  });
+
+  it("names the two chat models when only the chat model differs", async () => {
+    const revision = comparison().revisionResult!;
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(
+        comparison({
+          revisionResult: { ...revision, chatModel: "openai/gpt-4o" },
+          sameChatModel: false
+        })
+      )
+    );
+    await renderPage();
+
+    const hint = screen.getByText(/are not strictly comparable/);
+    expect(hint).toHaveTextContent("openai/gpt-4o-mini");
+    expect(hint).toHaveTextContent("openai/gpt-4o ");
+    expect(hint).not.toHaveTextContent("text-embedding");
+  });
+
   it("reports 'not comparable' instead of drawing a delta arrow when the two runs used different models", async () => {
     vi.mocked(useComparison).mockReturnValue(
       asQuery(comparison({ sameChatModel: false }))
@@ -238,7 +280,7 @@ describe("CvComparison", () => {
     vi.mocked(useComparison).mockReturnValue(
       asQuery(undefined, {
         isError: true,
-        error: new ApiError(400, "no parent")
+        error: new ApiError(400, "no parent", "NO_PARENT")
       })
     );
     await renderPage();
@@ -246,6 +288,49 @@ describe("CvComparison", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       /not marked as a new version/
     );
+  });
+
+  // The reason comes from the server's code, not from whether the URL pinned a JD.
+  it("says 'no previous version' even when the URL pins a job description", async () => {
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(undefined, {
+        isError: true,
+        error: new ApiError(400, "no parent", "NO_PARENT")
+      })
+    );
+    await renderPage(JD_ID);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /not marked as a new version/
+    );
+  });
+
+  it("says the pinned job description is not comparable only when the server says so", async () => {
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(undefined, {
+        isError: true,
+        error: new ApiError(400, "not comparable", "JD_NOT_COMPARABLE")
+      })
+    );
+    await renderPage(JD_ID);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Neither version has been matched against that job description."
+    );
+  });
+
+  it("tells a job description apart from a CV with no previous version", async () => {
+    vi.mocked(useComparison).mockReturnValue(
+      asQuery(undefined, {
+        isError: true,
+        error: new ApiError(400, "not a cv", "NOT_CV")
+      })
+    );
+    await renderPage();
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/Only a CV/);
+    expect(alert).not.toHaveTextContent(/not marked as a new version/);
   });
 
   it("distinguishes a missing CV from a broken request", async () => {

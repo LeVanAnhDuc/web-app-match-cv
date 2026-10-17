@@ -198,6 +198,19 @@ describe("AiCredentialsService", () => {
       expect(data.lastTestedAt).toBeNull();
     });
 
+    it("keeps the test status when the models sent equal the stored ones", async () => {
+      // The edit modal always sends both model fields; blank means "default",
+      // which is what an entity with null overrides already has.
+      const { service, prisma } = makeService();
+      await service.update("cred-1", {
+        label: "Renamed",
+        chatModel: "",
+        embedModel: "  "
+      });
+      const { data } = prisma.aiCredential.update.mock.calls[0][0];
+      expect(data).toEqual({ label: "Renamed" });
+    });
+
     it("keeps the test status when only the label changes", async () => {
       const { service, prisma } = makeService();
       await service.update("cred-1", { label: "Renamed" });

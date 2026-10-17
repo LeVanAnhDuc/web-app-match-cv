@@ -76,8 +76,6 @@ test.describe("ai-credentials — edit, delete, test", () => {
     "chỉ đổi tên thì modal đóng ngay, không kiểm tra lại",
     { tag: ["@TC-AICREDENTIALS-034"] },
     async ({ aiCredUser, aiCredentialsPage, aiCredData, network }) => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-09
-      test.fail();
       const label = uniqueLabel("rename");
       const renamed = uniqueLabel("renamed");
       const created = await aiCredUser.api.aiCredentials.create({ provider: "openrouter", label, apiKey: FAKE_KEY });

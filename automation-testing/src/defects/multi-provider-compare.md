@@ -2,14 +2,19 @@
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-MULTIPROVIDERCOMPARE-01](#bug-multiprovidercompare-01) | Thấp | TC-MULTIPROVIDERCOMPARE-038 | Card đang chạy không có `aria-busy` |
-| [BUG-MULTIPROVIDERCOMPARE-02](#bug-multiprovidercompare-02) | Trung bình | TC-MULTIPROVIDERCOMPARE-046 | Lỗi HTTP của một card luôn hiện "Could not reach the provider." |
-| [BUG-MULTIPROVIDERCOMPARE-03](#bug-multiprovidercompare-03) | Trung bình | TC-MULTIPROVIDERCOMPARE-030 | Khách không được báo tài liệu sẽ gửi tới OpenRouter trước khi chạy |
-| [BUG-MULTIPROVIDERCOMPARE-04](#bug-multiprovidercompare-04) | Thấp | TC-MULTIPROVIDERCOMPARE-028 | Thông báo quyền riêng tư ghi "System key" thay vì nêu OpenRouter |
-| [BUG-MULTIPROVIDERCOMPARE-05](#bug-multiprovidercompare-05) | Thấp | TC-MULTIPROVIDERCOMPARE-024 | Danh sách chọn provider không phải nhóm có tên với trình đọc màn hình |
-| [BUG-MULTIPROVIDERCOMPARE-06](#bug-multiprovidercompare-06) | Trung bình | TC-MULTIPROVIDERCOMPARE-035 | Card ở bước 4 theo thứ tự bấm chọn, không theo thứ tự dòng trong danh sách |
+_(không còn)_
+
+## Đã sửa
+
+Ba lỗi suite cũ bắt được trước khi gom về đây (`docs/specs/multi-provider-compare/e2e.md`, 2026-08-08), đã sửa trong app
+trước lượt này; các case tương ứng đang xanh nên không cần mục BUG riêng:
+
+- Card kẹt vĩnh viễn ở skeleton (`mutate` không gọi callback) — sửa bằng `mutateAsync`; nay phủ bởi TC-MULTIPROVIDERCOMPARE-031, TC-MULTIPROVIDERCOMPARE-037.
+- Không bỏ chọn hết được (effect tự chọn lại mặc định) — sửa bằng seed một lần; nay phủ bởi TC-MULTIPROVIDERCOMPARE-025.
+- `db-cleanup` vỡ vì `MatchRun → Document` RESTRICT — lỗi của bộ test cũ, không phải của app; bộ test mới xoá dữ liệu
+  theo user (cascade) nên không còn áp dụng.
+
+Lượt sửa 2026-10-17 (branch `fix/open-bugs`): BUG-03, BUG-04 đã sửa theo quyết định của user, `test.fail()` đã gỡ khỏi `provider-selection.e2e.ts`.
 
 ### BUG-MULTIPROVIDERCOMPARE-01
 
@@ -20,6 +25,7 @@
 - **Thực tế:** không có thuộc tính `aria-busy`. `MatchResultCard` truyền `aria-busy="true"` cho `SectionCard`, nhưng
   `SectionCard` chỉ lấy các prop đã khai báo và không chuyển phần còn lại xuống `div`, nên thuộc tính bị bỏ
   (`client/src/components/SectionCard/index.tsx`).
+- **Đã sửa:** root cause — `SectionCard` không khai báo `aria-busy` nên bỏ thuộc tính này. Fix — `SectionCard` nhận `aria-busy` và đặt lên `div` gốc của card; sửa chung với BUG-CVJDMATCHINGWIZARD-07 (commit: 1585c8d).
 
 ### BUG-MULTIPROVIDERCOMPARE-02
 
@@ -29,23 +35,7 @@
 - **Mong đợi:** card đó hiện "Credential not found." kèm Try again; "Could not reach the provider." chỉ dành cho lỗi mạng.
 - **Thực tế:** mọi lỗi HTTP (400 / 404 / 429 / 503 / 500) rơi vào `catch` của `fire()` và hiện
   `result.error.unreachable` "Could not reach the provider." (`MatchResultCard`, Q3).
-
-### BUG-MULTIPROVIDERCOMPARE-03
-
-- **TC:** TC-MULTIPROVIDERCOMPARE-030 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-05
-- **Bước tái hiện:** không đăng nhập → wizard, dán JD và CV → bước 3.
-- **Mong đợi:** trước khi bấm Run match, khách thấy "Your CV and JD text will be sent to OpenRouter using the system key."
-  (NFR-DATA-05).
-- **Thực tế:** bước 3 của khách không có thông báo quyền riêng tư nào: `StepReview` chỉ vẽ `RunWithSelector` (nơi có
-  thông báo) khi `isUser`, và câu `credentials.runWith.privacySystem` có sẵn trong locale nhưng không được dùng (Q6).
-
-### BUG-MULTIPROVIDERCOMPARE-04
-
-- **TC:** TC-MULTIPROVIDERCOMPARE-028 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-04
-- **Bước tái hiện:** đăng nhập, chưa có credential nào → wizard → bước 3 (key hệ thống được chọn sẵn).
-- **Mong đợi:** thông báo quyền riêng tư nêu đích danh nhà cung cấp nhận tài liệu: OpenRouter.
-- **Thực tế:** "Your CV and JD text will be sent to: System key." — "System key" không phải tên nhà cung cấp
-  (`RunWithSelector` đẩy `t("credentials.systemKey")` vào danh sách, Q6).
+- **Đã sửa:** root cause — `catch` của `fire()` trong `MatchResultCard` không phân biệt `ApiError` với lỗi mạng nên mọi lỗi thành `result.error.unreachable`. Fix — lỗi HTTP (`ApiError`) hiện message của server, "Could not reach the provider." chỉ khi request không có phản hồi (commit: 35bc2d7).
 
 ### BUG-MULTIPROVIDERCOMPARE-05
 
@@ -54,6 +44,7 @@
 - **Mong đợi:** danh sách checkbox là `role="group"` có tên "Run with" / "Chạy bằng".
 - **Thực tế:** antd `Checkbox.Group` render một `div` không có `role`; `aria-label="Run with"` đặt trên `div` không role
   không được công bố, nên trình đọc màn hình không đọc tên nhóm (Q8).
+- **Đã sửa:** root cause — `Checkbox.Group` render `div` không role nên `aria-label` không được công bố. Fix — bọc nhóm trong `div role="group"` mang nhãn "Run with"; sửa chung với BUG-AICREDENTIALS-05 (commit: 0bebfce).
 
 ### BUG-MULTIPROVIDERCOMPARE-06
 
@@ -65,13 +56,23 @@
   `options`; `RunWithSelector` truyền `Checkbox` con nên `options` rỗng, giá trị giữ thứ tự bấm, và `StepReview` /
   store không sắp lại (`client/src/views/Wizard/components/RunWithSelector/index.tsx`). Tiền đề của Q10 ("antd sắp theo
   thứ tự option") không đúng với cách dùng hiện tại.
+- **Đã sửa:** root cause — `Checkbox.Group` chỉ sắp `onChange` theo prop `options` (rỗng vì dùng `Checkbox` con) nên giá trị giữ thứ tự bấm. Fix — effect đối soát của `RunWithSelector` ghi lại lựa chọn theo thứ tự dòng (credential rồi key hệ thống) (commit: 62128ab).
 
-## Đã sửa
+### BUG-MULTIPROVIDERCOMPARE-03
 
-Ba lỗi suite cũ bắt được trước khi gom về đây (`docs/specs/multi-provider-compare/e2e.md`, 2026-08-08), đã sửa trong app
-trước lượt này; các case tương ứng đang xanh nên không cần mục BUG riêng:
+- **TC:** TC-MULTIPROVIDERCOMPARE-030 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-05
+- **Bước tái hiện:** không đăng nhập → wizard, dán JD và CV → bước 3.
+- **Mong đợi:** trước khi bấm Run match, khách thấy "Your CV and JD text will be sent to OpenRouter using the system key."
+  (NFR-DATA-05).
+- **Thực tế:** bước 3 của khách không có thông báo quyền riêng tư nào: `StepReview` chỉ vẽ `RunWithSelector` (nơi có
+  thông báo) khi `isUser`, và câu `credentials.runWith.privacySystem` có sẵn trong locale nhưng không được dùng (Q6).
+- **Đã sửa:** root cause — `StepReview` cho khách dùng `privacyList` với nhãn `credentials.systemKey` (từ 851bf90), nên câu nêu "System key" chứ không nêu nhà cung cấp; REQ-CVJDMATCHINGWIZARD-26 còn chốt đúng câu đó nên bug treo chờ quyết định. User chốt 2026-10-17 (NFR-DATA-05, Q13 / cv-jd-matching-wizard Q10): khách thấy `credentials.runWith.privacySystem`. Fix — `RunPrivacyNotice` có chế độ `systemOnly` hiện câu `privacySystem`, `StepReview` dùng nó cho khách; REQ-CVJDMATCHINGWIZARD-26 / TC-042 cập nhật theo (commit: f2b407e).
 
-- Card kẹt vĩnh viễn ở skeleton (`mutate` không gọi callback) — sửa bằng `mutateAsync`; nay phủ bởi TC-MULTIPROVIDERCOMPARE-031, TC-MULTIPROVIDERCOMPARE-037.
-- Không bỏ chọn hết được (effect tự chọn lại mặc định) — sửa bằng seed một lần; nay phủ bởi TC-MULTIPROVIDERCOMPARE-025.
-- `db-cleanup` vỡ vì `MatchRun → Document` RESTRICT — lỗi của bộ test cũ, không phải của app; bộ test mới xoá dữ liệu
-  theo user (cascade) nên không còn áp dụng.
+### BUG-MULTIPROVIDERCOMPARE-04
+
+- **TC:** TC-MULTIPROVIDERCOMPARE-028 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-04
+- **Bước tái hiện:** đăng nhập, chưa có credential nào → wizard → bước 3 (key hệ thống được chọn sẵn).
+- **Mong đợi:** thông báo quyền riêng tư nêu đích danh nhà cung cấp nhận tài liệu: OpenRouter.
+- **Thực tế:** "Your CV and JD text will be sent to: System key." — "System key" không phải tên nhà cung cấp
+  (`RunWithSelector` đẩy `t("credentials.systemKey")` vào danh sách, Q6).
+- **Đã sửa:** root cause — `RunWithSelector` đưa nhãn checkbox `credentials.systemKey` vào danh sách nhà cung cấp của `privacyList`. User chốt 2026-10-17 (NFR-DATA-05, Q13): mục key hệ thống trong danh sách đọc "OpenRouter (system key)". Fix — locale mới `credentials.runWith.privacySystemEntry` (en "OpenRouter (system key)", vi "OpenRouter (key hệ thống)") dùng cho mục đó; nhãn checkbox giữ "System key"; TC-CVJDMATCHINGWIZARD-047, TC-AICREDENTIALS-049, TC-MULTIPROVIDERCOMPARE-062 cập nhật theo (commit: f2b407e).

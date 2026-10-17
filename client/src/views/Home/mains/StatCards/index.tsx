@@ -5,6 +5,7 @@ import Readout from "#/components/Readout";
 import SectionCard from "#/components/SectionCard";
 import { useSavedDocuments } from "#/hooks/useDocuments";
 import { useMatchHistory } from "#/hooks/useMatch";
+import LoadErrorAlert from "../../components/LoadErrorAlert";
 
 function StatTile({
   testId,
@@ -18,7 +19,7 @@ function StatTile({
 }: {
   testId: string;
   icon: React.ReactNode;
-  /** null = no data yet (e.g. no matches run) — shown as a dash, not a fake 0. */
+  /** null = no data yet, or it failed to load — shown as a dash, not a fake 0. */
   value: number | null;
   label: string;
   subtext?: string;
@@ -71,6 +72,10 @@ const StatCards = () => {
   const savedJds = useSavedDocuments("JD");
   const history = useMatchHistory();
 
+  const failedDocuments = [savedCvs, savedJds].filter((query) => query.isError);
+  const countOf = (query: { data?: Array<unknown>; isError: boolean }) =>
+    query.isError ? null : (query.data?.length ?? 0);
+
   const scores = history.data?.map((match) => match.overallScore) ?? [];
   const highest = scores.length > 0 ? Math.max(...scores) : null;
   const avg =
@@ -81,39 +86,51 @@ const StatCards = () => {
       : null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatTile
-        testId="home-stat-saved-cvs"
-        icon={<FileUser size={20} />}
-        value={savedCvs.data?.length ?? 0}
-        label={t("home.stat.savedCvs")}
-        loading={savedCvs.isLoading}
-      />
-      <StatTile
-        testId="home-stat-saved-jds"
-        icon={<FileText size={20} />}
-        value={savedJds.data?.length ?? 0}
-        label={t("home.stat.savedJds")}
-        loading={savedJds.isLoading}
-      />
-      <StatTile
-        testId="home-stat-total-matches"
-        icon={<Zap size={20} />}
-        value={history.data?.length ?? 0}
-        label={t("home.stat.totalMatches")}
-        loading={history.isLoading}
-      />
-      <StatTile
-        testId="home-stat-highest"
-        icon={<Award size={20} />}
-        value={highest}
-        label={t("home.stat.highest")}
-        subtext={avg === null ? undefined : t("home.stat.avg", { value: avg })}
-        loading={history.isLoading}
-        scale
-        tone="success"
-      />
-    </div>
+    <>
+      {failedDocuments.length > 0 && (
+        <LoadErrorAlert
+          message={t("home.error.documents")}
+          onRetry={() =>
+            failedDocuments.forEach((query) => void query.refetch())
+          }
+        />
+      )}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          testId="home-stat-saved-cvs"
+          icon={<FileUser size={20} />}
+          value={countOf(savedCvs)}
+          label={t("home.stat.savedCvs")}
+          loading={savedCvs.isLoading}
+        />
+        <StatTile
+          testId="home-stat-saved-jds"
+          icon={<FileText size={20} />}
+          value={countOf(savedJds)}
+          label={t("home.stat.savedJds")}
+          loading={savedJds.isLoading}
+        />
+        <StatTile
+          testId="home-stat-total-matches"
+          icon={<Zap size={20} />}
+          value={countOf(history)}
+          label={t("home.stat.totalMatches")}
+          loading={history.isLoading}
+        />
+        <StatTile
+          testId="home-stat-highest"
+          icon={<Award size={20} />}
+          value={highest}
+          label={t("home.stat.highest")}
+          subtext={
+            avg === null ? undefined : t("home.stat.avg", { value: avg })
+          }
+          loading={history.isLoading}
+          scale
+          tone="success"
+        />
+      </div>
+    </>
   );
 };
 

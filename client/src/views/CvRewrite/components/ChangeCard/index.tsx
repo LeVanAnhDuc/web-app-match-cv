@@ -4,28 +4,39 @@ import type { CvRewriteChange } from "#/types/CvRewrite";
 
 const ChangeCard = ({
   change,
+  position,
+  total,
   checked,
   onToggle
 }: {
   change: CvRewriteChange;
+  position: number;
+  total: number;
   checked: boolean;
   onToggle: (checked: boolean) => void;
 }) => {
   const { t } = useTranslation();
   const isRemoval = change.replacement.trim() === "";
   const label = change.sectionHint ?? t("rewrite.change.untitled");
+  // Several changes often share a section, so the section alone would give
+  // screen readers identical names; the position tells them apart.
+  const accessibleName = t("rewrite.change.accessibleName", {
+    section: label,
+    position,
+    total
+  });
 
   return (
     <li
       role="group"
-      aria-label={label}
+      aria-label={accessibleName}
       className="rounded-xl border border-line bg-surface p-4 md:p-5"
     >
       <div className="flex items-start gap-3">
         <Checkbox
           checked={checked}
           onChange={(event) => onToggle(event.target.checked)}
-          aria-label={label}
+          aria-label={accessibleName}
         />
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">

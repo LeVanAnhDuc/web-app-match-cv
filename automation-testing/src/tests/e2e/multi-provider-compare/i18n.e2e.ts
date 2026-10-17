@@ -24,7 +24,7 @@ test.describe("tiếng Việt", () => {
       await expect(wizard.runWithTitle()).toHaveText(t("credentials.runWith.title", "vi"));
       await expect(wizard.runMatchButton()).toHaveText(t("action.runMatchCount", "vi", { count: 2 }));
       await expect(wizard.privacyNotice()).toHaveText(
-        t("credentials.runWith.privacyList", "vi", { providers: `${geminiLabel}, ${t("credentials.systemKey", "vi")}` })
+        t("credentials.runWith.privacyList", "vi", { providers: `${geminiLabel}, ${t("credentials.runWith.privacySystemEntry", "vi")}` })
       );
       expect(await wizard.shell.main().innerText()).not.toMatch(RAW_KEY_PATTERN);
 

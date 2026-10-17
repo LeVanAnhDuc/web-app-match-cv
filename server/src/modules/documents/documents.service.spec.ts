@@ -1,4 +1,9 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  type HttpException,
+  NotFoundException
+} from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
 import type { CurrentUserService } from "../../common/current-user/current-user.service";
 import type { PrismaService } from "../../prisma/prisma.service";
@@ -50,6 +55,16 @@ function build(documents: Array<ReturnType<typeof doc>>) {
     peek: () => undefined
   };
   return { service: new DocumentsService(prisma, currentUser), update };
+}
+
+/** The machine-readable `code` a rejection carries, so the client never has to guess the reason. */
+async function rejectionCode(promise: Promise<unknown>): Promise<unknown> {
+  try {
+    await promise;
+  } catch (error) {
+    return ((error as HttpException).getResponse() as { code?: unknown }).code;
+  }
+  throw new Error("expected a rejection");
 }
 
 // Lineage is the manual half of Goal 9 — the only way a hand-edited CV gets the
@@ -138,6 +153,40 @@ describe("DocumentsService.setParent", () => {
     expect(update).not.toHaveBeenCalled();
   });
 
+  // The library modal tells "too long" apart from "itself / its own newer
+  // version" by this code, not by the translated message.
+  it("tags every lineage rejection with a code of its own", async () => {
+    const chain = Array.from({ length: 25 }, (_, index) =>
+      doc({
+        id: `cv-${index}`,
+        parentId: index === 24 ? null : `cv-${index + 1}`
+      })
+    );
+    const { service } = build([
+      doc(),
+      doc({ id: "cv-v1", parentId: "cv-v2" }),
+      doc({ id: "jd-1", kind: "JD" }),
+      doc({ id: "fresh" }),
+      ...chain
+    ]);
+
+    const codes = [
+      await rejectionCode(service.setParent("cv-v2", { parentId: "cv-v2" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "nope" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "jd-1" })),
+      await rejectionCode(service.setParent("cv-v2", { parentId: "cv-v1" })),
+      await rejectionCode(service.setParent("fresh", { parentId: "cv-0" }))
+    ];
+
+    expect(codes).toEqual([
+      "LINEAGE_SELF",
+      "LINEAGE_PARENT_NOT_FOUND",
+      "LINEAGE_KIND_MISMATCH",
+      "LINEAGE_CYCLE",
+      "LINEAGE_TOO_DEEP"
+    ]);
+  });
+
   it("still accepts a chain it can walk to the end", async () => {
     const chain = Array.from({ length: 5 }, (_, index) =>
       doc({
@@ -169,5 +218,101 @@ describe("DocumentsService.setParent", () => {
       service.setParent("cv-v1", { parentId: "cv-v2" })
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(update).not.toHaveBeenCalled();
+  });
+});
+
+function buildRemove(matchResultCount: number) {
+  const documentDelete = jest.fn(() => Promise.resolve(doc()));
+  const runDeleteMany = jest.fn(() => Promise.resolve({ count: 1 }));
+  const tx = {
+    matchRun: { deleteMany: runDeleteMany },
+    document: { delete: documentDelete }
+  };
+  const prisma = {
+    document: {
+      findFirst: jest.fn(() => Promise.resolve(doc())),
+      delete: documentDelete
+    },
+    matchResult: { count: jest.fn(() => Promise.resolve(matchResultCount)) },
+    $transaction: jest.fn((fn: (client: typeof tx) => Promise<unknown>) =>
+      fn(tx)
+    )
+  } as unknown as PrismaService;
+  const currentUser: CurrentUserService = {
+    getUserId: () => USER_ID,
+    isGuest: () => false,
+    peek: () => undefined
+  };
+  return {
+    service: new DocumentsService(prisma, currentUser),
+    documentDelete,
+    runDeleteMany
+  };
+}
+
+// MatchRun → Document is ON DELETE NO ACTION, so a run that never produced a
+// result (tab closed, guest out of quota) used to make the delete a 500.
+describe("DocumentsService.remove", () => {
+  it("deletes the runs that never produced a result along with the document", async () => {
+    const { service, documentDelete, runDeleteMany } = buildRemove(0);
+
+    await service.remove("cv-v2");
+
+    expect(runDeleteMany).toHaveBeenCalledWith({
+      where: {
+        userId: USER_ID,
+        OR: [{ cvDocumentId: "cv-v2" }, { jdDocumentId: "cv-v2" }],
+        results: { none: {} }
+      }
+    });
+    expect(documentDelete).toHaveBeenCalledWith({ where: { id: "cv-v2" } });
+  });
+
+  it("keeps a document a match result still points at", async () => {
+    const { service, documentDelete, runDeleteMany } = buildRemove(1);
+
+    await expect(service.remove("cv-v2")).rejects.toBeInstanceOf(
+      ConflictException
+    );
+    expect(runDeleteMany).not.toHaveBeenCalled();
+    expect(documentDelete).not.toHaveBeenCalled();
+  });
+});
+
+describe("DocumentsService.getFile", () => {
+  function buildFile(title: string) {
+    const prisma = {
+      document: {
+        findFirst: jest.fn(() =>
+          Promise.resolve(
+            doc({
+              title,
+              fileData: Buffer.from("%PDF"),
+              fileMime: "application/pdf"
+            })
+          )
+        )
+      }
+    } as unknown as PrismaService;
+    const currentUser: CurrentUserService = {
+      getUserId: () => USER_ID,
+      isGuest: () => false,
+      peek: () => undefined
+    };
+    return new DocumentsService(prisma, currentUser);
+  }
+
+  it("keeps the original name next to the ASCII fallback for a non-ASCII title", async () => {
+    const file = await buildFile("Sơ yếu Lý lịch").getFile("cv-v2");
+
+    expect(file.filename).toBe("S_y_u_L_l_ch.pdf");
+    expect(file.utf8Filename).toBe("Sơ yếu Lý lịch.pdf");
+  });
+
+  it("has no UTF-8 name when the title is plain ASCII", async () => {
+    const file = await buildFile('evil";x=1\r\nSet-Cookie: a').getFile("cv-v2");
+
+    expect(file.filename).toBe("evil_x_1_Set-Cookie_a.pdf");
+    expect(file.utf8Filename).toBeNull();
   });
 });

@@ -198,7 +198,7 @@ describe("CoverLetterModal", () => {
       expect(screen.getByLabelText("Draft")).toHaveValue(letter.content)
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Friendly · Short · Vietnamese" })
+      screen.getByRole("button", { name: /^Friendly · Short · Vietnamese/ })
     );
     await waitFor(() =>
       expect(screen.getByLabelText("Draft")).toHaveValue(second.content)
@@ -238,5 +238,72 @@ describe("CoverLetterModal", () => {
   it("marks the draft region busy while generating", () => {
     setup([], { generating: true });
     expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+  });
+
+  it("names OpenRouter in the privacy note when running on the system key", () => {
+    setup([]);
+    expect(
+      screen.getByText(
+        "Your CV and JD text will be sent to OpenRouter using the system key."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows when each draft was generated, so same-option drafts differ", () => {
+    const older = { ...letter, id: "old", createdAt: "2026-08-08T09:15:00Z" };
+    setup([letter, older]);
+    const [first, second] = screen
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(first).not.toBe(second);
+    expect(first).toMatch(/\d/);
+  });
+
+  it("try again regenerates with the failed draft's own options", async () => {
+    const generate = vi.fn().mockResolvedValue({ ...letter, id: "new" });
+    setup(
+      [
+        {
+          ...letter,
+          tone: "friendly",
+          length: "short",
+          language: "vi",
+          status: "failed",
+          errorCode: "timeout",
+          content: ""
+        }
+      ],
+      { generate }
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: /Try again/ }));
+
+    await waitFor(() =>
+      expect(generate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tone: "friendly",
+          length: "short",
+          language: "vi"
+        })
+      )
+    );
+  });
+
+  it("sends one request when Generate is double-clicked", async () => {
+    let finish: (value: CoverLetterDto) => void = () => undefined;
+    const generate = vi.fn(
+      () =>
+        new Promise<CoverLetterDto>((resolve) => {
+          finish = resolve;
+        })
+    );
+    setup([], { generate });
+
+    const button = screen.getByRole("button", { name: /Generate/ });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    finish({ ...letter, id: "new" });
+
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
   });
 });

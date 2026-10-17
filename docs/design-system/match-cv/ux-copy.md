@@ -2,7 +2,7 @@
 
 > **Trả lời:** Câu chữ trên UI viết thế nào, EN và VI?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-10-14 · commit —
+> **Cập nhật:** 2026-10-15 · commit —
 > **Cập nhật khi:** thêm màn hình mới · đổi tone · thêm chuỗi i18n
 
 > Rút từ mock `cv-jd-matching-wizard` (user duyệt 2026-07-24). Token nằm ở
@@ -36,6 +36,7 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | reuse.empty.jd | No saved job descriptions yet | Chưa có JD nào được lưu |
 | reuse.empty.cv | No saved CVs yet | Chưa có CV nào được lưu |
 | reuse.empty.hint | Items you save will appear here. | Tài liệu bạn lưu sẽ hiện ở đây. |
+| reuse.loadError | Couldn't load your saved documents. | Không tải được danh sách tài liệu đã lưu. |
 | save.jd | Save this JD for later reuse | Lưu JD này để dùng lại |
 | save.cv | Save this CV for later reuse | Lưu CV này để dùng lại |
 | save.title.placeholder | Enter a title for this document | Đặt tiêu đề cho tài liệu này |
@@ -69,6 +70,8 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | err.fileSize | File exceeds the {max} limit | File vượt quá giới hạn {max} |
 | err.empty | Please provide a {kind} to continue | Vui lòng nhập {kind} để tiếp tục |
 | err.parseFailed | We couldn't read this file. Try another. | Không đọc được file này. Thử file khác. |
+| home.error.documents | Could not load your saved documents. | Không tải được tài liệu đã lưu. |
+| home.error.matches | Could not load your recent matches. | Không tải được các lượt ghép gần đây. |
 
 ## 7. Wizard card copy (step 1–2) — thêm ở Plan 1
 
@@ -91,6 +94,7 @@ Ngắn gọn, chủ động, hướng dẫn user bước kế. Không viết hoa
 | Key | EN | VI |
 |---|---|---|
 | review.missingDocs | No document selected. Go back to add a CV and a JD. | Chưa chọn tài liệu. Quay lại để thêm CV và JD. |
+| review.loadFailed | Could not load the document. Go back and add it again. | Không tải được tài liệu. Quay lại và nạp lại tài liệu. |
 | result.disclaimer | AI-generated. CV/JD content is sent to OpenRouter for analysis — verify results independently. | Nội dung AI tạo. CV/JD được gửi tới OpenRouter để phân tích — hãy tự kiểm chứng kết quả. |
 
 ## 9. Auth, khách, gate (ducker-id-sign-in)

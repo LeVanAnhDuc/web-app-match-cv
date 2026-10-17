@@ -141,8 +141,6 @@ test.describe("Thư viện tài liệu đã lưu", { tag: ["@creates-data"] }, (
   });
 
   test("trạng thái lỗi có nút thử lại tải lại danh sách", { tag: ["@TC-DOCUMENTS-060"] }, async ({ docLibraryPage, docOwner, network }) => {
-    // BUG: defects/documents.md#bug-documents-04
-    test.fail();
     const doc = await docOwner.paste("CV");
     // initial request + react-query's 3 retries fail; the next one reaches the real backend
     await network.failWith(docLibraryPage.listUrl("cv"), 500, { method: "GET", times: 4 });

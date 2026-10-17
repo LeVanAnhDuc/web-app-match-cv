@@ -135,8 +135,6 @@ test.describe("Session, sign-out and /auth/me", () => {
     "cookie phiên không giải mã được cũng bị coi là ẩn danh và bị xoá",
     { tag: ["@TC-AUTH-053"] },
     async ({ anonApi }) => {
-      // BUG: defects/auth.md#bug-auth-02
-      test.fail();
       const cookie = "mcv_session=%%%";
       const me = await anonApi.as(cookie).auth.me();
       expect(me.status).toBe(200);

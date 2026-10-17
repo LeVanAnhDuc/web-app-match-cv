@@ -8,6 +8,7 @@ import {
   MaxLength
 } from "class-validator";
 import { DocumentKind } from "@prisma/client";
+import { tDoc } from "../i18n-messages";
 
 function toBoolean({ value }: { value: unknown }): boolean {
   return value === true || value === "true";
@@ -15,7 +16,10 @@ function toBoolean({ value }: { value: unknown }): boolean {
 
 export class CreateDocumentDto {
   @ApiProperty({ enum: DocumentKind })
-  @IsEnum(DocumentKind)
+  @IsEnum(DocumentKind, {
+    message: () =>
+      tDoc("documents.errors.invalidKind", "Document kind must be CV or JD.")
+  })
   kind: DocumentKind;
 
   @ApiProperty({
@@ -31,7 +35,13 @@ export class CreateDocumentDto {
   })
   @IsOptional()
   @IsString()
-  @MaxLength(200)
+  @MaxLength(200, {
+    message: () =>
+      tDoc(
+        "documents.errors.titleTooLong",
+        "Title must be at most 200 characters."
+      )
+  })
   title?: string;
 
   @ApiPropertyOptional({
@@ -39,6 +49,13 @@ export class CreateDocumentDto {
   })
   @IsOptional()
   @IsString()
-  @MaxLength(100_000) // explicit paste-size ceiling (security review) — not the implicit body-parser default
+  // explicit paste-size ceiling (security review) — not the implicit body-parser default
+  @MaxLength(100_000, {
+    message: () =>
+      tDoc(
+        "documents.errors.textTooLong",
+        "Pasted text must be at most 100,000 characters."
+      )
+  })
   sourceText?: string;
 }

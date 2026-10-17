@@ -211,6 +211,55 @@ describe("MatchResultCard", () => {
     expect(screen.queryByRole("meter")).toBeNull();
   });
 
+  it("shows the server's message when the request answers with an HTTP error", async () => {
+    vi.mocked(useRunMatch).mockReturnValue({
+      mutateAsync: vi.fn(async () => {
+        throw new ApiError(404, "Credential not found.");
+      }),
+      isPending: false
+    } as unknown as UseMutationResult<MatchResultDto, Error, CreateMatchInput>);
+    render(
+      <MatchResultCard
+        runId={RUN_ID}
+        cvDocumentId={CV_ID}
+        jdDocumentId={JD_ID}
+        credentialId="cred-1"
+        autoRun
+        expanded
+      />
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Credential not found."
+    );
+    expect(screen.getByRole("alert")).not.toHaveTextContent(
+      "Could not reach the provider."
+    );
+  });
+
+  it("says the provider could not be reached only for a network failure", async () => {
+    vi.mocked(useRunMatch).mockReturnValue({
+      mutateAsync: vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+      isPending: false
+    } as unknown as UseMutationResult<MatchResultDto, Error, CreateMatchInput>);
+    render(
+      <MatchResultCard
+        runId={RUN_ID}
+        cvDocumentId={CV_ID}
+        jdDocumentId={JD_ID}
+        credentialId="cred-1"
+        autoRun
+        expanded
+      />
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Could not reach the provider."
+    );
+  });
+
   it("invites a guest to sign in when the daily quota is exhausted", async () => {
     vi.mocked(useProviders).mockReturnValue(asQuery(providers));
     vi.mocked(useDocument).mockReturnValue(asQuery(originalCv));

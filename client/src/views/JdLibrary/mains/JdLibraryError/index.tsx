@@ -1,12 +1,22 @@
+import { Alert, Button } from "antd";
+import { RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-const JdLibraryError = () => {
+const JdLibraryError = ({ onRetry }: { onRetry: () => void }) => {
   const { t } = useTranslation();
 
   return (
-    <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-      {t("library.loadError")}
-    </p>
+    <Alert
+      type="error"
+      showIcon
+      role="alert"
+      message={t("library.loadError")}
+      action={
+        <Button size="small" icon={<RotateCcw size={14} />} onClick={onRetry}>
+          {t("action.tryAgain")}
+        </Button>
+      }
+    />
   );
 };
 

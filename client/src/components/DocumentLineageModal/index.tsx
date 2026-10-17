@@ -1,5 +1,6 @@
 import { Alert, Modal, Select } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { RefSelectProps } from "antd";
 import { useTranslation } from "react-i18next";
 import type { DocumentSummaryDto } from "#/types/Documents";
 
@@ -22,10 +23,18 @@ const DocumentLineageModal = ({
 }) => {
   const { t } = useTranslation();
   const [parentId, setParentId] = useState<string | null>(null);
+  const selectRef = useRef<RefSelectProps>(null);
 
   useEffect(() => {
     if (open) setParentId(doc?.parentId ?? null);
   }, [open, doc]);
+
+  // On every open, not via autoFocus: the Select stays mounted between opens.
+  // The dialog only focuses its own frame when focus is not already inside it,
+  // and it has recorded the element to return focus to by the time this runs.
+  useEffect(() => {
+    if (open) selectRef.current?.focus();
+  }, [open]);
 
   const unchanged = parentId === (doc?.parentId ?? null);
 
@@ -46,6 +55,7 @@ const DocumentLineageModal = ({
         {t("library.lineage.description", { title: doc?.title ?? "" })}
       </p>
       <Select
+        ref={selectRef}
         aria-label={t("library.lineage.label")}
         className="w-full"
         allowClear

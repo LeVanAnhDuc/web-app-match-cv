@@ -35,8 +35,6 @@ test.describe("chọn provider ở bước 3", () => {
     "danh sách checkbox là một nhóm có tên Run with",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-024"] },
     async ({ compareWizardPage: wizard, mpcCredentials }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-05
-      test.fail();
       await mpcCredentials.add("openrouter");
       await wizard.goto();
       await wizard.advanceToReview(MPC_TEXT.jd, MPC_TEXT.cv);
@@ -111,8 +109,6 @@ test.describe("chọn provider ở bước 3", () => {
     "thông báo quyền riêng tư nêu OpenRouter cho key hệ thống",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-028"] },
     async ({ compareWizardPage: wizard, mpcApi }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-04
-      test.fail();
       const openrouter = (await mpcApi.aiCredentials.providers()).json().find((p) => p.id === "openrouter")!.label;
       await wizard.goto();
       await wizard.advanceToReview(MPC_TEXT.jd, MPC_TEXT.cv);
@@ -151,8 +147,6 @@ test.describe("bước 3 của khách", () => {
     "khách được báo tài liệu sẽ gửi tới OpenRouter trước khi chạy",
     { tag: ["@TC-MULTIPROVIDERCOMPARE-030", "@creates-data"] },
     async ({ guestCompareWizardPage: wizard }) => {
-      // BUG: defects/multi-provider-compare.md#bug-multiprovidercompare-03
-      test.fail();
       await wizard.goto();
       await wizard.advanceToReview(MPC_TEXT.jd, MPC_TEXT.cv);
 

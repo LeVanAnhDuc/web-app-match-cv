@@ -76,6 +76,7 @@ const CredentialList = () => {
           <Button
             type="primary"
             icon={<Plus size={16} />}
+            className="!h-11 md:!h-8"
             onClick={() => setAddOpen(true)}
           >
             {t("credentials.add")}
@@ -109,7 +110,11 @@ const CredentialList = () => {
               <p className="max-w-md text-sm text-muted">
                 {t("credentials.emptyHint")}
               </p>
-              <Button type="primary" onClick={() => setAddOpen(true)}>
+              <Button
+                type="primary"
+                className="!h-11 md:!h-8"
+                onClick={() => setAddOpen(true)}
+              >
                 {t("credentials.add")}
               </Button>
             </div>

@@ -31,6 +31,10 @@
       "empty": "No matches yet",
       "emptyCta": "Match now"
     },
+    "error": {
+      "documents": "Could not load your saved documents.",
+      "matches": "Could not load your recent matches."
+    },
     "cols": {
       "cv": "CV",
       "jd": "JD",
@@ -106,7 +110,8 @@
   "review": {
     "hint": "Data is editable. Fix any mistakes before running the match.",
     "loading": "Loading document…",
-    "missingDocs": "No document selected. Go back to add a CV and a JD."
+    "missingDocs": "No document selected. Go back to add a CV and a JD.",
+    "loadFailed": "Could not load the document. Go back and add it again."
   },
   "input": {
     "tab": {
@@ -177,6 +182,9 @@
       "confirm": "Save",
       "success": "Version history updated",
       "rejected": "That link isn't allowed — a document can't be a version of itself or of its own newer version.",
+      "tooDeep": "This version history is already too long to add another version to.",
+      "parentNotFound": "The document you picked as the previous version no longer exists.",
+      "kindMismatch": "A CV can only be a version of another CV, and a JD of another JD.",
       "failed": "Couldn't save. Please try again."
     }
   },
@@ -187,6 +195,7 @@
     "cv": {
       "title": "Or reuse a saved CV"
     },
+    "loadError": "Couldn't load your saved documents.",
     "empty": {
       "jd": "No saved job descriptions yet",
       "cv": "No saved CVs yet",
@@ -239,7 +248,8 @@
       "original": "Currently in your CV",
       "suggested": "Suggested wording",
       "removal": "Removes this line",
-      "untitled": "Suggested change"
+      "untitled": "Suggested change",
+      "accessibleName": "{{section}} — change {{position}} of {{total}}"
     },
     "changes": {
       "title": "Suggested changes",
@@ -338,6 +348,7 @@
       "testing": "Testing connection…",
       "required": "This field is required",
       "labelTooLong": "Use at most 60 characters",
+      "modelTooLong": "Use at most 120 characters",
       "keyTooShort": "The key must be at least 20 characters",
       "keyTooLong": "The key must be at most 400 characters",
       "noWhitespace": "No spaces allowed"
@@ -383,7 +394,8 @@
       "untestedCount_one": "{{count}} selected credential has not passed a connection test.",
       "untestedCount_other": "{{count}} selected credentials have not passed a connection test.",
       "privacyNone": "Select at least one key to run the match.",
-      "privacyList": "Your CV and JD text will be sent to: {{providers}}."
+      "privacyList": "Your CV and JD text will be sent to: {{providers}}.",
+      "privacySystemEntry": "OpenRouter (system key)"
     }
   },
   "coverLetter": {
@@ -478,6 +490,7 @@
     "err": {
       "notFound": "That CV doesn't exist, or it isn't yours.",
       "noParent": "This CV is not marked as a new version of another CV, so there is nothing to compare it with.",
+      "notCv": "Only a CV can be compared with a previous version — this is a job description.",
       "jdNotComparable": "Neither version has been matched against that job description.",
       "failed": "Couldn't load the comparison. Please try again."
     }

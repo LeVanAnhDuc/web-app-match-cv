@@ -192,8 +192,6 @@ test.describe("ai-credentials — create", () => {
     "tên chỉ gồm khoảng trắng bị server từ chối, tên được trim trước khi kiểm độ dài",
     { tag: ["@TC-AICREDENTIALS-070"] },
     async () => {
-      // BUG: defects/ai-credentials.md#bug-aicredentials-01
-      test.fail();
       expect((await create({ label: "   " })).status).toBe(400);
       const padded = await create({ label: ` ${"p".repeat(LABEL_MAX)} ` });
       expect(padded.status).toBe(201);

@@ -22,6 +22,9 @@ import { tDoc } from "./i18n-messages";
 import { parseFile } from "./parsing";
 
 const TITLE_FALLBACK_LENGTH = 80;
+const FILENAME_MAX_LENGTH = 100;
+// Only non-ASCII letters need filename*; ASCII punctuation is fine as "_".
+const NON_ASCII = /[^\p{ASCII}]/u;
 
 function deriveTitle(rawText: string): string {
   const firstLine = rawText
@@ -91,9 +94,12 @@ export class DocumentsService {
     return DocumentDto.fromEntity(created);
   }
 
-  async getFile(
-    id: string
-  ): Promise<{ buffer: Buffer; mime: string; filename: string }> {
+  async getFile(id: string): Promise<{
+    buffer: Buffer;
+    mime: string;
+    filename: string;
+    utf8Filename: string | null;
+  }> {
     const userId = this.currentUser.getUserId();
     const doc = await this.prisma.document.findFirst({
       where: { id, userId }
@@ -108,11 +114,17 @@ export class DocumentsService {
     }
     const ext = doc.fileMime.includes("pdf") ? "pdf" : "docx";
     const safeTitle =
-      doc.title.replace(/[^\w.-]+/g, "_").slice(0, 100) || "document";
+      doc.title.replace(/[^\w.-]+/g, "_").slice(0, FILENAME_MAX_LENGTH) ||
+      "document";
+    const utf8Title = Array.from(doc.title.trim())
+      .slice(0, FILENAME_MAX_LENGTH)
+      .join("");
     return {
       buffer: Buffer.from(doc.fileData),
       mime: doc.fileMime,
-      filename: `${safeTitle}.${ext}`
+      filename: `${safeTitle}.${ext}`,
+      utf8Filename:
+        utf8Title && NON_ASCII.test(utf8Title) ? `${utf8Title}.${ext}` : null
     };
   }
 
@@ -179,12 +191,13 @@ export class DocumentsService {
 
     if (dto.parentId !== null) {
       if (dto.parentId === id) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_SELF",
+          message: tDoc(
             "documents.errors.lineageSelf",
             "A document cannot be a version of itself."
           )
-        );
+        });
       }
       const parent = await this.prisma.document.findFirst({
         where: { id: dto.parentId, userId }
@@ -193,20 +206,22 @@ export class DocumentsService {
       // It also keeps another user's document indistinguishable from a
       // non-existent one.
       if (!parent) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_PARENT_NOT_FOUND",
+          message: tDoc(
             "documents.errors.lineageParentNotFound",
             "The document you picked as the previous version was not found."
           )
-        );
+        });
       }
       if (parent.kind !== doc.kind) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_KIND_MISMATCH",
+          message: tDoc(
             "documents.errors.lineageKindMismatch",
             "A CV can only be a version of another CV, and a JD of another JD."
           )
-        );
+        });
       }
       const { parents, complete } = await this.loadAncestors(
         dto.parentId,
@@ -218,20 +233,22 @@ export class DocumentsService {
       // statement about how far we looked, not about the data. Without this,
       // building a 21-link chain and then closing it is a supported operation.
       if (!complete) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_TOO_DEEP",
+          message: tDoc(
             "documents.errors.lineageTooDeep",
             "This version history is too long to extend safely."
           )
-        );
+        });
       }
       if (wouldCreateCycle(id, dto.parentId, parents)) {
-        throw new BadRequestException(
-          tDoc(
+        throw new BadRequestException({
+          code: "LINEAGE_CYCLE",
+          message: tDoc(
             "documents.errors.lineageCycle",
             "That would make the two documents versions of each other."
           )
-        );
+        });
       }
     }
 
@@ -295,6 +312,18 @@ export class DocumentsService {
         )
       );
     }
-    await this.prisma.document.delete({ where: { id } });
+    // A run that never produced a result (tab closed, guest out of quota) still
+    // holds an ON DELETE NO ACTION reference; it carries no history, so it goes
+    // with the document instead of turning the delete into a 500.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.matchRun.deleteMany({
+        where: {
+          userId,
+          OR: [{ cvDocumentId: id }, { jdDocumentId: id }],
+          results: { none: {} }
+        }
+      });
+      await tx.document.delete({ where: { id } });
+    });
   }
 }

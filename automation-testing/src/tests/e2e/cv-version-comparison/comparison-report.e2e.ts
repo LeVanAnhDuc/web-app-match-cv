@@ -147,8 +147,6 @@ test.describe("cv-version-comparison — comparison report", () => {
     "chỉ khác embedding model thì cảnh báo nêu đúng hai embedding model",
     { tag: ["@TC-CVVERSIONCOMPARISON-044"] },
     async ({ versionComparePage, cvcSeed }) => {
-      // BUG: defects/cv-version-comparison.md#bug-cvversioncomparison-01
-      test.fail();
       const v1 = await cvcSeed.cv();
       const v2 = await cvcSeed.cv({ parentId: v1 });
       const jd = await cvcSeed.jd();

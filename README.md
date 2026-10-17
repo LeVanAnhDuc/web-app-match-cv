@@ -69,7 +69,7 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
   - Warns when the two matches ran on different AI models, and each delta then reads *Not comparable* instead of a direction, because the scores are not strictly comparable.
 
 - **Export your data** (`/my-data`)
-  - One button downloads a zip containing `data.json` (documents, matches with full reports, AI credential settings) plus every original file you uploaded.
+  - One button downloads a zip containing `data.json` (your profile, documents with their version lineage, match runs and matches with full reports, cover letters, AI credential settings) plus every original file you uploaded.
   - Credentials are exported masked — the archive never contains a key.
 
 - **Vietnamese and English documents**
@@ -88,7 +88,7 @@ Runs locally as two apps: a NestJS API (`server/`, port `5200`) and a TanStack S
 
 ## Tech Stack
 
-- **Server** (`server/`) — Node + TypeScript, NestJS 11, Prisma 6 + PostgreSQL (installed locally, no Docker; pgvector deliberately not used — cosine similarity is computed in-app), `class-validator`, Swagger, `nestjs-i18n`, `pdf-parse` + `mammoth` for document parsing, `archiver` for the data export, AES-256-GCM credential encryption via `node:crypto`, Jest (unit + supertest e2e).
+- **Server** (`server/`) — Node + TypeScript, NestJS 11, Prisma 6 + PostgreSQL (installed locally, no Docker; pgvector deliberately not used — cosine similarity is computed in-app), `class-validator`, Swagger, `nestjs-i18n`, `pdf-parse` + `mammoth` for document parsing, `archiver` for the data export, AES-256-GCM credential encryption via `node:crypto`, Jest (unit; e2e and HTTP API tests live in `automation-testing/`).
 - **Client** (`client/`) — TanStack Start (React 19 + Vite), TanStack Router + Query, Zustand, Ant Design 5 + Tailwind 4, the three typefaces self-hosted through `@fontsource` (Inter, Space Grotesk, JetBrains Mono — no request leaves for a font CDN), `i18next`, `react-pdf` + `docx-preview` for previews, Vitest (unit) + Playwright (e2e across desktop / tablet / mobile viewports).
 - **AI** — the `openai` SDK pointed at any OpenAI-compatible provider: OpenRouter, OpenAI or Google Gemini. A provider must offer both chat completions and embeddings, which is why Anthropic is not on the list.
 

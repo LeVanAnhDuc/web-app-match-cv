@@ -223,7 +223,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** bước 3 với 1 credential
 - **Mong đợi:** có `role="group"` tên "Run with" chứa đủ 2 checkbox
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-05
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-05](../defects/multi-provider-compare.md#bug-multiprovidercompare-05)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-025 — bỏ chọn hết thì Run match bị khoá, báo chọn ít nhất một key và không gửi request nào
@@ -258,7 +258,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** user không có credential (key hệ thống là lựa chọn mặc định duy nhất)
 - **Mong đợi:** dòng quyền riêng tư có chữ "OpenRouter"
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-04 (hiện chỉ ghi "System key")
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-04](../defects/multi-provider-compare.md#bug-multiprovidercompare-04) (mục key hệ thống đọc "OpenRouter (system key)", Q13)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-029 — khách không thấy khối chọn và chạy đúng một card bằng key hệ thống
@@ -276,7 +276,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1 · **Tags:** @creates-data
 - **Bước:** khách tới bước 3
 - **Mong đợi:** thấy "Your CV and JD text will be sent to OpenRouter using the system key."
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-03
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-03](../defects/multi-provider-compare.md#bug-multiprovidercompare-03)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ## UI — mở run
@@ -323,7 +323,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Tiền điều kiện:** credential Gemini; stub: credential → `gemini · gemini-2.5-flash` 71; key hệ thống → `openai · stub-model-x` 84
 - **Bước:** tick System key trước rồi credential → Run match
 - **Mong đợi:** 2 card; card 1 "Google Gemini · gemini-2.5-flash" (71), card 2 "OpenAI · stub-model-x" (84) — thứ tự dòng, tiêu đề theo kết quả
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-06
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-06](../defects/multi-provider-compare.md#bug-multiprovidercompare-06)
 - **Automated:** `tests/e2e/multi-provider-compare/progressive-results.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-036 — mỗi card gửi đúng một POST /match cùng runId, key hệ thống không gửi credentialId
@@ -348,7 +348,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P2
 - **Tiền điều kiện:** key hệ thống trả sau 8 s
 - **Mong đợi:** card đang chạy có `aria-busy="true"`
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-01
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-01](../defects/multi-provider-compare.md#bug-multiprovidercompare-01)
 - **Automated:** `tests/e2e/multi-provider-compare/progressive-results.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-039 — mọi request của run cùng chờ một lúc
@@ -416,7 +416,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** như TC-045
 - **Mong đợi:** alert card 1 chứa "Credential not found." (không phải "Could not reach the provider.")
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-02
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-02](../defects/multi-provider-compare.md#bug-multiprovidercompare-02)
 - **Automated:** `tests/e2e/multi-provider-compare/partial-failure.e2e.ts`
 
 ## UI — tải lại và mở lại run
@@ -553,7 +553,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** credential Gemini lỗi `no_quota`; key hệ thống thành công sau 3 s
 - **Bước:** bước 3 → `setLanguage("vi")` → chọn cả hai → Run match
-- **Mong đợi:** "Chạy bằng", "Chạy so khớp · 2 provider", "Nội dung CV và JD của bạn sẽ được gửi tới: Google Gemini, Key hệ thống."; card chờ "Key hệ thống"; alert "Key này đã hết hạn mức ở nhà cung cấp.", "Thử lại", "Xem báo cáo đầy đủ"; không chuỗi dạng `result.xxx` / `credentials.xxx`
+- **Mong đợi:** "Chạy bằng", "Chạy so khớp · 2 provider", "Nội dung CV và JD của bạn sẽ được gửi tới: Google Gemini, OpenRouter (key hệ thống)." (Q13); card chờ "Key hệ thống"; alert "Key này đã hết hạn mức ở nhà cung cấp.", "Thử lại", "Xem báo cáo đầy đủ"; không chuỗi dạng `result.xxx` / `credentials.xxx`
 - **Automated:** `tests/e2e/multi-provider-compare/i18n.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-063 — run chưa có kết quả hiện trạng thái rỗng bằng tiếng Việt
