@@ -184,7 +184,7 @@ describe("CvLibrary", () => {
   });
 
   it("keeps the lineage modal open and reports why a link was rejected", async () => {
-    lineageSpy.mockRejectedValue(new ApiError(400, "cycle"));
+    lineageSpy.mockRejectedValue(new ApiError(400, "cycle", "LINEAGE_CYCLE"));
     await renderLibrary();
     openActionsMenu(0);
     fireEvent.click(
