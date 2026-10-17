@@ -134,6 +134,20 @@ export class LineageDialog {
   async openOptions(): Promise<void> {
     await this.select().focus();
     await this.page.keyboard.press("ArrowDown");
+    // rc-select forwards arrow / Enter keys to the option list only once it is mounted; a key sent earlier is dropped.
+    const listId = await this.select().getAttribute("aria-controls");
+    await this.page.locator(`[id="${listId}"]`).waitFor({ state: "attached" });
+  }
+
+  /**
+   * Closes the open dropdown with Escape (rc-select stops the key there, so the dialog stays open). On a phone the
+   * portaled option list overlaps the dialog footer, so it has to be closed before Cancel / Save can be clicked.
+   */
+  async closeOptions(): Promise<void> {
+    await this.select().press("Escape");
+    await this.root()
+      .getByRole("combobox", { name: t("library.lineage.label", this.lng), expanded: false })
+      .waitFor();
   }
 
   async choose(title: string): Promise<void> {

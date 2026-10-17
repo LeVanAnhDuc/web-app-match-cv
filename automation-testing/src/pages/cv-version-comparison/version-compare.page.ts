@@ -59,6 +59,9 @@ export class VersionComparePage extends BasePage {
   async openJdSelect(): Promise<void> {
     await this.jdSelect().focus();
     await this.page.keyboard.press("ArrowDown");
+    // rc-select forwards arrow / Enter keys to the option list only once it is mounted; a key sent earlier is dropped.
+    const listId = await this.jdSelect().getAttribute("aria-controls");
+    await this.page.locator(`[id="${listId}"]`).waitFor({ state: "attached" });
   }
 
   /** Picks a job description by its title. The option is the last element carrying the title (the popup is portaled). */

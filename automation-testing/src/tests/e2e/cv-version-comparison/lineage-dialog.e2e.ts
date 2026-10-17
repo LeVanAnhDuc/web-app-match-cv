@@ -83,6 +83,7 @@ test.describe("cv-version-comparison — lineage dialog", () => {
       for (const excluded of [targetTitle, unsavedTitle, jdTitle]) {
         await expect(dialog.titled(excluded)).toHaveCount(0);
       }
+      await dialog.closeOptions();
       await dialog.cancelButton().click();
       await expect(dialog.root()).toBeHidden();
 
