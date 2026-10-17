@@ -140,7 +140,18 @@ describe("RunWithSelector", () => {
 
     expect(
       screen.getByText(
-        "Your CV and JD text will be sent to: Google Gemini, OpenRouter, System key."
+        "Your CV and JD text will be sent to: Google Gemini, OpenRouter, OpenRouter (system key)."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("names OpenRouter when only the system key is selected", () => {
+    mockCredentials([{ ...base, id: "a" }]);
+    render(<RunWithSelector value={[null]} onChange={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        "Your CV and JD text will be sent to: OpenRouter (system key)."
       )
     ).toBeInTheDocument();
   });

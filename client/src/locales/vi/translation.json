@@ -394,7 +394,8 @@
       "untestedCount_one": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
       "untestedCount_other": "{{count}} credential đã chọn chưa kiểm tra kết nối thành công.",
       "privacyNone": "Chọn ít nhất một key để chạy so khớp.",
-      "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}."
+      "privacyList": "Nội dung CV và JD của bạn sẽ được gửi tới: {{providers}}.",
+      "privacySystemEntry": "OpenRouter (key hệ thống)"
     }
   },
   "coverLetter": {

@@ -290,7 +290,9 @@ describe("StepReview", () => {
     await screen.findAllByTestId("review-pane");
 
     expect(
-      screen.getByText("Your CV and JD text will be sent to: System key.")
+      screen.getByText(
+        "Your CV and JD text will be sent to OpenRouter using the system key."
+      )
     ).toBeDefined();
   });
 });

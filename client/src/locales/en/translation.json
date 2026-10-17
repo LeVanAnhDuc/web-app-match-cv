@@ -394,7 +394,8 @@
       "untestedCount_one": "{{count}} selected credential has not passed a connection test.",
       "untestedCount_other": "{{count}} selected credentials have not passed a connection test.",
       "privacyNone": "Select at least one key to run the match.",
-      "privacyList": "Your CV and JD text will be sent to: {{providers}}."
+      "privacyList": "Your CV and JD text will be sent to: {{providers}}.",
+      "privacySystemEntry": "OpenRouter (system key)"
     }
   },
   "coverLetter": {

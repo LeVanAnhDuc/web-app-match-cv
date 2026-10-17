@@ -79,7 +79,9 @@ const RunWithSelector = ({
 
   const providerNames = [
     ...selected.map((c) => providerLabel(c.provider)),
-    ...(value.includes(null) ? [t("credentials.systemKey")] : [])
+    ...(value.includes(null)
+      ? [t("credentials.runWith.privacySystemEntry")]
+      : [])
   ];
 
   return (

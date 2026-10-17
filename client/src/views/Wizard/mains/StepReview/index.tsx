@@ -139,7 +139,7 @@ const StepReview = () => {
         <RunWithSelector value={credentialIds} onChange={setCredentialIds} />
       ) : (
         <div className="border-b border-line px-4 py-4 md:px-6">
-          <RunPrivacyNotice providers={[t("credentials.systemKey")]} />
+          <RunPrivacyNotice systemOnly />
         </div>
       )}
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">

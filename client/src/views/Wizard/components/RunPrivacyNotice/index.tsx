@@ -2,11 +2,13 @@ import { ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const RunPrivacyNotice = ({
-  providers,
-  none = false
+  providers = [],
+  none = false,
+  systemOnly = false
 }: {
-  providers: Array<string>;
+  providers?: Array<string>;
   none?: boolean;
+  systemOnly?: boolean;
 }) => {
   const { t } = useTranslation();
 
@@ -15,9 +17,11 @@ const RunPrivacyNotice = ({
       <ShieldCheck size={14} className="mt-0.5 shrink-0" />
       {none
         ? t("credentials.runWith.privacyNone")
-        : t("credentials.runWith.privacyList", {
-            providers: providers.join(", ")
-          })}
+        : systemOnly
+          ? t("credentials.runWith.privacySystem")
+          : t("credentials.runWith.privacyList", {
+              providers: providers.join(", ")
+            })}
     </p>
   );
 };
