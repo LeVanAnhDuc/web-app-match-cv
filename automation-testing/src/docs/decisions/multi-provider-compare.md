@@ -75,6 +75,12 @@ Quyết định của user (2026-10-14, ràng buộc cho mọi module):
   khác 404" dùng `network.failWith` 500. → REQ-25, REQ-27.
 - **Q12** Lỗi cấu hình 503 (REQ-16) cần một server không có `OPENROUTER_API_KEY` / `CREDENTIAL_ENCRYPTION_KEY`; dev server dùng
   chung có cấu hình đủ và không được khởi động lại. → TC manual. → REQ-16.
+- **Q13 — Thông báo quyền riêng tư nêu đích danh OpenRouter (user, 2026-10-17, ghi đè cách nói trước).** Q6 xếp hai
+  lỗi là bug nhưng module cv-jd-matching-wizard (REQ-CVJDMATCHINGWIZARD-26, TC-042, TC-047) vẫn chốt "…sent to: System
+  key.", nên BUG-03/04 bị treo chờ quyết định. User chốt theo NFR-DATA-05: khách thấy
+  `credentials.runWith.privacySystem`; danh sách của user nêu key hệ thống là `credentials.runWith.privacySystemEntry`
+  "OpenRouter (system key)" / "OpenRouter (key hệ thống)". REQ/TC của module kia đã cập nhật theo. → REQ-04, REQ-05,
+  BUG-MULTIPROVIDERCOMPARE-03, BUG-MULTIPROVIDERCOMPARE-04 (đã sửa).
 
 ## Tài khoản test
 

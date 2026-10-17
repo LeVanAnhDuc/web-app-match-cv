@@ -34,9 +34,7 @@ test.describe("cover letter — language, secrets, keyboard", () => {
       await expect(modal.omittedTitle()).toBeVisible();
       await expect(modal.omittedHint()).toBeVisible();
       await expect(modal.draftsHeading()).toBeVisible();
-      await expect(modal.privacyNote(t("credentials.runWith.privacyList", "vi", { providers: t("credentials.systemKey", "vi") })).or(
-        modal.privacyNote(t("credentials.runWith.privacySystem", "vi"))
-      )).toBeVisible();
+      await expect(modal.privacyNote(t("credentials.runWith.privacySystem", "vi"))).toBeVisible();
 
       const failedRow = modal.draftRows().nth(1);
       await expect(modal.failedTag(failedRow)).toBeVisible();

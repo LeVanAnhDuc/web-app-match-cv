@@ -2,29 +2,7 @@
 
 ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-MULTIPROVIDERCOMPARE-03](#bug-multiprovidercompare-03) | Trung bình | TC-MULTIPROVIDERCOMPARE-030 | Khách không được báo tài liệu sẽ gửi tới OpenRouter trước khi chạy |
-| [BUG-MULTIPROVIDERCOMPARE-04](#bug-multiprovidercompare-04) | Thấp | TC-MULTIPROVIDERCOMPARE-028 | Thông báo quyền riêng tư ghi "System key" thay vì nêu OpenRouter |
-
-### BUG-MULTIPROVIDERCOMPARE-03
-
-- **TC:** TC-MULTIPROVIDERCOMPARE-030 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-05
-- **Bước tái hiện:** không đăng nhập → wizard, dán JD và CV → bước 3.
-- **Mong đợi:** trước khi bấm Run match, khách thấy "Your CV and JD text will be sent to OpenRouter using the system key."
-  (NFR-DATA-05).
-- **Thực tế:** bước 3 của khách không có thông báo quyền riêng tư nào: `StepReview` chỉ vẽ `RunWithSelector` (nơi có
-  thông báo) khi `isUser`, và câu `credentials.runWith.privacySystem` có sẵn trong locale nhưng không được dùng (Q6).
-- **Chờ quyết định:** từ 851bf90 (BUG-CVJDMATCHINGWIZARD-05) khách đã thấy một câu, nhưng là `privacyList` "Your CV and JD text will be sent to: System key.", không phải câu `privacySystem` REQ này đòi. Mâu thuẫn với module cv-jd-matching-wizard: TC-CVJDMATCHINGWIZARD-042 (khách) và TC-CVJDMATCHINGWIZARD-047 (user, key hệ thống) đòi đúng câu `credentials.runWith.privacyList` với "System key" ("Your CV and JD text will be sent to: System key."), REQ-CVJDMATCHINGWIZARD-26 đòi khách thấy `privacyList`; sửa theo REQ này làm hai TC đó đỏ. Cần chốt một cách nói cho key hệ thống rồi cập nhật REQ/TC của module còn lại.
-
-### BUG-MULTIPROVIDERCOMPARE-04
-
-- **TC:** TC-MULTIPROVIDERCOMPARE-028 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-04
-- **Bước tái hiện:** đăng nhập, chưa có credential nào → wizard → bước 3 (key hệ thống được chọn sẵn).
-- **Mong đợi:** thông báo quyền riêng tư nêu đích danh nhà cung cấp nhận tài liệu: OpenRouter.
-- **Thực tế:** "Your CV and JD text will be sent to: System key." — "System key" không phải tên nhà cung cấp
-  (`RunWithSelector` đẩy `t("credentials.systemKey")` vào danh sách, Q6).
-- **Chờ quyết định:** mâu thuẫn với module cv-jd-matching-wizard: TC-CVJDMATCHINGWIZARD-042 (khách) và TC-CVJDMATCHINGWIZARD-047 (user, key hệ thống) đòi đúng câu `credentials.runWith.privacyList` với "System key" ("Your CV and JD text will be sent to: System key."), REQ-CVJDMATCHINGWIZARD-26 đòi khách thấy `privacyList`; sửa theo REQ này làm hai TC đó đỏ. Cần chốt một cách nói cho key hệ thống rồi cập nhật REQ/TC của module còn lại.
+_(không còn)_
 
 ## Đã sửa
 
@@ -35,6 +13,8 @@ trước lượt này; các case tương ứng đang xanh nên không cần mụ
 - Không bỏ chọn hết được (effect tự chọn lại mặc định) — sửa bằng seed một lần; nay phủ bởi TC-MULTIPROVIDERCOMPARE-025.
 - `db-cleanup` vỡ vì `MatchRun → Document` RESTRICT — lỗi của bộ test cũ, không phải của app; bộ test mới xoá dữ liệu
   theo user (cascade) nên không còn áp dụng.
+
+Lượt sửa 2026-10-17 (branch `fix/open-bugs`): BUG-03, BUG-04 đã sửa theo quyết định của user, `test.fail()` đã gỡ khỏi `provider-selection.e2e.ts`.
 
 ### BUG-MULTIPROVIDERCOMPARE-01
 
@@ -77,3 +57,22 @@ trước lượt này; các case tương ứng đang xanh nên không cần mụ
   store không sắp lại (`client/src/views/Wizard/components/RunWithSelector/index.tsx`). Tiền đề của Q10 ("antd sắp theo
   thứ tự option") không đúng với cách dùng hiện tại.
 - **Đã sửa:** root cause — `Checkbox.Group` chỉ sắp `onChange` theo prop `options` (rỗng vì dùng `Checkbox` con) nên giá trị giữ thứ tự bấm. Fix — effect đối soát của `RunWithSelector` ghi lại lựa chọn theo thứ tự dòng (credential rồi key hệ thống) (commit: 62128ab).
+
+### BUG-MULTIPROVIDERCOMPARE-03
+
+- **TC:** TC-MULTIPROVIDERCOMPARE-030 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-05
+- **Bước tái hiện:** không đăng nhập → wizard, dán JD và CV → bước 3.
+- **Mong đợi:** trước khi bấm Run match, khách thấy "Your CV and JD text will be sent to OpenRouter using the system key."
+  (NFR-DATA-05).
+- **Thực tế:** bước 3 của khách không có thông báo quyền riêng tư nào: `StepReview` chỉ vẽ `RunWithSelector` (nơi có
+  thông báo) khi `isUser`, và câu `credentials.runWith.privacySystem` có sẵn trong locale nhưng không được dùng (Q6).
+- **Đã sửa:** root cause — `StepReview` cho khách dùng `privacyList` với nhãn `credentials.systemKey` (từ 851bf90), nên câu nêu "System key" chứ không nêu nhà cung cấp; REQ-CVJDMATCHINGWIZARD-26 còn chốt đúng câu đó nên bug treo chờ quyết định. User chốt 2026-10-17 (NFR-DATA-05, Q13 / cv-jd-matching-wizard Q10): khách thấy `credentials.runWith.privacySystem`. Fix — `RunPrivacyNotice` có chế độ `systemOnly` hiện câu `privacySystem`, `StepReview` dùng nó cho khách; REQ-CVJDMATCHINGWIZARD-26 / TC-042 cập nhật theo (commit: f2b407e).
+
+### BUG-MULTIPROVIDERCOMPARE-04
+
+- **TC:** TC-MULTIPROVIDERCOMPARE-028 · **Requirement:** REQ-MULTIPROVIDERCOMPARE-04
+- **Bước tái hiện:** đăng nhập, chưa có credential nào → wizard → bước 3 (key hệ thống được chọn sẵn).
+- **Mong đợi:** thông báo quyền riêng tư nêu đích danh nhà cung cấp nhận tài liệu: OpenRouter.
+- **Thực tế:** "Your CV and JD text will be sent to: System key." — "System key" không phải tên nhà cung cấp
+  (`RunWithSelector` đẩy `t("credentials.systemKey")` vào danh sách, Q6).
+- **Đã sửa:** root cause — `RunWithSelector` đưa nhãn checkbox `credentials.systemKey` vào danh sách nhà cung cấp của `privacyList`. User chốt 2026-10-17 (NFR-DATA-05, Q13): mục key hệ thống trong danh sách đọc "OpenRouter (system key)". Fix — locale mới `credentials.runWith.privacySystemEntry` (en "OpenRouter (system key)", vi "OpenRouter (key hệ thống)") dùng cho mục đó; nhãn checkbox giữ "System key"; TC-CVJDMATCHINGWIZARD-047, TC-AICREDENTIALS-049, TC-MULTIPROVIDERCOMPARE-062 cập nhật theo (commit: f2b407e).

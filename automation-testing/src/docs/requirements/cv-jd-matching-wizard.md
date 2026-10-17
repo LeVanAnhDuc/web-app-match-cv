@@ -40,7 +40,7 @@ Mã REQ-CVJDMATCHINGWIZARD-38 bỏ trống có chủ đích (rate limit riêng c
 
 - **REQ-CVJDMATCHINGWIZARD-24** Bước 3 hiện `wizard.stepReview.title` + `wizard.stepReview.description`, hai khung CV và JD chỉ đọc (không có ô sửa được): text → hiện nguyên văn; PDF/DOCX → xem trước bản gốc.
 - **REQ-CVJDMATCHINGWIZARD-25** Trong lúc tải tài liệu hiện `review.loading`; tải lỗi (vd 404 vì tài liệu không còn) phải ra trạng thái lỗi có lối thoát (alert + Back), không quay `review.loading` vô hạn. Xem trước PDF lỗi → `preview.error`.
-- **REQ-CVJDMATCHINGWIZARD-26** Trước khi bấm chạy, bước 3 nêu đích danh bên sắp nhận nội dung CV/JD (`credentials.runWith.privacyList`), cho cả người đã đăng nhập lẫn khách (khách chạy bằng key hệ thống).
+- **REQ-CVJDMATCHINGWIZARD-26** Trước khi bấm chạy, bước 3 nêu đích danh nhà cung cấp sắp nhận nội dung CV/JD (NFR-DATA-05): khách (luôn chạy bằng key hệ thống) thấy `credentials.runWith.privacySystem` "Your CV and JD text will be sent to OpenRouter using the system key."; người đã đăng nhập thấy `credentials.runWith.privacyList`, trong đó key hệ thống được nêu là `credentials.runWith.privacySystemEntry` "OpenRouter (system key)" (quyết định Q10, user 2026-10-17).
 - **REQ-CVJDMATCHINGWIZARD-27** User chưa thêm khoá AI nào: mặc định chạy bằng `credentials.systemKey` "System key", một kết quả; nút `action.runMatch` "Run match".
 - **REQ-CVJDMATCHINGWIZARD-28** "Run match" mở run (`POST /match/runs`) rồi sang bước 4 ngay; nút loading trong lúc mở run; mở run lỗi → lỗi inline `role="alert"` ở bước 3. Bấm đúp chỉ sinh đúng 1 `POST /match/runs` và 1 `POST /match` mỗi provider.
 

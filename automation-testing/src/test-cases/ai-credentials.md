@@ -458,7 +458,7 @@ Các lăng kính đi theo thứ tự trong `CLAUDE.md`; mỗi case nằm ở lă
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** user riêng của test (`aiCredUser`) không có credential
 - **Bước:** tới step 3
-- **Mong đợi:** chỉ có checkbox System key và nó được tick; dòng quyền riêng tư nêu "System key"; không có cảnh báo
+- **Mong đợi:** chỉ có checkbox System key và nó được tick; dòng quyền riêng tư nêu "OpenRouter (system key)" (`credentials.runWith.privacySystemEntry`, quyết định Q10 của cv-jd-matching-wizard, 2026-10-17); không có cảnh báo
 - **Automated:** `tests/e2e/ai-credentials/wizard-run-with.e2e.ts`
 
 ### TC-AICREDENTIALS-050 — credential chưa qua kiểm tra vẫn chọn được và cảnh báo đếm số nhiều đúng

@@ -99,6 +99,14 @@ từ code client đã đọc (testid `stepper-step-N`, `#step-blocked-N`, meter 
     Bỏ assert `textarea aria-label` ở bước 3 (bước 3 giờ chỉ đọc, REQ-24).
   - `helpers.ts` cũ: giữ tạm dạng DEPRECATED trong lúc các module khác còn import; đã xoá 2026-10-14 khi không còn
     spec nào dùng (cùng lúc với `multi-provider-compare/helpers.ts`).
+- **Q10 — Thông báo quyền riêng tư nêu đích danh OpenRouter (user, 2026-10-17, ghi đè cách nói trước).** NFR-DATA-05
+  đòi nêu đích danh bên nhận; "System key" không phải tên nhà cung cấp. Trước đây REQ-26 / TC-042 / TC-047 chốt câu
+  `credentials.runWith.privacyList` với "System key" ("…sent to: System key."), mâu thuẫn với REQ-MULTIPROVIDERCOMPARE-04/05.
+  User chốt: khách thấy `credentials.runWith.privacySystem` ("Your CV and JD text will be sent to OpenRouter using the
+  system key."); user đã đăng nhập giữ câu `privacyList`, mục key hệ thống trong danh sách là
+  `credentials.runWith.privacySystemEntry` "OpenRouter (system key)" / "OpenRouter (key hệ thống)". Nhãn checkbox vẫn là
+  "System key". → REQ-26, TC-042, TC-047 (cùng REQ-AICREDENTIALS-35 / TC-AICREDENTIALS-049); đóng
+  BUG-MULTIPROVIDERCOMPARE-03, BUG-MULTIPROVIDERCOMPARE-04.
 
 ## 3. Tài khoản test
 

@@ -361,7 +361,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 - **Requirement:** REQ-CVJDMATCHINGWIZARD-26
 - **Layer:** e2e · **Priority:** P1
 - **Bước:** khách đi tới bước 3
-- **Mong đợi:** `credentials.runWith.privacyList` với "System key" hiện trước nút Run match
+- **Mong đợi:** `credentials.runWith.privacySystem` "Your CV and JD text will be sent to OpenRouter using the system key." hiện trước nút Run match (Q10, user 2026-10-17)
 - **Kiểm chứng thêm:** đã sửa — [BUG-CVJDMATCHINGWIZARD-05](../defects/cv-jd-matching-wizard.md#bug-cvjdmatchingwizard-05)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/guest.e2e.ts`
 
@@ -403,7 +403,7 @@ chỉ `POST /match` bị stub (D1). Case API dùng user tạo bằng `utils/sess
 
 - **Requirement:** REQ-CVJDMATCHINGWIZARD-26
 - **Layer:** e2e · **Priority:** P1
-- **Mong đợi:** ở bước 3 hiện `credentials.runWith.privacyList` với "System key"
+- **Mong đợi:** ở bước 3 (user chưa có khoá, key hệ thống chọn sẵn) hiện `credentials.runWith.privacyList` với `credentials.runWith.privacySystemEntry` "OpenRouter (system key)" (Q10, user 2026-10-17)
 - **Automated:** `tests/e2e/cv-jd-matching-wizard/review.e2e.ts`
 
 ### TC-CVJDMATCHINGWIZARD-048 — user chưa có khoá AI mặc định chạy bằng key hệ thống

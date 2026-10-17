@@ -108,7 +108,7 @@ test.describe("ai-credentials — wizard Run with", () => {
 
       await expect(runWithStep.systemKeyCheckbox()).toBeChecked();
       await expect(runWithStep.checkboxes()).toHaveCount(1);
-      await expect(runWithStep.privacyLine([t("credentials.systemKey")])).toBeVisible();
+      await expect(runWithStep.privacyLine([t("credentials.runWith.privacySystemEntry")])).toBeVisible();
       await expect(runWithStep.anyUntestedWarning()).toHaveCount(0);
     }
   );

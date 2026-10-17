@@ -49,6 +49,7 @@ _(không có)_
 - **Mong đợi:** trước nút Run match có câu nêu đích danh bên nhận nội dung (`credentials.runWith.privacyList` "Your CV and JD text will be sent to: System key."), như người đã đăng nhập (NFR-DATA-05, security-report Plan 2 must-fix #3, ux-copy §8)
 - **Thực tế:** khách không thấy câu nào: `RunWithSelector` (nơi duy nhất render câu này) chỉ hiện khi `isUser`; `result.disclaimer` có trong locale nhưng không còn được dùng ở đâu. Nội dung CV của khách vẫn được gửi tới provider qua key hệ thống.
 - **Đã sửa:** root cause — câu `credentials.runWith.privacyList` chỉ nằm trong `RunWithSelector`, mà bước 3 chỉ mount nó cho user. Fix — tách `RunPrivacyNotice`; `StepReview` hiện nó cho khách với "System key" (commit: 851bf90).
+- **Cập nhật 2026-10-17:** user chốt cách nói mới (quyết định Q10, NFR-DATA-05) — khách thấy `credentials.runWith.privacySystem` ("…sent to OpenRouter using the system key."), không còn "System key"; xem BUG-MULTIPROVIDERCOMPARE-03.
 
 ### BUG-CVJDMATCHINGWIZARD-06
 

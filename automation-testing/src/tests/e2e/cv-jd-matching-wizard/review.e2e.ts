@@ -77,7 +77,7 @@ test.describe("step 3 — review", () => {
       await wizardPage.goto();
       await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
 
-      await expect(wizardPage.privacyNotice(t("credentials.systemKey"))).toBeVisible();
+      await expect(wizardPage.privacyNotice(t("credentials.runWith.privacySystemEntry"))).toBeVisible();
     }
   );
 

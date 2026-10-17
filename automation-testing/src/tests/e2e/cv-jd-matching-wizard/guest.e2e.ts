@@ -36,7 +36,7 @@ test.describe("guest", () => {
       await wizardPage.advanceToReview(uniqueText(JD_TEXT), uniqueText(CV_TEXT));
 
       await expect(wizardPage.runMatchButton()).toBeVisible();
-      await expect(wizardPage.privacyNotice(t("credentials.systemKey"))).toBeVisible();
+      await expect(wizardPage.systemPrivacyNotice()).toBeVisible();
     }
   );
 

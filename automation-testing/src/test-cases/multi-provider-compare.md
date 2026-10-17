@@ -258,7 +258,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** user không có credential (key hệ thống là lựa chọn mặc định duy nhất)
 - **Mong đợi:** dòng quyền riêng tư có chữ "OpenRouter"
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-04 (hiện chỉ ghi "System key")
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-04](../defects/multi-provider-compare.md#bug-multiprovidercompare-04) (mục key hệ thống đọc "OpenRouter (system key)", Q13)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-029 — khách không thấy khối chọn và chạy đúng một card bằng key hệ thống
@@ -276,7 +276,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1 · **Tags:** @creates-data
 - **Bước:** khách tới bước 3
 - **Mong đợi:** thấy "Your CV and JD text will be sent to OpenRouter using the system key."
-- **Kiểm chứng thêm:** đang mở BUG-MULTIPROVIDERCOMPARE-03
+- **Kiểm chứng thêm:** đã sửa — [BUG-MULTIPROVIDERCOMPARE-03](../defects/multi-provider-compare.md#bug-multiprovidercompare-03)
 - **Automated:** `tests/e2e/multi-provider-compare/provider-selection.e2e.ts`
 
 ## UI — mở run
@@ -553,7 +553,7 @@ khác), 10 → 042 + 033, 11 → 044 + 047, 12 → 023 + 024 + 032; row 2/3 (Aut
 - **Layer:** e2e · **Priority:** P1
 - **Tiền điều kiện:** credential Gemini lỗi `no_quota`; key hệ thống thành công sau 3 s
 - **Bước:** bước 3 → `setLanguage("vi")` → chọn cả hai → Run match
-- **Mong đợi:** "Chạy bằng", "Chạy so khớp · 2 provider", "Nội dung CV và JD của bạn sẽ được gửi tới: Google Gemini, Key hệ thống."; card chờ "Key hệ thống"; alert "Key này đã hết hạn mức ở nhà cung cấp.", "Thử lại", "Xem báo cáo đầy đủ"; không chuỗi dạng `result.xxx` / `credentials.xxx`
+- **Mong đợi:** "Chạy bằng", "Chạy so khớp · 2 provider", "Nội dung CV và JD của bạn sẽ được gửi tới: Google Gemini, OpenRouter (key hệ thống)." (Q13); card chờ "Key hệ thống"; alert "Key này đã hết hạn mức ở nhà cung cấp.", "Thử lại", "Xem báo cáo đầy đủ"; không chuỗi dạng `result.xxx` / `credentials.xxx`
 - **Automated:** `tests/e2e/multi-provider-compare/i18n.e2e.ts`
 
 ### TC-MULTIPROVIDERCOMPARE-063 — run chưa có kết quả hiện trạng thái rỗng bằng tiếng Việt
