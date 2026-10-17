@@ -54,8 +54,9 @@ test.describe("validation", () => {
       expect(err.error).toBe("Bad Request");
       expect(Array.isArray(err.message)).toBe(true);
       const messages = err.message as string[];
-      expect(messages.some((m) => m.includes("kind"))).toBe(true);
-      expect(messages.some((m) => m.includes("title"))).toBe(true);
+      // Messages are human sentences ("Title must be at most 200 characters."), so match the field name, not its case.
+      expect(messages.some((m) => /\bkind\b/i.test(m))).toBe(true);
+      expect(messages.some((m) => /\btitle\b/i.test(m))).toBe(true);
     }
   );
 
