@@ -249,7 +249,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 - **Requirement:** REQ-CVVERSIONCOMPARISON-06, REQ-CVVERSIONCOMPARISON-23
 - **Layer:** api · **Priority:** P1
 - **Bước:** gây 8 lớp 400: `notCv`, `noParent`, `jdNotComparable`, `lineageSelf`, `lineageParentNotFound`, `lineageKindMismatch`, `lineageCycle`, `lineageTooDeep`
-- **Mong đợi:** mỗi body có `code` là chuỗi không rỗng, 8 code khác nhau (BUG-CVVERSIONCOMPARISON-02)
+- **Mong đợi:** mỗi body có `code` là chuỗi không rỗng, 8 code khác nhau — đã sửa: [BUG-CVVERSIONCOMPARISON-02](../defects/cv-version-comparison.md#bug-cvversioncomparison-02)
 - **Automated:** `tests/api/cv-version-comparison/lineage.api.ts`
 
 ## API — provider thật (@live-ai)
@@ -372,7 +372,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 - **Requirement:** REQ-CVVERSIONCOMPARISON-16
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** cùng chat model, embed model khác nhau
-- **Mong đợi:** cảnh báo + "Not comparable"; hint chứa tên hai embedding model (BUG-CVVERSIONCOMPARISON-01)
+- **Mong đợi:** cảnh báo + "Not comparable"; hint chứa tên hai embedding model — đã sửa: [BUG-CVVERSIONCOMPARISON-01](../defects/cv-version-comparison.md#bug-cvversioncomparison-01)
 - **Automated:** `tests/e2e/cv-version-comparison/comparison-report.e2e.ts`
 
 ### TC-CVVERSIONCOMPARISON-045 — phiên bản chưa match có lời mời match, không có ô điểm nào
@@ -481,7 +481,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 - **Requirement:** REQ-CVVERSIONCOMPARISON-20
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** `/compare/<CV gốc>?jd=<JD đã match>` (server trả 400 `noParent`)
-- **Mong đợi:** `compare.err.noParent` (BUG-CVVERSIONCOMPARISON-03)
+- **Mong đợi:** `compare.err.noParent` — đã sửa: [BUG-CVVERSIONCOMPARISON-03](../defects/cv-version-comparison.md#bug-cvversioncomparison-03)
 - **Automated:** `tests/e2e/cv-version-comparison/errors-and-loading.e2e.ts`
 
 ### TC-CVVERSIONCOMPARISON-059 — mở so sánh bằng id của JD không bị báo nhầm là chưa có bản trước
@@ -489,7 +489,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 - **Requirement:** REQ-CVVERSIONCOMPARISON-20
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** `/compare/<id của JD>` (server trả 400 `notCv`)
-- **Mong đợi:** có thông báo lỗi, không phải `compare.err.noParent` hay `jdNotComparable` (BUG-CVVERSIONCOMPARISON-03)
+- **Mong đợi:** có thông báo lỗi, không phải `compare.err.noParent` hay `jdNotComparable` — đã sửa: [BUG-CVVERSIONCOMPARISON-03](../defects/cv-version-comparison.md#bug-cvversioncomparison-03)
 - **Automated:** `tests/e2e/cv-version-comparison/errors-and-loading.e2e.ts`
 
 ## UI — hộp thoại lineage
@@ -554,7 +554,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 - **Requirement:** REQ-CVVERSIONCOMPARISON-25, REQ-CVVERSIONCOMPARISON-23
 - **Layer:** e2e · **Priority:** P2
 - **Bước:** chọn đuôi một chuỗi 21 CV làm bản trước (server 400 `lineageTooDeep`)
-- **Mong đợi:** Alert trong modal, modal mở, `parentId` không đổi; nội dung **không** phải câu "tự trỏ / bản mới hơn" `library.lineage.rejected` (BUG-CVVERSIONCOMPARISON-04)
+- **Mong đợi:** Alert trong modal, modal mở, `parentId` không đổi; nội dung **không** phải câu "tự trỏ / bản mới hơn" `library.lineage.rejected` — đã sửa: [BUG-CVVERSIONCOMPARISON-04](../defects/cv-version-comparison.md#bug-cvversioncomparison-04)
 - **Automated:** `tests/e2e/cv-version-comparison/lineage-dialog.e2e.ts`
 
 ### TC-CVVERSIONCOMPARISON-068 — Esc đóng hộp thoại mà không lưu
@@ -568,7 +568,7 @@ phân vùng → biên → trạng thái → đoán lỗi → bảo mật.
 
 - **Requirement:** REQ-CVVERSIONCOMPARISON-28
 - **Layer:** e2e · **Priority:** P2
-- **Mong đợi:** khi mở, combobox "Previous version" có focus; `Esc` → focus về nút Actions của hàng đó (BUG-CVVERSIONCOMPARISON-05)
+- **Mong đợi:** khi mở, combobox "Previous version" có focus; `Esc` → focus về nút Actions của hàng đó — đã sửa: [BUG-CVVERSIONCOMPARISON-05](../defects/cv-version-comparison.md#bug-cvversioncomparison-05)
 - **Automated:** `tests/e2e/cv-version-comparison/lineage-dialog.e2e.ts`
 
 ### TC-CVVERSIONCOMPARISON-070 — Select JD dùng được bằng bàn phím và Tab đi tiếp tới nút hành động
